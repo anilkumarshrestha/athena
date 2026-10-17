@@ -1,0 +1,4346 @@
+[
+ {
+  "word": "आमा",
+  "category": "family",
+  "units": [
+   "आ",
+   "मा"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:म",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "बुबा",
+  "category": "family",
+  "units": [
+   "बु",
+   "बा"
+  ],
+  "signatures": [
+   "c:ब",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "बाबा",
+  "category": "family",
+  "units": [
+   "बा",
+   "बा"
+  ],
+  "signatures": [
+   "c:ब",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "दाइ",
+  "category": "family",
+  "units": [
+   "दा",
+   "इ"
+  ],
+  "signatures": [
+   "c:इ",
+   "c:द",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "दिदी",
+  "category": "family",
+  "units": [
+   "दि",
+   "दी"
+  ],
+  "signatures": [
+   "c:द",
+   "m:ि",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "भाइ",
+  "category": "family",
+  "units": [
+   "भा",
+   "इ"
+  ],
+  "signatures": [
+   "c:इ",
+   "c:भ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "बहिनी",
+  "category": "family",
+  "units": [
+   "ब",
+   "हि",
+   "नी"
+  ],
+  "signatures": [
+   "c:न",
+   "c:ब",
+   "c:ह",
+   "m:ि",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "हजुरआमा",
+  "category": "family",
+  "units": [
+   "ह",
+   "जु",
+   "र",
+   "आ",
+   "मा"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ज",
+   "c:म",
+   "c:र",
+   "c:ह",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "हजुरबुबा",
+  "category": "family",
+  "units": [
+   "ह",
+   "जु",
+   "र",
+   "बु",
+   "बा"
+  ],
+  "signatures": [
+   "c:ज",
+   "c:ब",
+   "c:र",
+   "c:ह",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "काका",
+  "category": "family",
+  "units": [
+   "का",
+   "का"
+  ],
+  "signatures": [
+   "c:क",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "काकी",
+  "category": "family",
+  "units": [
+   "का",
+   "की"
+  ],
+  "signatures": [
+   "c:क",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "मामा",
+  "category": "family",
+  "units": [
+   "मा",
+   "मा"
+  ],
+  "signatures": [
+   "c:म",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "माइजू",
+  "category": "family",
+  "units": [
+   "मा",
+   "इ",
+   "जू"
+  ],
+  "signatures": [
+   "c:इ",
+   "c:ज",
+   "c:म",
+   "m:ा",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "फुपू",
+  "category": "family",
+  "units": [
+   "फु",
+   "पू"
+  ],
+  "signatures": [
+   "c:प",
+   "c:फ",
+   "m:ु",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "सानिमा",
+  "category": "family",
+  "units": [
+   "सा",
+   "नि",
+   "मा"
+  ],
+  "signatures": [
+   "c:न",
+   "c:म",
+   "c:स",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "ठूलीआमा",
+  "category": "family",
+  "units": [
+   "ठू",
+   "ली",
+   "आ",
+   "मा"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ठ",
+   "c:म",
+   "c:ल",
+   "m:ा",
+   "m:ी",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "छोरा",
+  "category": "family",
+  "units": [
+   "छो",
+   "रा"
+  ],
+  "signatures": [
+   "c:छ",
+   "c:र",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "छोरी",
+  "category": "family",
+  "units": [
+   "छो",
+   "री"
+  ],
+  "signatures": [
+   "c:छ",
+   "c:र",
+   "m:ी",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "साथी",
+  "category": "family",
+  "units": [
+   "सा",
+   "थी"
+  ],
+  "signatures": [
+   "c:थ",
+   "c:स",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "गुरु",
+  "category": "family",
+  "units": [
+   "गु",
+   "रु"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:र",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "गुरुआमा",
+  "category": "family",
+  "units": [
+   "गु",
+   "रु",
+   "आ",
+   "मा"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ग",
+   "c:म",
+   "c:र",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "मान्छे",
+  "category": "family",
+  "units": [
+   "मा",
+   "न्छे"
+  ],
+  "signatures": [
+   "c:म",
+   "k:न्छ",
+   "m:ा",
+   "m:े"
+  ]
+ },
+ {
+  "word": "केटा",
+  "category": "family",
+  "units": [
+   "के",
+   "टा"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ट",
+   "m:ा",
+   "m:े"
+  ]
+ },
+ {
+  "word": "केटी",
+  "category": "family",
+  "units": [
+   "के",
+   "टी"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ट",
+   "m:ी",
+   "m:े"
+  ]
+ },
+ {
+  "word": "बच्चा",
+  "category": "family",
+  "units": [
+   "ब",
+   "च्चा"
+  ],
+  "signatures": [
+   "c:ब",
+   "k:च्च",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "नानी",
+  "category": "family",
+  "units": [
+   "ना",
+   "नी"
+  ],
+  "signatures": [
+   "c:न",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "बाजे",
+  "category": "family",
+  "units": [
+   "बा",
+   "जे"
+  ],
+  "signatures": [
+   "c:ज",
+   "c:ब",
+   "m:ा",
+   "m:े"
+  ]
+ },
+ {
+  "word": "बज्यै",
+  "category": "family",
+  "units": [
+   "ब",
+   "ज्यै"
+  ],
+  "signatures": [
+   "c:ब",
+   "k:ज्य",
+   "m:ै"
+  ]
+ },
+ {
+  "word": "दादा",
+  "category": "family",
+  "units": [
+   "दा",
+   "दा"
+  ],
+  "signatures": [
+   "c:द",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "भात",
+  "category": "food",
+  "units": [
+   "भा",
+   "त"
+  ],
+  "signatures": [
+   "c:त",
+   "c:भ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "दाल",
+  "category": "food",
+  "units": [
+   "दा",
+   "ल"
+  ],
+  "signatures": [
+   "c:द",
+   "c:ल",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "तरकारी",
+  "category": "food",
+  "units": [
+   "त",
+   "र",
+   "का",
+   "री"
+  ],
+  "signatures": [
+   "c:क",
+   "c:त",
+   "c:र",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "रोटी",
+  "category": "food",
+  "units": [
+   "रो",
+   "टी"
+  ],
+  "signatures": [
+   "c:ट",
+   "c:र",
+   "m:ी",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "दूध",
+  "category": "food",
+  "units": [
+   "दू",
+   "ध"
+  ],
+  "signatures": [
+   "c:द",
+   "c:ध",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "दही",
+  "category": "food",
+  "units": [
+   "द",
+   "ही"
+  ],
+  "signatures": [
+   "c:द",
+   "c:ह",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "घिउ",
+  "category": "food",
+  "units": [
+   "घि",
+   "उ"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:घ",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "मह",
+  "category": "food",
+  "units": [
+   "म",
+   "ह"
+  ],
+  "signatures": [
+   "c:म",
+   "c:ह"
+  ]
+ },
+ {
+  "word": "चिनी",
+  "category": "food",
+  "units": [
+   "चि",
+   "नी"
+  ],
+  "signatures": [
+   "c:च",
+   "c:न",
+   "m:ि",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "नुन",
+  "category": "food",
+  "units": [
+   "नु",
+   "न"
+  ],
+  "signatures": [
+   "c:न",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "पानी",
+  "category": "food",
+  "units": [
+   "पा",
+   "नी"
+  ],
+  "signatures": [
+   "c:न",
+   "c:प",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "चिया",
+  "category": "food",
+  "units": [
+   "चि",
+   "या"
+  ],
+  "signatures": [
+   "c:च",
+   "c:य",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "अचार",
+  "category": "food",
+  "units": [
+   "अ",
+   "चा",
+   "र"
+  ],
+  "signatures": [
+   "c:अ",
+   "c:च",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "मकै",
+  "category": "food",
+  "units": [
+   "म",
+   "कै"
+  ],
+  "signatures": [
+   "c:क",
+   "c:म",
+   "m:ै"
+  ]
+ },
+ {
+  "word": "गहुँ",
+  "category": "food",
+  "units": [
+   "ग",
+   "हुँ"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ह",
+   "m:ँ",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "चामल",
+  "category": "food",
+  "units": [
+   "चा",
+   "म",
+   "ल"
+  ],
+  "signatures": [
+   "c:च",
+   "c:म",
+   "c:ल",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "फलफूल",
+  "category": "food",
+  "units": [
+   "फ",
+   "ल",
+   "फू",
+   "ल"
+  ],
+  "signatures": [
+   "c:फ",
+   "c:ल",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "आँप",
+  "category": "food",
+  "units": [
+   "आँ",
+   "प"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:प",
+   "m:ँ"
+  ]
+ },
+ {
+  "word": "केरा",
+  "category": "food",
+  "units": [
+   "के",
+   "रा"
+  ],
+  "signatures": [
+   "c:क",
+   "c:र",
+   "m:ा",
+   "m:े"
+  ]
+ },
+ {
+  "word": "स्याउ",
+  "category": "food",
+  "units": [
+   "स्या",
+   "उ"
+  ],
+  "signatures": [
+   "c:उ",
+   "k:स्य",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "सुन्तला",
+  "category": "food",
+  "units": [
+   "सु",
+   "न्त",
+   "ला"
+  ],
+  "signatures": [
+   "c:ल",
+   "c:स",
+   "k:न्त",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "अम्बा",
+  "category": "food",
+  "units": [
+   "अ",
+   "म्बा"
+  ],
+  "signatures": [
+   "c:अ",
+   "k:म्ब",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "अनार",
+  "category": "food",
+  "units": [
+   "अ",
+   "ना",
+   "र"
+  ],
+  "signatures": [
+   "c:अ",
+   "c:न",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "अंगुर",
+  "category": "food",
+  "units": [
+   "अं",
+   "गु",
+   "र"
+  ],
+  "signatures": [
+   "c:अ",
+   "c:ग",
+   "c:र",
+   "m:ं",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "कागती",
+  "category": "food",
+  "units": [
+   "का",
+   "ग",
+   "ती"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ग",
+   "c:त",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "मेवा",
+  "category": "food",
+  "units": [
+   "मे",
+   "वा"
+  ],
+  "signatures": [
+   "c:म",
+   "c:व",
+   "m:ा",
+   "m:े"
+  ]
+ },
+ {
+  "word": "भटमास",
+  "category": "food",
+  "units": [
+   "भ",
+   "ट",
+   "मा",
+   "स"
+  ],
+  "signatures": [
+   "c:ट",
+   "c:भ",
+   "c:म",
+   "c:स",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "आलु",
+  "category": "food",
+  "units": [
+   "आ",
+   "लु"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ल",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "गोलभेडा",
+  "category": "food",
+  "units": [
+   "गो",
+   "ल",
+   "भे",
+   "डा"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ड",
+   "c:भ",
+   "c:ल",
+   "m:ा",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "काउली",
+  "category": "food",
+  "units": [
+   "का",
+   "उ",
+   "ली"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:क",
+   "c:ल",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "बन्दा",
+  "category": "food",
+  "units": [
+   "ब",
+   "न्दा"
+  ],
+  "signatures": [
+   "c:ब",
+   "k:न्द",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "साग",
+  "category": "food",
+  "units": [
+   "सा",
+   "ग"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:स",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "मासु",
+  "category": "food",
+  "units": [
+   "मा",
+   "सु"
+  ],
+  "signatures": [
+   "c:म",
+   "c:स",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "अण्डा",
+  "category": "food",
+  "units": [
+   "अ",
+   "ण्डा"
+  ],
+  "signatures": [
+   "c:अ",
+   "k:ण्ड",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "माछा",
+  "category": "food",
+  "units": [
+   "मा",
+   "छा"
+  ],
+  "signatures": [
+   "c:छ",
+   "c:म",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "मोमो",
+  "category": "food",
+  "units": [
+   "मो",
+   "मो"
+  ],
+  "signatures": [
+   "c:म",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "सेल",
+  "category": "food",
+  "units": [
+   "से",
+   "ल"
+  ],
+  "signatures": [
+   "c:ल",
+   "c:स",
+   "m:े"
+  ]
+ },
+ {
+  "word": "खीर",
+  "category": "food",
+  "units": [
+   "खी",
+   "र"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:र",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "ढिँडो",
+  "category": "food",
+  "units": [
+   "ढिँ",
+   "डो"
+  ],
+  "signatures": [
+   "c:ड",
+   "c:ढ",
+   "m:ँ",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "गुन्द्रुक",
+  "category": "food",
+  "units": [
+   "गु",
+   "न्द्रु",
+   "क"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ग",
+   "k:न्द्र",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "च्याउ",
+  "category": "food",
+  "units": [
+   "च्या",
+   "उ"
+  ],
+  "signatures": [
+   "c:उ",
+   "k:च्य",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "मूला",
+  "category": "food",
+  "units": [
+   "मू",
+   "ला"
+  ],
+  "signatures": [
+   "c:म",
+   "c:ल",
+   "m:ा",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "गाजर",
+  "category": "food",
+  "units": [
+   "गा",
+   "ज",
+   "र"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ज",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "प्याज",
+  "category": "food",
+  "units": [
+   "प्या",
+   "ज"
+  ],
+  "signatures": [
+   "c:ज",
+   "k:प्य",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "लसुन",
+  "category": "food",
+  "units": [
+   "ल",
+   "सु",
+   "न"
+  ],
+  "signatures": [
+   "c:न",
+   "c:ल",
+   "c:स",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "खुर्सानी",
+  "category": "food",
+  "units": [
+   "खु",
+   "र्सा",
+   "नी"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:न",
+   "k:र्स",
+   "m:ा",
+   "m:ी",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "गाई",
+  "category": "animals",
+  "units": [
+   "गा",
+   "ई"
+  ],
+  "signatures": [
+   "c:ई",
+   "c:ग",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "भैंसी",
+  "category": "animals",
+  "units": [
+   "भैं",
+   "सी"
+  ],
+  "signatures": [
+   "c:भ",
+   "c:स",
+   "m:ं",
+   "m:ी",
+   "m:ै"
+  ]
+ },
+ {
+  "word": "बाख्रा",
+  "category": "animals",
+  "units": [
+   "बा",
+   "ख्रा"
+  ],
+  "signatures": [
+   "c:ब",
+   "k:ख्र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "भेडा",
+  "category": "animals",
+  "units": [
+   "भे",
+   "डा"
+  ],
+  "signatures": [
+   "c:ड",
+   "c:भ",
+   "m:ा",
+   "m:े"
+  ]
+ },
+ {
+  "word": "कुकुर",
+  "category": "animals",
+  "units": [
+   "कु",
+   "कु",
+   "र"
+  ],
+  "signatures": [
+   "c:क",
+   "c:र",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "बिरालो",
+  "category": "animals",
+  "units": [
+   "बि",
+   "रा",
+   "लो"
+  ],
+  "signatures": [
+   "c:ब",
+   "c:र",
+   "c:ल",
+   "m:ा",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "मुसा",
+  "category": "animals",
+  "units": [
+   "मु",
+   "सा"
+  ],
+  "signatures": [
+   "c:म",
+   "c:स",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "घोडा",
+  "category": "animals",
+  "units": [
+   "घो",
+   "डा"
+  ],
+  "signatures": [
+   "c:घ",
+   "c:ड",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "गधा",
+  "category": "animals",
+  "units": [
+   "ग",
+   "धा"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ध",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "हात्ती",
+  "category": "animals",
+  "units": [
+   "हा",
+   "त्ती"
+  ],
+  "signatures": [
+   "c:ह",
+   "k:त्त",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "बाघ",
+  "category": "animals",
+  "units": [
+   "बा",
+   "घ"
+  ],
+  "signatures": [
+   "c:घ",
+   "c:ब",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "भालु",
+  "category": "animals",
+  "units": [
+   "भा",
+   "लु"
+  ],
+  "signatures": [
+   "c:भ",
+   "c:ल",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "बाँदर",
+  "category": "animals",
+  "units": [
+   "बाँ",
+   "द",
+   "र"
+  ],
+  "signatures": [
+   "c:द",
+   "c:ब",
+   "c:र",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "खरायो",
+  "category": "animals",
+  "units": [
+   "ख",
+   "रा",
+   "यो"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:य",
+   "c:र",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "हरिण",
+  "category": "animals",
+  "units": [
+   "ह",
+   "रि",
+   "ण"
+  ],
+  "signatures": [
+   "c:ण",
+   "c:र",
+   "c:ह",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "चरा",
+  "category": "animals",
+  "units": [
+   "च",
+   "रा"
+  ],
+  "signatures": [
+   "c:च",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "कुखुरा",
+  "category": "animals",
+  "units": [
+   "कु",
+   "खु",
+   "रा"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ख",
+   "c:र",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "हाँस",
+  "category": "animals",
+  "units": [
+   "हाँ",
+   "स"
+  ],
+  "signatures": [
+   "c:स",
+   "c:ह",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "परेवा",
+  "category": "animals",
+  "units": [
+   "प",
+   "रे",
+   "वा"
+  ],
+  "signatures": [
+   "c:प",
+   "c:र",
+   "c:व",
+   "m:ा",
+   "m:े"
+  ]
+ },
+ {
+  "word": "काग",
+  "category": "animals",
+  "units": [
+   "का",
+   "ग"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ग",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "सुगा",
+  "category": "animals",
+  "units": [
+   "सु",
+   "गा"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:स",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "मयूर",
+  "category": "animals",
+  "units": [
+   "म",
+   "यू",
+   "र"
+  ],
+  "signatures": [
+   "c:म",
+   "c:य",
+   "c:र",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "भ्यागुतो",
+  "category": "animals",
+  "units": [
+   "भ्या",
+   "गु",
+   "तो"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:त",
+   "k:भ्य",
+   "m:ा",
+   "m:ु",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "कमिला",
+  "category": "animals",
+  "units": [
+   "क",
+   "मि",
+   "ला"
+  ],
+  "signatures": [
+   "c:क",
+   "c:म",
+   "c:ल",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "पुतली",
+  "category": "animals",
+  "units": [
+   "पु",
+   "त",
+   "ली"
+  ],
+  "signatures": [
+   "c:त",
+   "c:प",
+   "c:ल",
+   "m:ी",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "माहुरी",
+  "category": "animals",
+  "units": [
+   "मा",
+   "हु",
+   "री"
+  ],
+  "signatures": [
+   "c:म",
+   "c:र",
+   "c:ह",
+   "m:ा",
+   "m:ी",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "गँड्यौला",
+  "category": "animals",
+  "units": [
+   "गँ",
+   "ड्यौ",
+   "ला"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ल",
+   "k:ड्य",
+   "m:ँ",
+   "m:ा",
+   "m:ौ"
+  ]
+ },
+ {
+  "word": "याक",
+  "category": "animals",
+  "units": [
+   "या",
+   "क"
+  ],
+  "signatures": [
+   "c:क",
+   "c:य",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "चिल",
+  "category": "animals",
+  "units": [
+   "चि",
+   "ल"
+  ],
+  "signatures": [
+   "c:च",
+   "c:ल",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "गाउँ",
+  "category": "places",
+  "units": [
+   "गा",
+   "उँ"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:ग",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "घर",
+  "category": "places",
+  "units": [
+   "घ",
+   "र"
+  ],
+  "signatures": [
+   "c:घ",
+   "c:र"
+  ]
+ },
+ {
+  "word": "आँगन",
+  "category": "places",
+  "units": [
+   "आँ",
+   "ग",
+   "न"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ग",
+   "c:न",
+   "m:ँ"
+  ]
+ },
+ {
+  "word": "बारी",
+  "category": "places",
+  "units": [
+   "बा",
+   "री"
+  ],
+  "signatures": [
+   "c:ब",
+   "c:र",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "खेत",
+  "category": "places",
+  "units": [
+   "खे",
+   "त"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:त",
+   "m:े"
+  ]
+ },
+ {
+  "word": "बाटो",
+  "category": "places",
+  "units": [
+   "बा",
+   "टो"
+  ],
+  "signatures": [
+   "c:ट",
+   "c:ब",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "पुल",
+  "category": "places",
+  "units": [
+   "पु",
+   "ल"
+  ],
+  "signatures": [
+   "c:प",
+   "c:ल",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "खोला",
+  "category": "places",
+  "units": [
+   "खो",
+   "ला"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:ल",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "नदी",
+  "category": "places",
+  "units": [
+   "न",
+   "दी"
+  ],
+  "signatures": [
+   "c:द",
+   "c:न",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "पोखरी",
+  "category": "places",
+  "units": [
+   "पो",
+   "ख",
+   "री"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:प",
+   "c:र",
+   "m:ी",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "डाँडा",
+  "category": "places",
+  "units": [
+   "डाँ",
+   "डा"
+  ],
+  "signatures": [
+   "c:ड",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "पहाड",
+  "category": "places",
+  "units": [
+   "प",
+   "हा",
+   "ड"
+  ],
+  "signatures": [
+   "c:ड",
+   "c:प",
+   "c:ह",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "हिमाल",
+  "category": "places",
+  "units": [
+   "हि",
+   "मा",
+   "ल"
+  ],
+  "signatures": [
+   "c:म",
+   "c:ल",
+   "c:ह",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "वन",
+  "category": "places",
+  "units": [
+   "व",
+   "न"
+  ],
+  "signatures": [
+   "c:न",
+   "c:व"
+  ]
+ },
+ {
+  "word": "जंगल",
+  "category": "places",
+  "units": [
+   "जं",
+   "ग",
+   "ल"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ज",
+   "c:ल",
+   "m:ं"
+  ]
+ },
+ {
+  "word": "रुख",
+  "category": "places",
+  "units": [
+   "रु",
+   "ख"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:र",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "फूल",
+  "category": "places",
+  "units": [
+   "फू",
+   "ल"
+  ],
+  "signatures": [
+   "c:फ",
+   "c:ल",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "पात",
+  "category": "places",
+  "units": [
+   "पा",
+   "त"
+  ],
+  "signatures": [
+   "c:त",
+   "c:प",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "घाँस",
+  "category": "places",
+  "units": [
+   "घाँ",
+   "स"
+  ],
+  "signatures": [
+   "c:घ",
+   "c:स",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "ढुंगा",
+  "category": "places",
+  "units": [
+   "ढुं",
+   "गा"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ढ",
+   "m:ं",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "माटो",
+  "category": "places",
+  "units": [
+   "मा",
+   "टो"
+  ],
+  "signatures": [
+   "c:ट",
+   "c:म",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "बालुवा",
+  "category": "places",
+  "units": [
+   "बा",
+   "लु",
+   "वा"
+  ],
+  "signatures": [
+   "c:ब",
+   "c:ल",
+   "c:व",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "बजार",
+  "category": "places",
+  "units": [
+   "ब",
+   "जा",
+   "र"
+  ],
+  "signatures": [
+   "c:ज",
+   "c:ब",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "पसल",
+  "category": "places",
+  "units": [
+   "प",
+   "स",
+   "ल"
+  ],
+  "signatures": [
+   "c:प",
+   "c:ल",
+   "c:स"
+  ]
+ },
+ {
+  "word": "स्कुल",
+  "category": "places",
+  "units": [
+   "स्कु",
+   "ल"
+  ],
+  "signatures": [
+   "c:ल",
+   "k:स्क",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "कक्षा",
+  "category": "places",
+  "units": [
+   "क",
+   "क्षा"
+  ],
+  "signatures": [
+   "c:क",
+   "k:क्ष",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "मन्दिर",
+  "category": "places",
+  "units": [
+   "म",
+   "न्दि",
+   "र"
+  ],
+  "signatures": [
+   "c:म",
+   "c:र",
+   "k:न्द",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "चौतारी",
+  "category": "places",
+  "units": [
+   "चौ",
+   "ता",
+   "री"
+  ],
+  "signatures": [
+   "c:च",
+   "c:त",
+   "c:र",
+   "m:ा",
+   "m:ी",
+   "m:ौ"
+  ]
+ },
+ {
+  "word": "धारा",
+  "category": "places",
+  "units": [
+   "धा",
+   "रा"
+  ],
+  "signatures": [
+   "c:ध",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "इनार",
+  "category": "places",
+  "units": [
+   "इ",
+   "ना",
+   "र"
+  ],
+  "signatures": [
+   "c:इ",
+   "c:न",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "झ्याल",
+  "category": "places",
+  "units": [
+   "झ्या",
+   "ल"
+  ],
+  "signatures": [
+   "c:ल",
+   "k:झ्य",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "ढोका",
+  "category": "places",
+  "units": [
+   "ढो",
+   "का"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ढ",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "छाना",
+  "category": "places",
+  "units": [
+   "छा",
+   "ना"
+  ],
+  "signatures": [
+   "c:छ",
+   "c:न",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "भान्सा",
+  "category": "places",
+  "units": [
+   "भा",
+   "न्सा"
+  ],
+  "signatures": [
+   "c:भ",
+   "k:न्स",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "कोठा",
+  "category": "places",
+  "units": [
+   "को",
+   "ठा"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ठ",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "ओछ्यान",
+  "category": "places",
+  "units": [
+   "ओ",
+   "छ्या",
+   "न"
+  ],
+  "signatures": [
+   "c:ओ",
+   "c:न",
+   "k:छ्य",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "कुर्सी",
+  "category": "places",
+  "units": [
+   "कु",
+   "र्सी"
+  ],
+  "signatures": [
+   "c:क",
+   "k:र्स",
+   "m:ी",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "टेबल",
+  "category": "places",
+  "units": [
+   "टे",
+   "ब",
+   "ल"
+  ],
+  "signatures": [
+   "c:ट",
+   "c:ब",
+   "c:ल",
+   "m:े"
+  ]
+ },
+ {
+  "word": "घाम",
+  "category": "nature",
+  "units": [
+   "घा",
+   "म"
+  ],
+  "signatures": [
+   "c:घ",
+   "c:म",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "जून",
+  "category": "nature",
+  "units": [
+   "जू",
+   "न"
+  ],
+  "signatures": [
+   "c:ज",
+   "c:न",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "तारा",
+  "category": "nature",
+  "units": [
+   "ता",
+   "रा"
+  ],
+  "signatures": [
+   "c:त",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "आकाश",
+  "category": "nature",
+  "units": [
+   "आ",
+   "का",
+   "श"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:क",
+   "c:श",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "बादल",
+  "category": "nature",
+  "units": [
+   "बा",
+   "द",
+   "ल"
+  ],
+  "signatures": [
+   "c:द",
+   "c:ब",
+   "c:ल",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "हावा",
+  "category": "nature",
+  "units": [
+   "हा",
+   "वा"
+  ],
+  "signatures": [
+   "c:व",
+   "c:ह",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "हिउँ",
+  "category": "nature",
+  "units": [
+   "हि",
+   "उँ"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:ह",
+   "m:ँ",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "आगो",
+  "category": "nature",
+  "units": [
+   "आ",
+   "गो"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ग",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "दिन",
+  "category": "nature",
+  "units": [
+   "दि",
+   "न"
+  ],
+  "signatures": [
+   "c:द",
+   "c:न",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "रात",
+  "category": "nature",
+  "units": [
+   "रा",
+   "त"
+  ],
+  "signatures": [
+   "c:त",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "बिहान",
+  "category": "nature",
+  "units": [
+   "बि",
+   "हा",
+   "न"
+  ],
+  "signatures": [
+   "c:न",
+   "c:ब",
+   "c:ह",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "बेलुका",
+  "category": "nature",
+  "units": [
+   "बे",
+   "लु",
+   "का"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ब",
+   "c:ल",
+   "m:ा",
+   "m:ु",
+   "m:े"
+  ]
+ },
+ {
+  "word": "साँझ",
+  "category": "nature",
+  "units": [
+   "साँ",
+   "झ"
+  ],
+  "signatures": [
+   "c:झ",
+   "c:स",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "आज",
+  "category": "nature",
+  "units": [
+   "आ",
+   "ज"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ज"
+  ]
+ },
+ {
+  "word": "भोलि",
+  "category": "nature",
+  "units": [
+   "भो",
+   "लि"
+  ],
+  "signatures": [
+   "c:भ",
+   "c:ल",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "हिजो",
+  "category": "nature",
+  "units": [
+   "हि",
+   "जो"
+  ],
+  "signatures": [
+   "c:ज",
+   "c:ह",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "वर्षा",
+  "category": "nature",
+  "units": [
+   "व",
+   "र्षा"
+  ],
+  "signatures": [
+   "c:व",
+   "k:र्ष",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "जाडो",
+  "category": "nature",
+  "units": [
+   "जा",
+   "डो"
+  ],
+  "signatures": [
+   "c:ज",
+   "c:ड",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "गर्मी",
+  "category": "nature",
+  "units": [
+   "ग",
+   "र्मी"
+  ],
+  "signatures": [
+   "c:ग",
+   "k:र्म",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "इन्द्रेणी",
+  "category": "nature",
+  "units": [
+   "इ",
+   "न्द्रे",
+   "णी"
+  ],
+  "signatures": [
+   "c:इ",
+   "c:ण",
+   "k:न्द्र",
+   "m:ी",
+   "m:े"
+  ]
+ },
+ {
+  "word": "टाउको",
+  "category": "body",
+  "units": [
+   "टा",
+   "उ",
+   "को"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:क",
+   "c:ट",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "कपाल",
+  "category": "body",
+  "units": [
+   "क",
+   "पा",
+   "ल"
+  ],
+  "signatures": [
+   "c:क",
+   "c:प",
+   "c:ल",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "आँखा",
+  "category": "body",
+  "units": [
+   "आँ",
+   "खा"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ख",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "कान",
+  "category": "body",
+  "units": [
+   "का",
+   "न"
+  ],
+  "signatures": [
+   "c:क",
+   "c:न",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "नाक",
+  "category": "body",
+  "units": [
+   "ना",
+   "क"
+  ],
+  "signatures": [
+   "c:क",
+   "c:न",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "मुख",
+  "category": "body",
+  "units": [
+   "मु",
+   "ख"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:म",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "दाँत",
+  "category": "body",
+  "units": [
+   "दाँ",
+   "त"
+  ],
+  "signatures": [
+   "c:त",
+   "c:द",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "जिब्रो",
+  "category": "body",
+  "units": [
+   "जि",
+   "ब्रो"
+  ],
+  "signatures": [
+   "c:ज",
+   "k:ब्र",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "हात",
+  "category": "body",
+  "units": [
+   "हा",
+   "त"
+  ],
+  "signatures": [
+   "c:त",
+   "c:ह",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "खुट्टा",
+  "category": "body",
+  "units": [
+   "खु",
+   "ट्टा"
+  ],
+  "signatures": [
+   "c:ख",
+   "k:ट्ट",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "औंला",
+  "category": "body",
+  "units": [
+   "औं",
+   "ला"
+  ],
+  "signatures": [
+   "c:औ",
+   "c:ल",
+   "m:ं",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "पेट",
+  "category": "body",
+  "units": [
+   "पे",
+   "ट"
+  ],
+  "signatures": [
+   "c:ट",
+   "c:प",
+   "m:े"
+  ]
+ },
+ {
+  "word": "ढाड",
+  "category": "body",
+  "units": [
+   "ढा",
+   "ड"
+  ],
+  "signatures": [
+   "c:ड",
+   "c:ढ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "घुँडा",
+  "category": "body",
+  "units": [
+   "घुँ",
+   "डा"
+  ],
+  "signatures": [
+   "c:घ",
+   "c:ड",
+   "m:ँ",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "किताब",
+  "category": "objects",
+  "units": [
+   "कि",
+   "ता",
+   "ब"
+  ],
+  "signatures": [
+   "c:क",
+   "c:त",
+   "c:ब",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "कापी",
+  "category": "objects",
+  "units": [
+   "का",
+   "पी"
+  ],
+  "signatures": [
+   "c:क",
+   "c:प",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "कलम",
+  "category": "objects",
+  "units": [
+   "क",
+   "ल",
+   "म"
+  ],
+  "signatures": [
+   "c:क",
+   "c:म",
+   "c:ल"
+  ]
+ },
+ {
+  "word": "सिसाकलम",
+  "category": "objects",
+  "units": [
+   "सि",
+   "सा",
+   "क",
+   "ल",
+   "म"
+  ],
+  "signatures": [
+   "c:क",
+   "c:म",
+   "c:ल",
+   "c:स",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "झोला",
+  "category": "objects",
+  "units": [
+   "झो",
+   "ला"
+  ],
+  "signatures": [
+   "c:झ",
+   "c:ल",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "लुगा",
+  "category": "objects",
+  "units": [
+   "लु",
+   "गा"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ल",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "जुत्ता",
+  "category": "objects",
+  "units": [
+   "जु",
+   "त्ता"
+  ],
+  "signatures": [
+   "c:ज",
+   "k:त्त",
+   "m:ा",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "टोपी",
+  "category": "objects",
+  "units": [
+   "टो",
+   "पी"
+  ],
+  "signatures": [
+   "c:ट",
+   "c:प",
+   "m:ी",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "भाँडा",
+  "category": "objects",
+  "units": [
+   "भाँ",
+   "डा"
+  ],
+  "signatures": [
+   "c:ड",
+   "c:भ",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "थाल",
+  "category": "objects",
+  "units": [
+   "था",
+   "ल"
+  ],
+  "signatures": [
+   "c:थ",
+   "c:ल",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "गिलास",
+  "category": "objects",
+  "units": [
+   "गि",
+   "ला",
+   "स"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ल",
+   "c:स",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "चम्चा",
+  "category": "objects",
+  "units": [
+   "च",
+   "म्चा"
+  ],
+  "signatures": [
+   "c:च",
+   "k:म्च",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "डोको",
+  "category": "objects",
+  "units": [
+   "डो",
+   "को"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ड",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "नाम्लो",
+  "category": "objects",
+  "units": [
+   "ना",
+   "म्लो"
+  ],
+  "signatures": [
+   "c:न",
+   "k:म्ल",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "हँसिया",
+  "category": "objects",
+  "units": [
+   "हँ",
+   "सि",
+   "या"
+  ],
+  "signatures": [
+   "c:य",
+   "c:स",
+   "c:ह",
+   "m:ँ",
+   "m:ा",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "बल",
+  "category": "objects",
+  "units": [
+   "ब",
+   "ल"
+  ],
+  "signatures": [
+   "c:ब",
+   "c:ल"
+  ]
+ },
+ {
+  "word": "चङ्गा",
+  "category": "objects",
+  "units": [
+   "च",
+   "ङ्गा"
+  ],
+  "signatures": [
+   "c:च",
+   "k:ङ्ग",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "घडी",
+  "category": "objects",
+  "units": [
+   "घ",
+   "डी"
+  ],
+  "signatures": [
+   "c:घ",
+   "c:ड",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "बत्ती",
+  "category": "objects",
+  "units": [
+   "ब",
+   "त्ती"
+  ],
+  "signatures": [
+   "c:ब",
+   "k:त्त",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "छाता",
+  "category": "objects",
+  "units": [
+   "छा",
+   "ता"
+  ],
+  "signatures": [
+   "c:छ",
+   "c:त",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "रातो",
+  "category": "describing",
+  "units": [
+   "रा",
+   "तो"
+  ],
+  "signatures": [
+   "c:त",
+   "c:र",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "निलो",
+  "category": "describing",
+  "units": [
+   "नि",
+   "लो"
+  ],
+  "signatures": [
+   "c:न",
+   "c:ल",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "हरियो",
+  "category": "describing",
+  "units": [
+   "ह",
+   "रि",
+   "यो"
+  ],
+  "signatures": [
+   "c:य",
+   "c:र",
+   "c:ह",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "पहेंलो",
+  "category": "describing",
+  "units": [
+   "प",
+   "हें",
+   "लो"
+  ],
+  "signatures": [
+   "c:प",
+   "c:ल",
+   "c:ह",
+   "m:ं",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "सेतो",
+  "category": "describing",
+  "units": [
+   "से",
+   "तो"
+  ],
+  "signatures": [
+   "c:त",
+   "c:स",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "कालो",
+  "category": "describing",
+  "units": [
+   "का",
+   "लो"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ल",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "खैरो",
+  "category": "describing",
+  "units": [
+   "खै",
+   "रो"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:र",
+   "m:ै",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "गुलाबी",
+  "category": "describing",
+  "units": [
+   "गु",
+   "ला",
+   "बी"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:ब",
+   "c:ल",
+   "m:ा",
+   "m:ी",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "ठूलो",
+  "category": "describing",
+  "units": [
+   "ठू",
+   "लो"
+  ],
+  "signatures": [
+   "c:ठ",
+   "c:ल",
+   "m:ू",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "सानो",
+  "category": "describing",
+  "units": [
+   "सा",
+   "नो"
+  ],
+  "signatures": [
+   "c:न",
+   "c:स",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "लामो",
+  "category": "describing",
+  "units": [
+   "ला",
+   "मो"
+  ],
+  "signatures": [
+   "c:म",
+   "c:ल",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "छोटो",
+  "category": "describing",
+  "units": [
+   "छो",
+   "टो"
+  ],
+  "signatures": [
+   "c:छ",
+   "c:ट",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "राम्रो",
+  "category": "describing",
+  "units": [
+   "रा",
+   "म्रो"
+  ],
+  "signatures": [
+   "c:र",
+   "k:म्र",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "नराम्रो",
+  "category": "describing",
+  "units": [
+   "न",
+   "रा",
+   "म्रो"
+  ],
+  "signatures": [
+   "c:न",
+   "c:र",
+   "k:म्र",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "नयाँ",
+  "category": "describing",
+  "units": [
+   "न",
+   "याँ"
+  ],
+  "signatures": [
+   "c:न",
+   "c:य",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "पुरानो",
+  "category": "describing",
+  "units": [
+   "पु",
+   "रा",
+   "नो"
+  ],
+  "signatures": [
+   "c:न",
+   "c:प",
+   "c:र",
+   "m:ा",
+   "m:ु",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "तातो",
+  "category": "describing",
+  "units": [
+   "ता",
+   "तो"
+  ],
+  "signatures": [
+   "c:त",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "चिसो",
+  "category": "describing",
+  "units": [
+   "चि",
+   "सो"
+  ],
+  "signatures": [
+   "c:च",
+   "c:स",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "मीठो",
+  "category": "describing",
+  "units": [
+   "मी",
+   "ठो"
+  ],
+  "signatures": [
+   "c:ठ",
+   "c:म",
+   "m:ी",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "अमिलो",
+  "category": "describing",
+  "units": [
+   "अ",
+   "मि",
+   "लो"
+  ],
+  "signatures": [
+   "c:अ",
+   "c:म",
+   "c:ल",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "पिरो",
+  "category": "describing",
+  "units": [
+   "पि",
+   "रो"
+  ],
+  "signatures": [
+   "c:प",
+   "c:र",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "नरम",
+  "category": "describing",
+  "units": [
+   "न",
+   "र",
+   "म"
+  ],
+  "signatures": [
+   "c:न",
+   "c:म",
+   "c:र"
+  ]
+ },
+ {
+  "word": "कडा",
+  "category": "describing",
+  "units": [
+   "क",
+   "डा"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ड",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "धेरै",
+  "category": "describing",
+  "units": [
+   "धे",
+   "रै"
+  ],
+  "signatures": [
+   "c:ध",
+   "c:र",
+   "m:े",
+   "m:ै"
+  ]
+ },
+ {
+  "word": "थोरै",
+  "category": "describing",
+  "units": [
+   "थो",
+   "रै"
+  ],
+  "signatures": [
+   "c:थ",
+   "c:र",
+   "m:ै",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "खुसी",
+  "category": "describing",
+  "units": [
+   "खु",
+   "सी"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:स",
+   "m:ी",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "दुखी",
+  "category": "describing",
+  "units": [
+   "दु",
+   "खी"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:द",
+   "m:ी",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "भोको",
+  "category": "describing",
+  "units": [
+   "भो",
+   "को"
+  ],
+  "signatures": [
+   "c:क",
+   "c:भ",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "थाकेको",
+  "category": "describing",
+  "units": [
+   "था",
+   "के",
+   "को"
+  ],
+  "signatures": [
+   "c:क",
+   "c:थ",
+   "m:ा",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "सफा",
+  "category": "describing",
+  "units": [
+   "स",
+   "फा"
+  ],
+  "signatures": [
+   "c:फ",
+   "c:स",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "फोहोर",
+  "category": "describing",
+  "units": [
+   "फो",
+   "हो",
+   "र"
+  ],
+  "signatures": [
+   "c:फ",
+   "c:र",
+   "c:ह",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "बलियो",
+  "category": "describing",
+  "units": [
+   "ब",
+   "लि",
+   "यो"
+  ],
+  "signatures": [
+   "c:ब",
+   "c:य",
+   "c:ल",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "छिटो",
+  "category": "describing",
+  "units": [
+   "छि",
+   "टो"
+  ],
+  "signatures": [
+   "c:छ",
+   "c:ट",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "बिस्तारै",
+  "category": "describing",
+  "units": [
+   "बि",
+   "स्ता",
+   "रै"
+  ],
+  "signatures": [
+   "c:ब",
+   "c:र",
+   "k:स्त",
+   "m:ा",
+   "m:ि",
+   "m:ै"
+  ]
+ },
+ {
+  "word": "छ",
+  "category": "verbs",
+  "units": [
+   "छ"
+  ],
+  "signatures": [
+   "c:छ"
+  ]
+ },
+ {
+  "word": "छन्",
+  "category": "verbs",
+  "units": [
+   "छ",
+   "न्"
+  ],
+  "signatures": [
+   "c:छ",
+   "c:न",
+   "m:्"
+  ]
+ },
+ {
+  "word": "छु",
+  "category": "verbs",
+  "units": [
+   "छु"
+  ],
+  "signatures": [
+   "c:छ",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "छौ",
+  "category": "verbs",
+  "units": [
+   "छौ"
+  ],
+  "signatures": [
+   "c:छ",
+   "m:ौ"
+  ]
+ },
+ {
+  "word": "हो",
+  "category": "verbs",
+  "units": [
+   "हो"
+  ],
+  "signatures": [
+   "c:ह",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "होइन",
+  "category": "verbs",
+  "units": [
+   "हो",
+   "इ",
+   "न"
+  ],
+  "signatures": [
+   "c:इ",
+   "c:न",
+   "c:ह",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "थियो",
+  "category": "verbs",
+  "units": [
+   "थि",
+   "यो"
+  ],
+  "signatures": [
+   "c:थ",
+   "c:य",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "थिए",
+  "category": "verbs",
+  "units": [
+   "थि",
+   "ए"
+  ],
+  "signatures": [
+   "c:ए",
+   "c:थ",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "थिइन्",
+  "category": "verbs",
+  "units": [
+   "थि",
+   "इ",
+   "न्"
+  ],
+  "signatures": [
+   "c:इ",
+   "c:थ",
+   "c:न",
+   "m:ि",
+   "m:्"
+  ]
+ },
+ {
+  "word": "गयो",
+  "category": "verbs",
+  "units": [
+   "ग",
+   "यो"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "गए",
+  "category": "verbs",
+  "units": [
+   "ग",
+   "ए"
+  ],
+  "signatures": [
+   "c:ए",
+   "c:ग"
+  ]
+ },
+ {
+  "word": "गई",
+  "category": "verbs",
+  "units": [
+   "ग",
+   "ई"
+  ],
+  "signatures": [
+   "c:ई",
+   "c:ग"
+  ]
+ },
+ {
+  "word": "आयो",
+  "category": "verbs",
+  "units": [
+   "आ",
+   "यो"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "आए",
+  "category": "verbs",
+  "units": [
+   "आ",
+   "ए"
+  ],
+  "signatures": [
+   "c:आ",
+   "c:ए"
+  ]
+ },
+ {
+  "word": "खायो",
+  "category": "verbs",
+  "units": [
+   "खा",
+   "यो"
+  ],
+  "signatures": [
+   "c:ख",
+   "c:य",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "खान्छ",
+  "category": "verbs",
+  "units": [
+   "खा",
+   "न्छ"
+  ],
+  "signatures": [
+   "c:ख",
+   "k:न्छ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "खाऊ",
+  "category": "verbs",
+  "units": [
+   "खा",
+   "ऊ"
+  ],
+  "signatures": [
+   "c:ऊ",
+   "c:ख",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "पियो",
+  "category": "verbs",
+  "units": [
+   "पि",
+   "यो"
+  ],
+  "signatures": [
+   "c:प",
+   "c:य",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "सुत्यो",
+  "category": "verbs",
+  "units": [
+   "सु",
+   "त्यो"
+  ],
+  "signatures": [
+   "c:स",
+   "k:त्य",
+   "m:ु",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "उठ्यो",
+  "category": "verbs",
+  "units": [
+   "उ",
+   "ठ्यो"
+  ],
+  "signatures": [
+   "c:उ",
+   "k:ठ्य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "बस्यो",
+  "category": "verbs",
+  "units": [
+   "ब",
+   "स्यो"
+  ],
+  "signatures": [
+   "c:ब",
+   "k:स्य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "खेल्यो",
+  "category": "verbs",
+  "units": [
+   "खे",
+   "ल्यो"
+  ],
+  "signatures": [
+   "c:ख",
+   "k:ल्य",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "खेल्छ",
+  "category": "verbs",
+  "units": [
+   "खे",
+   "ल्छ"
+  ],
+  "signatures": [
+   "c:ख",
+   "k:ल्छ",
+   "m:े"
+  ]
+ },
+ {
+  "word": "हाँस्यो",
+  "category": "verbs",
+  "units": [
+   "हाँ",
+   "स्यो"
+  ],
+  "signatures": [
+   "c:ह",
+   "k:स्य",
+   "m:ँ",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "रोयो",
+  "category": "verbs",
+  "units": [
+   "रो",
+   "यो"
+  ],
+  "signatures": [
+   "c:य",
+   "c:र",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "दौडियो",
+  "category": "verbs",
+  "units": [
+   "दौ",
+   "डि",
+   "यो"
+  ],
+  "signatures": [
+   "c:ड",
+   "c:द",
+   "c:य",
+   "m:ि",
+   "m:ो",
+   "m:ौ"
+  ]
+ },
+ {
+  "word": "हिँड्यो",
+  "category": "verbs",
+  "units": [
+   "हिँ",
+   "ड्यो"
+  ],
+  "signatures": [
+   "c:ह",
+   "k:ड्य",
+   "m:ँ",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "पढ्यो",
+  "category": "verbs",
+  "units": [
+   "प",
+   "ढ्यो"
+  ],
+  "signatures": [
+   "c:प",
+   "k:ढ्य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "पढ्छ",
+  "category": "verbs",
+  "units": [
+   "प",
+   "ढ्छ"
+  ],
+  "signatures": [
+   "c:प",
+   "k:ढ्छ"
+  ]
+ },
+ {
+  "word": "लेख्यो",
+  "category": "verbs",
+  "units": [
+   "ले",
+   "ख्यो"
+  ],
+  "signatures": [
+   "c:ल",
+   "k:ख्य",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "हेर्यो",
+  "category": "verbs",
+  "units": [
+   "हे",
+   "र्यो"
+  ],
+  "signatures": [
+   "c:ह",
+   "k:र्य",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "देख्यो",
+  "category": "verbs",
+  "units": [
+   "दे",
+   "ख्यो"
+  ],
+  "signatures": [
+   "c:द",
+   "k:ख्य",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "भन्यो",
+  "category": "verbs",
+  "units": [
+   "भ",
+   "न्यो"
+  ],
+  "signatures": [
+   "c:भ",
+   "k:न्य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "सुन्यो",
+  "category": "verbs",
+  "units": [
+   "सु",
+   "न्यो"
+  ],
+  "signatures": [
+   "c:स",
+   "k:न्य",
+   "m:ु",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "बोल्यो",
+  "category": "verbs",
+  "units": [
+   "बो",
+   "ल्यो"
+  ],
+  "signatures": [
+   "c:ब",
+   "k:ल्य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "दियो",
+  "category": "verbs",
+  "units": [
+   "दि",
+   "यो"
+  ],
+  "signatures": [
+   "c:द",
+   "c:य",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "लियो",
+  "category": "verbs",
+  "units": [
+   "लि",
+   "यो"
+  ],
+  "signatures": [
+   "c:य",
+   "c:ल",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "ल्यायो",
+  "category": "verbs",
+  "units": [
+   "ल्या",
+   "यो"
+  ],
+  "signatures": [
+   "c:य",
+   "k:ल्य",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "किन्यो",
+  "category": "verbs",
+  "units": [
+   "कि",
+   "न्यो"
+  ],
+  "signatures": [
+   "c:क",
+   "k:न्य",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "पकायो",
+  "category": "verbs",
+  "units": [
+   "प",
+   "का",
+   "यो"
+  ],
+  "signatures": [
+   "c:क",
+   "c:प",
+   "c:य",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "धोयो",
+  "category": "verbs",
+  "units": [
+   "धो",
+   "यो"
+  ],
+  "signatures": [
+   "c:ध",
+   "c:य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "गायो",
+  "category": "verbs",
+  "units": [
+   "गा",
+   "यो"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:य",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "नाच्यो",
+  "category": "verbs",
+  "units": [
+   "ना",
+   "च्यो"
+  ],
+  "signatures": [
+   "c:न",
+   "k:च्य",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "उड्यो",
+  "category": "verbs",
+  "units": [
+   "उ",
+   "ड्यो"
+  ],
+  "signatures": [
+   "c:उ",
+   "k:ड्य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "पौडियो",
+  "category": "verbs",
+  "units": [
+   "पौ",
+   "डि",
+   "यो"
+  ],
+  "signatures": [
+   "c:ड",
+   "c:प",
+   "c:य",
+   "m:ि",
+   "m:ो",
+   "m:ौ"
+  ]
+ },
+ {
+  "word": "चढ्यो",
+  "category": "verbs",
+  "units": [
+   "च",
+   "ढ्यो"
+  ],
+  "signatures": [
+   "c:च",
+   "k:ढ्य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "भेट्यो",
+  "category": "verbs",
+  "units": [
+   "भे",
+   "ट्यो"
+  ],
+  "signatures": [
+   "c:भ",
+   "k:ट्य",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "बोलायो",
+  "category": "verbs",
+  "units": [
+   "बो",
+   "ला",
+   "यो"
+  ],
+  "signatures": [
+   "c:ब",
+   "c:य",
+   "c:ल",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "म",
+  "category": "function",
+  "units": [
+   "म"
+  ],
+  "signatures": [
+   "c:म"
+  ]
+ },
+ {
+  "word": "हामी",
+  "category": "function",
+  "units": [
+   "हा",
+   "मी"
+  ],
+  "signatures": [
+   "c:म",
+   "c:ह",
+   "m:ा",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "तिमी",
+  "category": "function",
+  "units": [
+   "ति",
+   "मी"
+  ],
+  "signatures": [
+   "c:त",
+   "c:म",
+   "m:ि",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "तपाईं",
+  "category": "function",
+  "units": [
+   "त",
+   "पा",
+   "ईं"
+  ],
+  "signatures": [
+   "c:ई",
+   "c:त",
+   "c:प",
+   "m:ं",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "ऊ",
+  "category": "function",
+  "units": [
+   "ऊ"
+  ],
+  "signatures": [
+   "c:ऊ"
+  ]
+ },
+ {
+  "word": "उनी",
+  "category": "function",
+  "units": [
+   "उ",
+   "नी"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:न",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "उनीहरू",
+  "category": "function",
+  "units": [
+   "उ",
+   "नी",
+   "ह",
+   "रू"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:न",
+   "c:र",
+   "c:ह",
+   "m:ी",
+   "m:ू"
+  ]
+ },
+ {
+  "word": "यो",
+  "category": "function",
+  "units": [
+   "यो"
+  ],
+  "signatures": [
+   "c:य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "त्यो",
+  "category": "function",
+  "units": [
+   "त्यो"
+  ],
+  "signatures": [
+   "k:त्य",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "यहाँ",
+  "category": "function",
+  "units": [
+   "य",
+   "हाँ"
+  ],
+  "signatures": [
+   "c:य",
+   "c:ह",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "त्यहाँ",
+  "category": "function",
+  "units": [
+   "त्य",
+   "हाँ"
+  ],
+  "signatures": [
+   "c:ह",
+   "k:त्य",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "को",
+  "category": "function",
+  "units": [
+   "को"
+  ],
+  "signatures": [
+   "c:क",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "के",
+  "category": "function",
+  "units": [
+   "के"
+  ],
+  "signatures": [
+   "c:क",
+   "m:े"
+  ]
+ },
+ {
+  "word": "कहाँ",
+  "category": "function",
+  "units": [
+   "क",
+   "हाँ"
+  ],
+  "signatures": [
+   "c:क",
+   "c:ह",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "किन",
+  "category": "function",
+  "units": [
+   "कि",
+   "न"
+  ],
+  "signatures": [
+   "c:क",
+   "c:न",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "कसरी",
+  "category": "function",
+  "units": [
+   "क",
+   "स",
+   "री"
+  ],
+  "signatures": [
+   "c:क",
+   "c:र",
+   "c:स",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "र",
+  "category": "function",
+  "units": [
+   "र"
+  ],
+  "signatures": [
+   "c:र"
+  ]
+ },
+ {
+  "word": "पनि",
+  "category": "function",
+  "units": [
+   "प",
+   "नि"
+  ],
+  "signatures": [
+   "c:न",
+   "c:प",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "तर",
+  "category": "function",
+  "units": [
+   "त",
+   "र"
+  ],
+  "signatures": [
+   "c:त",
+   "c:र"
+  ]
+ },
+ {
+  "word": "अनि",
+  "category": "function",
+  "units": [
+   "अ",
+   "नि"
+  ],
+  "signatures": [
+   "c:अ",
+   "c:न",
+   "m:ि"
+  ]
+ },
+ {
+  "word": "मात्र",
+  "category": "function",
+  "units": [
+   "मा",
+   "त्र"
+  ],
+  "signatures": [
+   "c:म",
+   "k:त्र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "एउटा",
+  "category": "function",
+  "units": [
+   "ए",
+   "उ",
+   "टा"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:ए",
+   "c:ट",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "दुई",
+  "category": "function",
+  "units": [
+   "दु",
+   "ई"
+  ],
+  "signatures": [
+   "c:ई",
+   "c:द",
+   "m:ु"
+  ]
+ },
+ {
+  "word": "तीन",
+  "category": "function",
+  "units": [
+   "ती",
+   "न"
+  ],
+  "signatures": [
+   "c:त",
+   "c:न",
+   "m:ी"
+  ]
+ },
+ {
+  "word": "चार",
+  "category": "function",
+  "units": [
+   "चा",
+   "र"
+  ],
+  "signatures": [
+   "c:च",
+   "c:र",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "पाँच",
+  "category": "function",
+  "units": [
+   "पाँ",
+   "च"
+  ],
+  "signatures": [
+   "c:च",
+   "c:प",
+   "m:ँ",
+   "m:ा"
+  ]
+ },
+ {
+  "word": "मेरो",
+  "category": "function",
+  "units": [
+   "मे",
+   "रो"
+  ],
+  "signatures": [
+   "c:म",
+   "c:र",
+   "m:े",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "हाम्रो",
+  "category": "function",
+  "units": [
+   "हा",
+   "म्रो"
+  ],
+  "signatures": [
+   "c:ह",
+   "k:म्र",
+   "m:ा",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "तिम्रो",
+  "category": "function",
+  "units": [
+   "ति",
+   "म्रो"
+  ],
+  "signatures": [
+   "c:त",
+   "k:म्र",
+   "m:ि",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "उसको",
+  "category": "function",
+  "units": [
+   "उ",
+   "स",
+   "को"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:क",
+   "c:स",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "उनको",
+  "category": "function",
+  "units": [
+   "उ",
+   "न",
+   "को"
+  ],
+  "signatures": [
+   "c:उ",
+   "c:क",
+   "c:न",
+   "m:ो"
+  ]
+ },
+ {
+  "word": "सँग",
+  "category": "function",
+  "units": [
+   "सँ",
+   "ग"
+  ],
+  "signatures": [
+   "c:ग",
+   "c:स",
+   "m:ँ"
+  ]
+ }
+]

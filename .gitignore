@@ -18,3 +18,4 @@ web/dist/
 # eval outputs
 eval/results/*.log
 *.egg-info/
+scripts/smoke_out/
