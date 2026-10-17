@@ -9,7 +9,10 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
+import hashlib
+
 from athena import media
+from athena.diagnostic import diagnostic, place
 from athena.agents import illustrator
 from athena.agents.planner import plan
 from athena.assess import stt
@@ -240,6 +243,84 @@ def list_learners() -> list[LearnerOut]:
 
 
 create_limit = RateLimit(per_ip=10, global_=60)
+
+
+class CardOut(BaseModel):
+    id: str
+    text: str
+
+
+class TierOut(BaseModel):
+    number: int
+    name: str
+    always: bool
+    cards: list[CardOut]
+
+
+class DiagnosticOut(BaseModel):
+    language: Language
+    pass_rate: float
+    tiers: list[TierOut]
+
+
+class PlacementRequest(BaseModel):
+    language: Language
+    responses: dict[str, bool]  # card id -> read it
+
+
+class PlacementOut(BaseModel):
+    level: int
+    reached_tier: int
+    mastered: int
+    practicing: list[str]
+    learner: LearnerOut
+
+
+def _seed(learner_id: str) -> int:
+    """Same learner, same cards: the placement is recomputed from the same deck."""
+    return int(hashlib.sha256(learner_id.encode()).hexdigest()[:8], 16)
+
+
+@app.get("/api/learners/{learner_id}/diagnostic/{language}", response_model=DiagnosticOut)
+def get_diagnostic(learner_id: str, language: Language) -> DiagnosticOut:
+    from athena.diagnostic import PASS
+
+    if not store.get_learner(learner_id):
+        raise HTTPException(404, "learner not found")
+    tiers = diagnostic(language, seed=_seed(learner_id))
+    return DiagnosticOut(
+        language=language,
+        pass_rate=PASS,
+        tiers=[
+            TierOut(number=t.number, name=t.name, always=t.always, cards=[CardOut(id=c.id, text=c.text) for c in t.cards])
+            for t in tiers
+        ],
+    )
+
+
+@app.post("/api/learners/{learner_id}/placement", response_model=PlacementOut)
+def set_placement(learner_id: str, req: PlacementRequest) -> PlacementOut:
+    """Score the card check and set the learner's starting units and level for that language."""
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    tiers = diagnostic(req.language, seed=_seed(learner_id))
+    known_ids = {c.id for t in tiers for c in t.cards}
+    if not req.responses or not set(req.responses) <= known_ids:
+        raise HTTPException(400, "responses must be card ids from this learner's diagnostic")
+    p = place(req.language, tiers, req.responses)
+    units = {u: UnitState("mastered", streak=3, seen=3) for u in p.mastered}
+    units.update({u: UnitState("practicing", streak=0, seen=0) for u in p.practicing})
+    learner.units[req.language] = units
+    learner.level[req.language] = p.level
+    learner.history[req.language] = []
+    return PlacementOut(
+        level=p.level,
+        reached_tier=p.reached_tier,
+        mastered=len(p.mastered),
+        practicing=p.practicing,
+        learner=learner_out(learner),
+    )
 
 
 @app.post("/api/learners", response_model=LearnerOut, status_code=201, dependencies=[Depends(create_limit)])
