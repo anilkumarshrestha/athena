@@ -211,7 +211,21 @@ def test_devanagari_digit_is_violation():
 def test_allowed_words_for_names():
     vv = NepaliVerifier(frozenset({"c:क"}), frozenset({"सीता"}))
     assert vv.verify("सीता क").ok
-    assert not vv.verify("सीताको").ok  # inflected name is a different word
+
+
+def test_name_with_case_ending_checks_only_the_ending():
+    # सीताले needs ergative -ले: the name is exempt, the ending's letters are not
+    vv = NepaliVerifier(frozenset({"c:ल", "m:े", "c:क", "m:ो"}), frozenset({"सीता"}))
+    r = vv.verify("सीताले सीताको")
+    assert r.ok
+    assert {"c:ल", "m:े", "c:क", "m:ो"} <= r.units_used
+    blocked = NepaliVerifier(frozenset({"c:क"}), frozenset({"सीता"})).verify("सीताले")
+    assert [x.unit for x in blocked.violations] == ["c:ल", "m:े"]
+
+
+def test_name_plus_non_ending_is_not_the_name():
+    vv = NepaliVerifier(frozenset({"c:क"}), frozenset({"सीता"}))
+    assert not vv.verify("सीताकक").ok  # not a case ending: whole word must decode
 
 
 def test_empty_text():

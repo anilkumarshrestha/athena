@@ -85,8 +85,8 @@ class EnglishVerifier:
         used: set[str] = set()
         words = tokenize(text)
         for idx, word in enumerate(words):
-            if word in self.allowed_words:
-                continue
+            if word in self.allowed_words or (word.endswith("'s") and word[:-2] in self.allowed_words):
+                continue  # names, and possessive names (Sita's)
             entry = self.lexicon.get(word)
             if entry is None:
                 violations.append(Violation(word, idx, None, "not in lexicon"))

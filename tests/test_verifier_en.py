@@ -105,6 +105,10 @@ def test_allowed_words_for_names():
     assert "sita" not in str(r.units_used)
 
 
+def test_possessive_name_allowed():
+    assert v(*BASIC, allowed=["sita"]).verify("Sita's pin.").ok
+
+
 def test_contraction_rejected():
     assert not v(*BASIC).verify("it's").ok
 

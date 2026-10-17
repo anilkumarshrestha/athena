@@ -152,6 +152,11 @@ def tokenize(text: str) -> list[str]:
     return [w for w in _WORD_SPLIT.split(normalize(text)) if w]
 
 
+# Case endings a learner's name may carry (सीताले, सीताको). The name itself is exempt;
+# the ending is still checked like any other letters.
+CASE_ENDINGS = ("ले", "को", "का", "की", "लाई", "मा", "सँग", "बाट")
+
+
 class NepaliVerifier:
     language = "ne"
 
@@ -166,8 +171,13 @@ class NepaliVerifier:
         for idx, word in enumerate(words):
             if word in self.allowed_words:
                 continue
+            to_check = word
+            for name in self.allowed_words:
+                if word.startswith(name) and word[len(name) :] in CASE_ENDINGS:
+                    to_check = word[len(name) :]
+                    break
             try:
-                units = decompose(word)
+                units = decompose(to_check)
             except DecomposeError as e:
                 violations.append(Violation(word, idx, None, str(e)))
                 continue
