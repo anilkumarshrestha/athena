@@ -1,0 +1,60 @@
+{
+  "stamp": "20261017-191030",
+  "status": "SUCCESS",
+  "problems": [],
+  "jobs": 100,
+  "completed": 100,
+  "n_per_lang": 50,
+  "wall_s": 1136.8,
+  "errors": [],
+  "ne": {
+    "n": 50,
+    "first_pass_ok_rate": 0.3,
+    "first_pass_mean_violations": 2.58,
+    "final_violation_count_total": 0,
+    "mean_attempts": 2.22,
+    "fallback_rate": 0.38,
+    "outcomes": {
+      "first_pass": 15,
+      "regenerated": 16,
+      "pruned": 13,
+      "wordlist": 6
+    },
+    "latency_ms_p50": 12890,
+    "latency_ms_p95": 85380,
+    "tokens_mean": {
+      "input_tokens": 1945.62,
+      "output_tokens": 227.46,
+      "thinking_tokens": 175.72
+    },
+    "cost_usd_per_story": null,
+    "models": [
+      "gemini-3.8-flash"
+    ]
+  },
+  "en": {
+    "n": 50,
+    "first_pass_ok_rate": 0.74,
+    "first_pass_mean_violations": 0.34,
+    "final_violation_count_total": 0,
+    "mean_attempts": 1.32,
+    "fallback_rate": 0.02,
+    "outcomes": {
+      "first_pass": 37,
+      "regenerated": 12,
+      "pruned": 1,
+      "wordlist": 0
+    },
+    "latency_ms_p50": 4509,
+    "latency_ms_p95": 82134,
+    "tokens_mean": {
+      "input_tokens": 658.66,
+      "output_tokens": 112.96,
+      "thinking_tokens": 0
+    },
+    "cost_usd_per_story": null,
+    "models": [
+      "gemini-3.8-flash"
+    ]
+  }
+}
