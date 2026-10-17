@@ -23,6 +23,7 @@ export function StoryCard({
   display,
   outcomes,
   wordPractice = false,
+  onWordTap,
   footer,
 }: {
   lang: Language
@@ -33,6 +34,7 @@ export function StoryCard({
   display?: DisplayWord[][]
   outcomes?: Map<number, Outcome>
   wordPractice?: boolean // last-resort fallback: separate words, not a sentence
+  onWordTap?: (index: number) => void // re-teach: hear / see parts / try again
   footer?: ReactNode
 }) {
   const lines: DisplayWord[][] | undefined =
@@ -68,7 +70,12 @@ export function StoryCard({
                     // Real space text nodes: word-spacing needs them to act on.
                     <Fragment key={j}>
                       {j > 0 && ' '}
-                      <WordToken text={w.text} lang={lang} outcome={worst(w.indices, outcomes)} />
+                      <WordToken
+                        text={w.text}
+                        lang={lang}
+                        outcome={worst(w.indices, outcomes)}
+                        onTap={onWordTap && w.indices.length ? () => onWordTap(w.indices[0]) : undefined}
+                      />
                     </Fragment>
                   ))}
                 </p>

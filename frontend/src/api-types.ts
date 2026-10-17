@@ -87,7 +87,11 @@ export interface paths {
         get: operations["get_learner_api_learners__learner_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Learner
+         * @description Remove a learner and everything stored about them (parent request / end of pilot).
+         */
+        delete: operations["delete_learner_api_learners__learner_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -144,6 +148,67 @@ export interface paths {
          * @description Apply the latest reading of a story to the learner's mastery (PLAN §5). Once per story.
          */
         post: operations["close_session_api_session_close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stories/{story_id}/words/{index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Word Help
+         * @description Re-teach view of one word: its parts, with the ones behind the child's error marked.
+         */
+        get: operations["word_help_api_stories__story_id__words__index__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stories/{story_id}/words/{index}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Word Audio
+         * @description Speak one word of a story. Only story words: never arbitrary text (no open TTS proxy).
+         */
+        get: operations["word_audio_api_stories__story_id__words__index__audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stories/{story_id}/words/{index}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Word Retry
+         * @description Try one word again. Practice only: mastery is not changed. No STT hint (a hint would
+         *     pull the transcript toward the expected word and hide a repeat mistake). Audio not kept.
+         */
+        post: operations["word_retry_api_stories__story_id__words__index__read_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -214,6 +279,11 @@ export interface components {
              * @default true
              */
             hints: boolean;
+            /** Audio */
+            audio: string;
+        };
+        /** Body_word_retry_api_stories__story_id__words__index__read_post */
+        Body_word_retry_api_stories__story_id__words__index__read_post: {
             /** Audio */
             audio: string;
         };
@@ -344,6 +414,15 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** PartOut */
+        PartOut: {
+            /** Text */
+            text: string;
+            /** Units */
+            units: string[];
+            /** Tricky */
+            tricky: boolean;
+        };
         /** PlacementOut */
         PlacementOut: {
             /** Level */
@@ -394,6 +473,13 @@ export interface components {
             unit_correct: {
                 [key: string]: number;
             };
+        };
+        /** RetryOut */
+        RetryOut: {
+            /** Correct */
+            correct: boolean;
+            /** Heard */
+            heard: string;
         };
         /** StartRequest */
         StartRequest: {
@@ -488,6 +574,19 @@ export interface components {
             index: number;
             /** Reason */
             reason: string;
+        };
+        /** WordHelpOut */
+        WordHelpOut: {
+            /** Index */
+            index: number;
+            /** Word */
+            word: string;
+            /** Outcome */
+            outcome: string | null;
+            /** Heard */
+            heard: string | null;
+            /** Parts */
+            parts: components["schemas"]["PartOut"][];
         };
         /** WordOut */
         WordOut: {
@@ -684,6 +783,35 @@ export interface operations {
             };
         };
     };
+    delete_learner_api_learners__learner_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     start_session_api_session_start_post: {
         parameters: {
             query?: never;
@@ -770,6 +898,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CloseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    word_help_api_stories__story_id__words__index__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WordHelpOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    word_audio_api_stories__story_id__words__index__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    word_retry_api_stories__story_id__words__index__read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_word_retry_api_stories__story_id__words__index__read_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetryOut"];
                 };
             };
             /** @description Validation Error */

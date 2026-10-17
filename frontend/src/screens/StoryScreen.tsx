@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, type CloseResult, type Language, type ReadResult, type Story } from '../api'
 import { ReadingLog } from '../components/ReadingLog'
+import { ReteachPanel } from '../components/ReteachPanel'
 import { RecordButton, StoryCard } from '../components/StoryCard'
 import { VerifierLog } from '../components/VerifierLog'
 import { UnitChip } from '../components/UnitChip'
@@ -16,6 +17,8 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [showLog, setShowLog] = useState(false)
   const [reading, setReading] = useState<ReadResult | null>(null)
   const [closed, setClosed] = useState<CloseResult | null>(null)
+  const [helpWord, setHelpWord] = useState<number | null>(null)
+  const [fixed, setFixed] = useState<Set<number>>(new Set()) // words got right on a retry
   const [checking, setChecking] = useState(false)
   const recorder = useRecorder()
   const reqId = useRef(0)
@@ -25,6 +28,8 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setStory(null)
     setReading(null)
     setClosed(null)
+    setHelpWord(null)
+    setFixed(new Set())
     setError(null)
     api
       .startSession(learnerId, lang)
@@ -44,8 +49,13 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   }, [story])
 
   const outcomes = useMemo(
-    () => (reading ? new Map(reading.words.map((w) => [w.index, w.outcome as Outcome])) : undefined),
-    [reading],
+    () =>
+      reading
+        ? new Map(
+            reading.words.map((w) => [w.index, (fixed.has(w.index) ? 'self_corrected' : w.outcome) as Outcome]),
+          )
+        : undefined,
+    [reading, fixed],
   )
 
   const onRecord = async () => {
@@ -89,6 +99,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
           imageStatus={story?.image_status}
           display={story?.display}
           wordPractice={story?.outcome === 'wordlist'}
+          onWordTap={story ? setHelpWord : undefined}
           outcomes={outcomes}
           footer={
             <>
@@ -109,6 +120,17 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
               )}
             </>
           }
+        />
+      )}
+
+      {story && helpWord !== null && (
+        <ReteachPanel
+          key={helpWord}
+          storyId={story.id}
+          index={helpWord}
+          lang={lang}
+          onClose={() => setHelpWord(null)}
+          onSuccess={(i) => setFixed((f) => new Set(f).add(i))}
         />
       )}
 

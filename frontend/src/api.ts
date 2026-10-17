@@ -33,6 +33,16 @@ export const api = {
     fetch(`/api/learners/${id}`, { method: 'DELETE' }).then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
     }),
+  wordHelp: (storyId: string, index: number) =>
+    fetch(`/api/stories/${storyId}/words/${index}`).then(json<components['schemas']['WordHelpOut']>),
+  wordAudioUrl: (storyId: string, index: number) => `/api/stories/${storyId}/words/${index}/audio`,
+  retryWord: (storyId: string, index: number, audio: Blob) => {
+    const form = new FormData()
+    form.append('audio', audio, audio.type.includes('mp4') ? 'word.mp4' : 'word.webm')
+    return fetch(`/api/stories/${storyId}/words/${index}/read`, { method: 'POST', body: form }).then(
+      json<components['schemas']['RetryOut']>,
+    )
+  },
   createLearner: (body: components['schemas']['LearnerCreate']) =>
     fetch('/api/learners', {
       method: 'POST',
