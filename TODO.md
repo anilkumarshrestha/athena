@@ -44,6 +44,8 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [ ] Deck chart: eval/results/coverage_ne.csv + coverage_en.csv (unlock vs teaching order)
 - [ ] Eval re-run with levels (eval uses default level 2) and template fallback
 
+- [x] Personalisation: name case endings (सीताले), learner profiles (favourite animal/food, general setting) → personal themes ~60% of stories; add-learner screen #/new for the pilot
+
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
 - [ ] Gemma not served on Vertex as plain API → Model Garden GPU endpoint or Flash-Lite as cheap tier (H10)
