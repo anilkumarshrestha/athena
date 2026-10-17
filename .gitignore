@@ -13,7 +13,7 @@ __pycache__/
 
 # node
 node_modules/
-web/dist/
+frontend/dist/
 
 # eval outputs
 eval/results/*.log
@@ -22,3 +22,7 @@ scripts/smoke_out/
 
 # runtime logs
 logs/
+
+# graphify cache (regenerated locally)
+graphify-out/cache/
+media/
