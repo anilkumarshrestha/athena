@@ -34,7 +34,8 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] H7 Alignment (audible-only Nepali scoring), STT chirp_3 + Gemini fallback, /api/session/read, record button + word colours
 - [ ] H7 **You: try read-aloud in a browser with a real mic** (headless can't)
 - [ ] Eval C: human recordings with scripted errors (TTS 'fixes' scripted errors; non-words need humans)
-- [ ] H9 Mastery update rule, `/api/session/close`, MasteryGrid
+- [x] H9 Mastery loop: rule (3 correct sessions → mastered; 2 errors in a session → practising + sits out 1 story), `/api/session/close`, change strip, `#/mastery/<learner>` grid
+- [ ] Demo note: demotion needs the SAME unit wrong twice in one reading (e.g. misread two ब words)
 - [ ] H10 Thin ADK wrap; Gemma safety pre-screen; cost/latency instrumentation
 - [ ] H11 Teacher view, print pack, GitHub Action (tests + eval)
 - [ ] H12 Eval run, charts
