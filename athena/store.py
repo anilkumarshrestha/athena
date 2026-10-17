@@ -29,6 +29,7 @@ class Story:
     image_status: ImageStatus = "pending"
     image_id: str | None = None
     image_latency_ms: int | None = None
+    readings: list = field(default_factory=list)  # Assessment per read-aloud attempt (no audio kept)
     created_at: float = field(default_factory=time.time)
 
 

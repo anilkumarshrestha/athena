@@ -4,7 +4,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -12,6 +12,8 @@ from pydantic import BaseModel
 from athena import media
 from athena.agents import illustrator
 from athena.agents.planner import plan
+from athena.assess import stt
+from athena.assess.align import assess, tokens
 from athena.generate import generate
 from athena.models import Language
 from athena.ratelimit import RateLimit
@@ -52,6 +54,11 @@ class AttemptLog(BaseModel):
     model: str
 
 
+class DisplayWord(BaseModel):
+    text: str  # as shown, punctuation attached
+    indices: list[int]  # reference word indices it covers (for read-aloud outcomes)
+
+
 class StoryOut(BaseModel):
     id: str
     learner_id: str
@@ -66,6 +73,33 @@ class StoryOut(BaseModel):
     image_status: str
     image_url: str | None
     image_latency_ms: int | None
+    display: list[list[DisplayWord]]
+
+
+class WordOut(BaseModel):
+    index: int
+    expected: str
+    heard: str | None
+    outcome: str
+    error_units: list[str]
+
+
+class InsertionOut(BaseModel):
+    word: str
+    before_index: int
+
+
+class ReadOut(BaseModel):
+    story_id: str
+    transcript: str
+    engine: str
+    stt_ms: int
+    words: list[WordOut]
+    insertions: list[InsertionOut]
+    words_correct: int
+    wcpm: float
+    unit_errors: dict[str, int]
+    unit_correct: dict[str, int]
 
 
 class StartRequest(BaseModel):
@@ -81,6 +115,19 @@ def learner_out(learner: Learner) -> LearnerOut:
         avatar=learner.avatar,
         mastery={lang: sorted(units) for lang, units in learner.mastery.items()},
     )
+
+
+def display_words(language: str, sentences: list[str]) -> list[list[DisplayWord]]:
+    """Whitespace chunks as shown on screen, mapped to reference token indices."""
+    out, idx = [], 0
+    for sentence in sentences:
+        line = []
+        for chunk in sentence.split():
+            n = len(tokens(language, chunk))
+            line.append(DisplayWord(text=chunk, indices=list(range(idx, idx + n))))
+            idx += n
+        out.append(line)
+    return out
 
 
 def story_out(s: Story) -> StoryOut:
@@ -111,6 +158,7 @@ def story_out(s: Story) -> StoryOut:
         image_status=s.image_status,
         image_url=f"/api/media/{s.image_id}" if s.image_id else None,
         image_latency_ms=s.image_latency_ms,
+        display=display_words(s.language, r.sentences),
     )
 
 
@@ -157,6 +205,52 @@ def start_session(req: StartRequest) -> StoryOut:
 
     image_future.add_done_callback(_done)
     return story_out(story)
+
+
+MAX_AUDIO_BYTES = 8 * 1024 * 1024  # ~4 min of opus; a story read takes < 1 min
+read_limit = RateLimit(per_ip=12, global_=60)
+
+
+@app.post("/api/session/read", response_model=ReadOut, dependencies=[Depends(read_limit)])
+def read_session(
+    story_id: str = Form(...),
+    duration_s: float = Form(..., gt=0, le=300),
+    hints: bool = Form(True),
+    audio: UploadFile = File(...),
+) -> ReadOut:
+    """Score one read-aloud. Audio stays in memory and is dropped after scoring (no retention)."""
+    s = store.get_story(story_id)
+    if not s:
+        raise HTTPException(404, "story not found")
+    data = audio.file.read(MAX_AUDIO_BYTES + 1)
+    if not data:
+        raise HTTPException(400, "empty audio")
+    if len(data) > MAX_AUDIO_BYTES:
+        raise HTTPException(413, "recording too long")
+
+    learner = store.get_learner(s.learner_id)
+    name = learner.name[s.language] if learner else ""
+    names = frozenset(name.split()) | frozenset(name.lower().split())
+    reference = " ".join(s.result.sentences)
+    phrases = sorted(set(tokens(s.language, reference)))
+
+    t = stt.transcribe(s.language, data, audio.content_type or "audio/webm", phrases, hints=hints)
+    del data  # no audio retention beyond this request
+    a = assess(s.language, reference, t.text, duration_s, allowed_words=names)
+    s.readings.append(a)
+
+    return ReadOut(
+        story_id=s.id,
+        transcript=t.text,
+        engine=t.engine,
+        stt_ms=t.latency_ms,
+        words=[WordOut(**w.__dict__) for w in a.words],
+        insertions=[InsertionOut(**i.__dict__) for i in a.insertions],
+        words_correct=a.words_correct,
+        wcpm=a.wcpm,
+        unit_errors=a.unit_errors,
+        unit_correct=a.unit_correct,
+    )
 
 
 @app.get("/api/stories/{story_id}", response_model=StoryOut)
