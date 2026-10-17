@@ -20,10 +20,12 @@ from athena.verifier.shape import Limits
 
 # --- difficulty levels ----------------------------------------------------------------
 
+# Nepali word length starts at 5 aksharas: honorific verbs for elders (आ·उ·नु·भ·यो) must be
+# possible from level 1. Beginner readers use 3-6 words per sentence.
 LEVELS: dict[int, Limits] = {
-    1: Limits(sentences=(3, 3), max_words=4, max_len_ne=4, max_len_en=4),
-    2: Limits(sentences=(3, 4), max_words=6, max_len_ne=5, max_len_en=5),
-    3: Limits(sentences=(4, 5), max_words=8, max_len_ne=6, max_len_en=7),
+    1: Limits(sentences=(3, 3), max_words=5, max_len_ne=5, max_len_en=4),
+    2: Limits(sentences=(3, 4), max_words=6, max_len_ne=6, max_len_en=5),
+    3: Limits(sentences=(4, 5), max_words=8, max_len_ne=7, max_len_en=7),
 }
 UP_ACCURACY, DOWN_ACCURACY = 0.9, 0.6
 
