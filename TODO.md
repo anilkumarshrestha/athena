@@ -37,7 +37,11 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [ ] H12 Eval run, charts
 
 ## Tech debt / decisions pending
-- [ ] Move generation to **Vertex AI** (brief names it; currently AI Studio key). Check model availability on Vertex
+- [ ] **Generation time budget for the app** (~20s): timeouts × retries × 3 attempts can reach ~2 min (seen 111s in eval). Past budget → verified fallback immediately
+- [ ] Restart API on :8077 after eval (still on old AI Studio config, no timeouts)
+- [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
+- [ ] Gemma not served on Vertex as plain API → Model Garden GPU endpoint or Flash-Lite as cheap tier (H10)
+- [x] ~~Move generation to Vertex AI~~ done (AQ. Vertex key)
 - [ ] Firestore store (in-memory needs `max-instances=1` until then)
 - [ ] Writer quality on tiny Nepali sets: pruned sentences can be ungrammatical (eval B)
 - [ ] Grapheme mastery is spelling-level (ow cow/snow, oo moon/book): README limitation
