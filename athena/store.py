@@ -33,6 +33,8 @@ class Learner:
     profile: dict[str, str] = field(default_factory=dict)  # favorite_animal, favorite_food, setting (fixed ids)
     level: dict[str, int] = field(default_factory=lambda: {"ne": 1, "en": 1})  # story shape band
     history: dict[str, list[float]] = field(default_factory=lambda: {"ne": [], "en": []})  # accuracy per session
+    sessions: list[dict] = field(default_factory=list)  # closed reading sessions (athena/dashboard.py)
+    settings: dict[str, int] = field(default_factory=lambda: {"daily_minutes": 0})  # parent controls; 0 = no limit
 
     @property
     def mastery(self) -> dict[str, frozenset[str]]:
@@ -67,6 +69,8 @@ def learner_from_dict(d: dict) -> Learner:
         profile=d.get("profile", {}),
         level=d.get("level", {"ne": 1, "en": 1}),
         history=d.get("history", {"ne": [], "en": []}),
+        sessions=d.get("sessions", []),
+        settings=d.get("settings", {"daily_minutes": 0}),
     )
 
 

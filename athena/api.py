@@ -10,8 +10,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 import hashlib
+import time
+from typing import Literal
 
 from athena import media
+from athena.dashboard import summarize, used_minutes_today
 from athena.diagnostic import diagnostic, place
 from athena.agents import illustrator
 from athena.agents.planner import plan
@@ -57,6 +60,7 @@ class LearnerOut(BaseModel):
     level: dict[str, int]
     recent_accuracy: dict[str, list[float]]  # last 5 sessions, oldest first
     profile: dict[str, str]
+    settings: dict[str, int]
 
 
 class LearnerCreate(BaseModel):
@@ -183,6 +187,7 @@ def learner_out(learner: Learner) -> LearnerOut:
         level=learner.level,
         recent_accuracy={lang: [round(a, 2) for a in h[-5:]] for lang, h in learner.history.items()},
         profile=learner.profile,
+        settings=learner.settings,
     )
 
 
@@ -355,6 +360,10 @@ def start_session(req: StartRequest) -> StoryOut:
     learner = store.get_learner(req.learner_id)
     if not learner:
         raise HTTPException(404, "learner not found")
+    limit = learner.settings.get("daily_minutes", 0)
+    if limit and _used_today(learner) >= limit:
+        # Parent's daily limit: a friendly stop, shown to the child as "see you tomorrow".
+        raise HTTPException(403, "daily_limit")
     units = learner.units[req.language]
     p = plan(
         req.language,
@@ -430,6 +439,11 @@ def read_session(
     )
 
 
+def _used_today(learner: Learner) -> int:
+    open_started = [s.created_at for s in store.stories.values() if s.learner_id == learner.id and s.changes is None]
+    return used_minutes_today(learner.sessions, open_started, time.time())
+
+
 @app.post("/api/session/close", response_model=CloseOut)
 def close_session(req: CloseRequest) -> CloseOut:
     """Apply the latest reading of a story to the learner's mastery (PLAN §5). Once per story."""
@@ -461,6 +475,18 @@ def close_session(req: CloseRequest) -> CloseOut:
             changes.append(Change(sig, "unseen", "practicing"))
 
     s.changes = changes
+    learner.sessions.append(
+        {
+            "at": time.time(),
+            "started": s.created_at,
+            "lang": lang,
+            "title": s.result.title,
+            "accuracy": round(accuracy, 3),
+            "wcpm": a.wcpm,
+            "words": len(a.words),
+            "changes": [[c.unit, c.before, c.after] for c in changes],
+        }
+    )
     store.save()
     return CloseOut(
         story_id=s.id,
@@ -470,6 +496,100 @@ def close_session(req: CloseRequest) -> CloseOut:
         changes=[ChangeOut(unit=c.unit, before=c.before, after=c.after) for c in changes],
         learner=learner_out(learner),
     )
+
+
+# Fixed praise phrases (never free text to TTS). Child is addressed with the familiar
+# तिमी forms (पढ्यौ), which is right for a child. Tier by accuracy of the reading.
+PRAISE = {
+    "ne": {"great": "धेरै राम्रो पढ्यौ!", "good": "राम्रो पढ्यौ! अझ अभ्यास गरौँ।", "try": "राम्रो प्रयास! सँगै फेरि पढौँ।"},
+    "en": {"great": "Great reading!", "good": "Good reading! Let's practise a little more.", "try": "Good try! Let's read it together again."},
+}
+
+
+@app.get("/api/praise/{language}/{tier}")
+def praise_audio(language: Language, tier: Literal["great", "good", "try"]) -> Response:
+    """Spoken encouragement after a reading. Fixed phrases only; cached after first use."""
+    return Response(tts.speak_word(language, PRAISE[language][tier]), media_type="audio/wav",
+                    headers={"Cache-Control": "public, max-age=604800"})
+
+
+class SettingsIn(BaseModel):
+    daily_minutes: Literal[0, 10, 15, 20, 30]
+
+
+class SummaryOut(BaseModel):
+    days: int
+    stories: int
+    words_read: int
+    mean_accuracy: float | None
+    mean_wcpm: float | None
+    mastered: list[str]
+    introduced: list[str]
+    struggling: list[str]
+    per_day: list[int]
+
+
+class DashboardOut(BaseModel):
+    learner: LearnerOut
+    week: dict[str, SummaryOut]  # per language
+    used_today: int
+    daily_minutes: int
+    practicing: dict[str, list[str]]
+    recent: list[dict]  # last sessions, newest first
+
+
+@app.put("/api/learners/{learner_id}/settings", response_model=LearnerOut)
+def set_settings(learner_id: str, req: SettingsIn) -> LearnerOut:
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    learner.settings["daily_minutes"] = req.daily_minutes
+    store.save()
+    return learner_out(learner)
+
+
+@app.get("/api/learners/{learner_id}/dashboard", response_model=DashboardOut)
+def dashboard(learner_id: str) -> DashboardOut:
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    now = time.time()
+    return DashboardOut(
+        learner=learner_out(learner),
+        week={lang: SummaryOut(**summarize(learner.sessions, now, 7, lang).__dict__) for lang in ("ne", "en")},
+        used_today=_used_today(learner),
+        daily_minutes=learner.settings.get("daily_minutes", 0),
+        practicing={lang: practice_targets(u) for lang, u in learner.units.items()},
+        recent=list(reversed(learner.sessions[-8:])),
+    )
+
+
+class ActivitiesOut(BaseModel):
+    language: Language
+    practicing: list[str]
+    practice_words: list[str]  # readable now, verified in code
+    activities: list[dict]  # title_ne/en, how_ne/en, child_words (verified)
+
+
+coach_limit = RateLimit(per_ip=10, global_=60)
+
+
+@app.get("/api/learners/{learner_id}/activities/{language}", response_model=ActivitiesOut, dependencies=[Depends(coach_limit)])
+def home_activities(learner_id: str, language: Language) -> ActivitiesOut:
+    from athena.agents import coach
+    from athena.profile import ANIMALS, FOODS
+
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    units = learner.units[language]
+    practicing = practice_targets(units) or [u for u, st in units.items() if st.state == "practicing"]
+    pr = learner.profile
+    interests = ", ".join(
+        x for x in (ANIMALS.get(pr.get("favorite_animal", ""), ("",))[0], FOODS.get(pr.get("favorite_food", ""), ("",))[0]) if x
+    ) or "animals and food"
+    acts, words = coach.activities(learner.id, language, learner.name[language], allowed(units), practicing, interests)
+    return ActivitiesOut(language=language, practicing=practicing, practice_words=words, activities=acts)
 
 
 class PartOut(BaseModel):
