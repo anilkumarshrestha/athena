@@ -47,6 +47,7 @@ class StoryPlan(BaseModel):
     key_words: list[str] = []  # readable words for the theme's key things
     avoid_words: list[str] = []  # natural words for them the child cannot read yet
     target_units: list[str]
+    level: int = 2  # story shape band, athena.progression.LEVELS
     word_bank: list[str]
     mastery: list[str]
 

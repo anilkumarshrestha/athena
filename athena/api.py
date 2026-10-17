@@ -15,7 +15,8 @@ from athena.agents.planner import plan
 from athena.assess import stt
 from athena.assess.align import assess, tokens
 from athena.generate import generate
-from athena.mastery import allowed, apply_session, practice_targets
+from athena.mastery import Change, UnitState, allowed, apply_session, practice_targets
+from athena.progression import MAX_PRACTICING, next_level, next_units, should_introduce
 from athena.models import Language
 from athena.ratelimit import RateLimit
 from athena.store import Learner, Story, store
@@ -46,6 +47,8 @@ class LearnerOut(BaseModel):
     avatar: str
     mastery: dict[str, list[str]]  # units stories may use now
     units: dict[str, list[UnitOut]]
+    level: dict[str, int]
+    recent_accuracy: dict[str, list[float]]  # last 5 sessions, oldest first
 
 
 class ChangeOut(BaseModel):
@@ -60,7 +63,10 @@ class CloseRequest(BaseModel):
 
 class CloseOut(BaseModel):
     story_id: str
-    changes: list[ChangeOut]
+    accuracy: float
+    level_before: int
+    level_after: int
+    changes: list[ChangeOut]  # before "unseen" = newly introduced unit
     learner: LearnerOut
 
 
@@ -144,6 +150,8 @@ def learner_out(learner: Learner) -> LearnerOut:
             lang: [UnitOut(unit=sig, **u.__dict__) for sig, u in sorted(units.items())]
             for lang, units in learner.units.items()
         },
+        level=learner.level,
+        recent_accuracy={lang: [round(a, 2) for a in h[-5:]] for lang, h in learner.history.items()},
     )
 
 
@@ -225,6 +233,7 @@ def start_session(req: StartRequest) -> StoryOut:
         learner.name[req.language],
         theme=req.theme,
         target_units=practice_targets(units)[:3] or None,  # practise what is being learned
+        level=learner.level[req.language],
     )
 
     # Image starts now from the theme; text is generated + verified meanwhile.
@@ -304,10 +313,28 @@ def close_session(req: CloseRequest) -> CloseOut:
     if not s.readings:
         raise HTTPException(400, "no reading to score yet")
     a = s.readings[-1]
-    changes = apply_session(learner.units[s.language], a.unit_correct, a.unit_errors)
+    lang, units = s.language, learner.units[s.language]
+    changes = apply_session(units, a.unit_correct, a.unit_errors)
+
+    accuracy = a.words_correct / len(a.words) if a.words else 0.0
+    history = learner.history[lang]
+    history.append(accuracy)
+    level_before = learner.level[lang]
+    learner.level[lang] = next_level(level_before, history)
+
+    # Ready for more? Introduce the unseen units that unlock the most words.
+    if should_introduce(units, history):
+        practicing = sum(u.state == "practicing" for u in units.values())
+        for sig in next_units(lang, units, k=MAX_PRACTICING - practicing):
+            units[sig] = UnitState("practicing", streak=0, seen=0)
+            changes.append(Change(sig, "unseen", "practicing"))
+
     s.changes = changes
     return CloseOut(
         story_id=s.id,
+        accuracy=round(accuracy, 2),
+        level_before=level_before,
+        level_after=learner.level[lang],
         changes=[ChangeOut(unit=c.unit, before=c.before, after=c.after) for c in changes],
         learner=learner_out(learner),
     )

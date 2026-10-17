@@ -17,6 +17,8 @@ from athena.agents import writer
 from athena.fallback import template_story
 from athena.lexicon import decodable_words, verifier_for
 from athena.models import Attempt, GenerationResult, StoryPlan, ViolationOut
+from athena.progression import LEVELS
+from athena.verifier.shape import check_shape
 
 MAX_ATTEMPTS = 3
 MIN_PRUNED_SENTENCES = 2
@@ -40,6 +42,10 @@ def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -
     mastery = frozenset(plan.mastery)
     names = frozenset(plan.learner_name.split()) | frozenset(plan.learner_name.lower().split())
     verifier = verifier_for(plan.language, mastery, names)
+    limits = LEVELS[plan.level]
+
+    def shape_ok(sentences: list[str]) -> bool:
+        return not check_shape(plan.language, sentences, limits, names)
 
     attempts: list[Attempt] = []
     banned: dict[str, ViolationOut] = {}  # cumulative, so later drafts don't reintroduce old mistakes
@@ -75,9 +81,14 @@ def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -
                 )
             )
             continue
+        draft.sentences = draft.sentences[: limits.sentences[1]]  # too many sentences: keep the first
         # The child reads the title too, so it is verified with the story.
         result = verifier.verify("\n".join([draft.title, *draft.sentences]))
-        violations = _violations(result)
+        # Shape (word length, words per sentence) is enforced like letters: fed back, never shipped.
+        shape = check_shape(plan.language, [draft.title, *draft.sentences], limits, names)
+        violations = _violations(result) + [
+            ViolationOut(word=v.word, word_index=v.word_index, unit=None, reason=v.reason) for v in shape
+        ]
         for v in violations:
             banned.setdefault(v.word, v)
         attempts.append(
@@ -91,31 +102,36 @@ def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -
                 usage=usage,
             )
         )
-        if result.ok:
+        if result.ok and not shape:
             outcome = "first_pass" if n == 1 else "regenerated"
             title, sentences, units = draft.title, draft.sentences, result.units_used
             break
 
     if outcome is None:
         # draft is the last usable one, or None if every attempt failed outright
-        kept = [s for s in draft.sentences if verifier.verify(s).ok] if draft else []
-        title = draft.title if draft and verifier.verify(draft.title).ok else plan.learner_name
+        kept = [s for s in draft.sentences if verifier.verify(s).ok and shape_ok([s])] if draft else []
+        title = draft.title if draft and verifier.verify(draft.title).ok and shape_ok([draft.title]) else plan.learner_name
         if len(kept) >= MIN_PRUNED_SENTENCES:
             outcome, sentences = "pruned", kept
         else:
             readable = decodable_words(plan.language, mastery)
             t_title, extra = template_story(plan.language, verifier, readable, plan.key_words, random.Random(0))
-            extra = [x for x in extra if x not in kept]
+            extra = [x for x in extra if x not in kept and shape_ok([x])]
+            if t_title and not shape_ok([t_title]):
+                t_title = ""
             if len(kept) + len(extra) >= MIN_PRUNED_SENTENCES:
-                outcome, sentences = "template", (kept + extra)[:4]
+                outcome, sentences = "template", (kept + extra)[: limits.sentences[1]]
                 if title == plan.learner_name and t_title:
                     title = t_title
             else:
-                outcome, sentences = "wordlist", [" ".join(plan.word_bank[:12])]
+                short = [w for w in plan.word_bank if shape_ok([w])]
+                outcome, sentences = "wordlist", [" ".join(short[:12])]
         units = verifier.verify("\n".join([title, *sentences])).units_used
 
     final = verifier.verify("\n".join([title, *sentences]))
     assert final.ok, f"verifier guarantee broken: {final.violations}"  # never ship a violation
+    if outcome != "wordlist":  # a word list is not sentences; its words were length-filtered above
+        assert shape_ok([title, *sentences]), "shape limits broken"
 
     res = GenerationResult(
         plan=plan,

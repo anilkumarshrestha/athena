@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from athena.config import genai_client, settings
 from athena.models import StoryDraft, StoryPlan, Usage, ViolationOut
+from athena.progression import LEVELS
 from athena.retry import with_retry
 
 _LANG = {"ne": "Nepali (Devanagari script)", "en": "simple English"}
@@ -53,6 +54,7 @@ Nepali grammar and idiom (a native speaker will read this):
         if plan.language == "ne"
         else ""
     )
+    lim = LEVELS[plan.level]
     key_line = ""
     if plan.key_words:
         key_line += f"Key words for this theme (the child can read these; use them): {' '.join(plan.key_words)}\n"
@@ -71,7 +73,8 @@ Word bank:
 {" ".join(plan.word_bank)}
 
 Rules:
-- 3 to 5 very short sentences, each 3-7 words. Simple, warm, coherent. Repetition is good.
+- {f"exactly {lim.sentences[0]}" if lim.sentences[0] == lim.sentences[1] else f"{lim.sentences[0]} to {lim.sentences[1]}"} short sentences, at most {lim.max_words} words each. Simple, warm, coherent. Repetition is good.
+- Every word at most {lim.max_len_ne if plan.language == "ne" else lim.max_len_en} {"aksharas (letter clusters)" if plan.language == "ne" else "sounds"} long (the child's name is exempt). Prefer short words.
 - A short title using the same constraints.
 - Everyday Nepali child life: family, village, animals, food, school.
 - No violence, fear, danger, sadness or adult themes.

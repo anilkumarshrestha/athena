@@ -19,6 +19,8 @@ class Learner:
     name: dict[str, str]  # per language: {"ne": "सीता", "en": "Sita"}
     avatar: str
     units: dict[str, dict[str, UnitState]]  # per language: signature -> state
+    level: dict[str, int] = field(default_factory=lambda: {"ne": 1, "en": 1})  # story shape band
+    history: dict[str, list[float]] = field(default_factory=lambda: {"ne": [], "en": []})  # accuracy per session
 
     @property
     def mastery(self) -> dict[str, frozenset[str]]:
@@ -83,7 +85,8 @@ def _seed(store: MemoryStore) -> None:
             u = {sig: UnitState("mastered", streak=3, seen=3) for sig in preset(preset_name)[1]}
             u.update({sig: UnitState("practicing", streak=0, seen=1) for sig in practicing})
             units[lang] = u
-        store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units))
+        level = {"sita": {"ne": 1, "en": 1}, "ram": {"ne": 2, "en": 2}}[lid]
+        store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units, level=level))
 
 
 store = MemoryStore()

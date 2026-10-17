@@ -121,7 +121,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
               size="lg"
               lang={lang}
               state={c.after as 'mastered' | 'practicing'}
-              changed={c.after === 'mastered' ? 'promoted' : 'demoted'}
+              changed={c.after === 'mastered' || c.before === 'unseen' ? 'promoted' : 'demoted'} // new unit = step up
             />
           ))}
         </div>

@@ -39,7 +39,8 @@ export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack
           </h1>
           <p className="m-0 mb-6 text-body text-ink-3">
             Stories use mastered and practising units only. A unit read wrong twice in one session goes back to
-            practising and sits out the next story.
+            practising and sits out the next story. After two strong sessions (90%+) the level rises and new
+            units are introduced: the ones that let the child read the most new words.
           </p>
 
           <div role="tablist" className="mb-6 flex gap-1">
@@ -57,6 +58,18 @@ export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack
                 {l === 'ne' ? 'नेपाली' : 'English'}
               </button>
             ))}
+          </div>
+
+          <div className="mb-4 flex flex-wrap gap-6 font-mono text-mono text-ink-2 tabular-nums">
+            <span>
+              level <span className="text-stat font-medium text-ink">{learner.level[lang] ?? 1}</span> / 3
+            </span>
+            <span>
+              last sessions:{' '}
+              {(learner.recent_accuracy[lang] ?? []).length
+                ? learner.recent_accuracy[lang].map((a) => `${Math.round(a * 100)}%`).join(' · ')
+                : 'none yet'}
+            </span>
           </div>
 
           <div className="rounded-md border border-line bg-card p-4">

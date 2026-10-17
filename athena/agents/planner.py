@@ -65,6 +65,7 @@ def plan(
     theme: str | None = None,
     target_units: list[str] | None = None,
     seed: int | None = None,
+    level: int = 2,
 ) -> StoryPlan:
     rng = random.Random(seed)
 
@@ -97,6 +98,7 @@ def plan(
         key_words=key_words,
         avoid_words=avoid_words,
         target_units=list(target_units),
+        level=level,
         word_bank=words,
         mastery=sorted(mastery),
     )

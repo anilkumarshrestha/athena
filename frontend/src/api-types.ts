@@ -192,6 +192,12 @@ export interface components {
         CloseOut: {
             /** Story Id */
             story_id: string;
+            /** Accuracy */
+            accuracy: number;
+            /** Level Before */
+            level_before: number;
+            /** Level After */
+            level_after: number;
             /** Changes */
             changes: components["schemas"]["ChangeOut"][];
             learner: components["schemas"]["LearnerOut"];
@@ -237,6 +243,14 @@ export interface components {
             /** Units */
             units: {
                 [key: string]: components["schemas"]["UnitOut"][];
+            };
+            /** Level */
+            level: {
+                [key: string]: number;
+            };
+            /** Recent Accuracy */
+            recent_accuracy: {
+                [key: string]: number[];
             };
         };
         /** ReadOut */
