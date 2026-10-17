@@ -35,6 +35,16 @@ export const api = {
     }),
   wordHelp: (storyId: string, index: number) =>
     fetch(`/api/stories/${storyId}/words/${index}`).then(json<components['schemas']['WordHelpOut']>),
+  praiseUrl: (lang: Language, tier: 'great' | 'good' | 'try') => `/api/praise/${lang}/${tier}`,
+  dashboard: (id: string) => fetch(`/api/learners/${id}/dashboard`).then(json<components['schemas']['DashboardOut']>),
+  activities: (id: string, lang: Language) =>
+    fetch(`/api/learners/${id}/activities/${lang}`).then(json<components['schemas']['ActivitiesOut']>),
+  setDailyMinutes: (id: string, daily_minutes: 0 | 10 | 15 | 20 | 30) =>
+    fetch(`/api/learners/${id}/settings`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ daily_minutes }),
+    }).then(json<Learner>),
   wordAudioUrl: (storyId: string, index: number) => `/api/stories/${storyId}/words/${index}/audio`,
   retryWord: (storyId: string, index: number, audio: Blob) => {
     const form = new FormData()

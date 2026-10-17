@@ -65,9 +65,14 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
                 English
               </button>
             </div>
-            <a href={`#/mastery/${l.id}`} className="mt-4 inline-block text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
-              Teacher view: mastery
-            </a>
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
+              <a href={`#/parent/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
+                Parent view
+              </a>
+              <a href={`#/mastery/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
+                Teacher view: mastery
+              </a>
+            </div>
           </div>
           )
         })}

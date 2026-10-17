@@ -1,0 +1,175 @@
+import { AlertTriangle, ArrowLeft, Clock } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import type { components } from '../api-types'
+import { api, type Language } from '../api'
+import { DotLoader } from '../components/DotLoader'
+import { UnitChip } from '../components/UnitChip'
+import { unitGlyph } from '../units'
+
+type Dashboard = components['schemas']['DashboardOut']
+type Activities = components['schemas']['ActivitiesOut']
+
+const LIMITS = [0, 10, 15, 20, 30] as const
+const glyph = unitGlyph // matras on a dotted circle: ◌ै
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border-2 border-b-4 border-line bg-card p-4">
+      <div className="text-caption text-ink-3">{label}</div>
+      <div className="font-mono text-stat font-medium tabular-nums">{value}</div>
+    </div>
+  )
+}
+
+// Parent view: plain language, bilingual, what to do next. No scores shown to the child.
+export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack: () => void }) {
+  const [d, setD] = useState<Dashboard | null>(null)
+  const [lang, setLang] = useState<Language>('ne')
+  const [acts, setActs] = useState<Activities | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.dashboard(learnerId).then(setD).catch((e) => setError(String(e.message ?? e)))
+  }, [learnerId])
+
+  useEffect(() => {
+    setActs(null)
+    api.activities(learnerId, lang).then(setActs).catch(() => {})
+  }, [learnerId, lang])
+
+  if (error) return <p className="p-8 text-omitted">{error}</p>
+  if (!d) return <div className="p-8"><DotLoader /></div>
+
+  const w = d.week[lang]
+  const name = d.learner.name
+  const story = lang === 'ne' ? 'font-story-ne' : 'font-story-en'
+
+  return (
+    <main className="mx-auto max-w-[960px] px-4 py-8 font-ui md:px-8">
+      <button type="button" onClick={onBack} className="mb-6 flex items-center gap-2 text-body text-ink-2 hover:text-ink">
+        <ArrowLeft size={20} strokeWidth={1.75} /> Learners
+      </button>
+      <h1 className="m-0 mb-1 text-display font-semibold">
+        {name.ne} <span className="text-ink-3">· {name.en}</span>
+      </h1>
+      <p className="m-0 mb-6 text-body text-ink-3">अभिभावकका लागि · For parents: this week, what's hard, and how to help at home.</p>
+
+      <div role="tablist" className="mb-6 flex gap-1">
+        {(['ne', 'en'] as const).map((l) => (
+          <button key={l} role="tab" aria-selected={lang === l} type="button" onClick={() => setLang(l)}
+            className={`min-h-10 rounded-md px-4 text-body font-medium ${lang === l ? 'bg-primary-soft text-primary' : 'text-ink-2 hover:bg-paper-sunken'}`}>
+            {l === 'ne' ? 'नेपाली पढाइ' : 'English reading'}
+          </button>
+        ))}
+      </div>
+
+      {/* This week */}
+      <h2 className="mb-3 text-h2 font-semibold">यो हप्ता · This week</h2>
+      <div className="mb-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat label="कथा · Stories" value={String(w.stories)} />
+        <Stat label="पढेका शब्द · Words read" value={String(w.words_read)} />
+        <Stat label="शुद्धता · Accuracy" value={w.mean_accuracy == null ? '—' : `${Math.round(w.mean_accuracy * 100)}%`} />
+        <Stat label="शब्द/मिनेट · Words/min" value={w.mean_wcpm == null ? '—' : String(w.mean_wcpm)} />
+      </div>
+      <div className="mb-8 flex h-12 items-end gap-1" aria-label="Stories per day, last 7 days">
+        {w.per_day.map((n, i) => (
+          <div key={i} className="flex-1 rounded-t-sm bg-primary" style={{ height: `${Math.min(100, n * 25) || 4}%`, opacity: n ? 1 : 0.15 }} />
+        ))}
+      </div>
+
+      {(w.mastered.length > 0 || w.introduced.length > 0) && (
+        <section className="mb-8">
+          <h2 className="mb-3 text-h2 font-semibold">सिकेका अक्षर · Learned</h2>
+          <div className="flex flex-wrap gap-2">
+            {w.mastered.map((u) => <UnitChip key={u} unit={u} state="mastered" lang={lang} changed="promoted" />)}
+            {w.introduced.map((u) => <UnitChip key={u} unit={u} state="practicing" lang={lang} />)}
+          </div>
+          <p className="mt-2 text-small text-ink-3">Green: now reads it confidently. Amber: started learning it this week.</p>
+        </section>
+      )}
+
+      {w.struggling.length > 0 && (
+        <section className="mb-8 flex gap-3 rounded-xl border-2 border-substituted bg-substituted-soft p-4">
+          <AlertTriangle className="shrink-0 text-substituted" size={24} />
+          <div>
+            <p className="m-0 font-semibold">
+              {name.en} is finding {w.struggling.map(glyph).join(', ')} hard · {name.ne}लाई {w.struggling.map(glyph).join(', ')} गाह्रो भइरहेको छ
+            </p>
+            <p className="m-0 mt-1 text-small text-ink-2">
+              Read wrong twice recently. Stories will keep practising it gently; the activities below help at home.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* Home activities */}
+      <h2 className="mb-1 text-h2 font-semibold">घरमा अभ्यास · At home</h2>
+      <p className="m-0 mb-3 text-small text-ink-3">
+        Practising now: {(acts?.practicing ?? d.practicing[lang]).map(glyph).join(' ') || '—'}
+      </p>
+      {!acts ? (
+        <div className="mb-8 flex items-center gap-3 text-small text-ink-3"><DotLoader /> preparing ideas…</div>
+      ) : (
+        <>
+          {acts.practice_words.length > 0 && (
+            <div className="mb-4">
+              <p className="m-0 mb-2 text-small text-ink-2">Words {name.en} can read that practise these:</p>
+              <div className={`flex flex-wrap gap-2 ${story} text-child-label`}>
+                {acts.practice_words.map((x) => (
+                  <span key={x} className="rounded-lg border-2 border-line bg-card px-3 py-1">{x}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="mb-8 grid gap-3 md:grid-cols-3">
+            {acts.activities.map((a, i) => (
+              <article key={i} className="rounded-xl border-2 border-b-4 border-line bg-card p-4">
+                <h3 className="m-0 font-story-ne text-h3 font-semibold">{String(a.title_ne)}</h3>
+                <p className="m-0 mb-2 text-small text-ink-3">{String(a.title_en)}</p>
+                <p className="m-0 mb-2 font-story-ne text-body">{String(a.how_ne)}</p>
+                <p className="m-0 mb-2 text-small text-ink-2">{String(a.how_en)}</p>
+                {Array.isArray(a.child_words) && a.child_words.length > 0 && (
+                  <p className={`m-0 ${story} text-body font-semibold`}>{(a.child_words as string[]).join(' · ')}</p>
+                )}
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Time control */}
+      <section className="mb-8 rounded-xl border-2 border-line bg-card p-4">
+        <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><Clock size={20} /> दैनिक समय · Daily time</h2>
+        <p className="m-0 mb-3 text-small text-ink-3">
+          Used today: {d.used_today} min. When the limit is reached, {name.en} sees "see you tomorrow".
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {LIMITS.map((m) => (
+            <button key={m} type="button" aria-pressed={d.daily_minutes === m}
+              onClick={() => api.setDailyMinutes(learnerId, m).then(() => setD({ ...d, daily_minutes: m }))}
+              className={`min-h-10 rounded-md border px-4 text-body ${d.daily_minutes === m ? 'border-primary bg-primary-soft text-primary' : 'border-line-strong hover:bg-paper-sunken'}`}>
+              {m === 0 ? 'No limit' : `${m} min`}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Recent sessions: human-reviewable log */}
+      {d.recent.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-h2 font-semibold">भर्खरका कथा · Recent stories</h2>
+          <ul className="m-0 list-none p-0 font-mono text-mono">
+            {d.recent.map((r, i) => (
+              <li key={i} className="flex flex-wrap gap-x-4 border-b border-line py-2 tabular-nums">
+                <span className="text-ink-3">{new Date(Number(r.at) * 1000).toLocaleDateString()}</span>
+                <span className="font-story-ne">{String(r.title)}</span>
+                <span>{Math.round(Number(r.accuracy) * 100)}%</span>
+                <span className="text-ink-3">{String(r.wcpm)} wpm</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </main>
+  )
+}

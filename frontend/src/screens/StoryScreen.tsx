@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Moon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, type CloseResult, type Language, type ReadResult, type Story } from '../api'
 import { ReadingLog } from '../components/ReadingLog'
@@ -11,6 +11,11 @@ import { useRecorder } from '../hooks/useRecorder'
 
 const POLL_MS = 1500
 
+const PRAISE = {
+  ne: { great: 'धेरै राम्रो पढ्यौ!', good: 'राम्रो पढ्यौ! अझ अभ्यास गरौँ।', try: 'राम्रो प्रयास! सँगै फेरि पढौँ।' },
+  en: { great: 'Great reading!', good: "Good reading! Let's practise a little more.", try: "Good try! Let's read it together again." },
+} as const
+
 export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; lang: Language; onBack: () => void }) {
   const [story, setStory] = useState<Story | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -18,6 +23,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [reading, setReading] = useState<ReadResult | null>(null)
   const [closed, setClosed] = useState<CloseResult | null>(null)
   const [helpWord, setHelpWord] = useState<number | null>(null)
+  const [praise, setPraise] = useState<'great' | 'good' | 'try' | null>(null)
   const [fixed, setFixed] = useState<Set<number>>(new Set()) // words got right on a retry
   const [checking, setChecking] = useState(false)
   const recorder = useRecorder()
@@ -29,6 +35,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setReading(null)
     setClosed(null)
     setHelpWord(null)
+    setPraise(null)
     setFixed(new Set())
     setError(null)
     api
@@ -67,7 +74,13 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     const { blob, durationS } = await recorder.stop()
     setChecking(true)
     try {
-      setReading(await api.read(story.id, blob, durationS))
+      const r = await api.read(story.id, blob, durationS)
+      setReading(r)
+      // Warm spoken praise, matched to how it went; never a score for the child.
+      const acc = r.words.length ? r.words_correct / r.words.length : 0
+      const tier = acc >= 0.9 ? 'great' : acc >= 0.6 ? 'good' : 'try'
+      setPraise(tier)
+      new Audio(api.praiseUrl(lang, tier)).play().catch(() => {})
       // First reading of a story updates mastery once; later re-reads are practice only.
       if (!closed) setClosed(await api.closeSession(story.id))
     } catch (e) {
@@ -88,7 +101,13 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
         <ArrowLeft size={32} strokeWidth={1.75} />
       </button>
 
-      {error ? (
+      {error === 'daily_limit' ? (
+        <section className="flex flex-col items-center gap-4 rounded-2xl border-2 border-b-4 border-line bg-card p-12 text-center">
+          <Moon size={64} strokeWidth={1.5} className="text-primary" />
+          <p className="m-0 font-story-ne text-child-title font-bold">आजलाई यति नै! भोलि फेरि पढौँ।</p>
+          <p className="m-0 font-story-en text-child-label text-ink-2">That's all for today. Let's read again tomorrow!</p>
+        </section>
+      ) : error ? (
         <p className="rounded-lg border border-line bg-card p-8 text-child-label text-omitted">{error}</p>
       ) : (
         <StoryCard
@@ -134,18 +153,35 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
         />
       )}
 
+      {praise && (
+        <p aria-live="polite" className={`mx-auto mt-6 max-w-story text-center ${lang === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-title font-bold text-ink`}>
+          {PRAISE[lang][praise]}
+        </p>
+      )}
+
       {closed && closed.changes.length > 0 && (
-        <div className="mx-auto mt-6 flex max-w-story flex-wrap items-center gap-3 rounded-lg border border-line bg-card p-4">
-          {closed.changes.map((c) => (
-            <UnitChip
-              key={c.unit}
-              unit={c.unit}
-              size="lg"
-              lang={lang}
-              state={c.after as 'mastered' | 'practicing'}
-              changed={c.after === 'mastered' || c.before === 'unseen' ? 'promoted' : 'demoted'} // new unit = step up
-            />
-          ))}
+        <div className="mx-auto mt-4 flex max-w-story flex-col gap-4 rounded-2xl border-2 border-b-4 border-line bg-card p-5">
+          {(() => {
+            const up = closed.changes.filter((c) => c.after === 'mastered' || c.before === 'unseen')
+            const practise = closed.changes.filter((c) => !(c.after === 'mastered' || c.before === 'unseen'))
+            const group = (label: string, items: typeof up, changed: 'promoted' | 'demoted') =>
+              items.length > 0 && (
+                <div>
+                  <p className={`m-0 mb-2 ${lang === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-label font-semibold text-ink-2`}>{label}</p>
+                  <div className="flex flex-wrap gap-3">
+                    {items.map((c) => (
+                      <UnitChip key={c.unit} unit={c.unit} size="lg" lang={lang} state={c.after as 'mastered' | 'practicing'} changed={changed} />
+                    ))}
+                  </div>
+                </div>
+              )
+            return (
+              <>
+                {group(lang === 'ne' ? 'नयाँ अक्षर! पढ्न सक्छौ।' : 'New letters you can read!', up, 'promoted')}
+                {group(lang === 'ne' ? 'अझ अभ्यास गरौँ:' : "Let's practise these:", practise, 'demoted')}
+              </>
+            )
+          })()}
         </div>
       )}
 

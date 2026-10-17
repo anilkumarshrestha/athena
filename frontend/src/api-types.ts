@@ -154,6 +154,77 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/praise/{language}/{tier}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Praise Audio
+         * @description Spoken encouragement after a reading. Fixed phrases only; cached after first use.
+         */
+        get: operations["praise_audio_api_praise__language___tier__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Settings */
+        put: operations["set_settings_api_learners__learner_id__settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard */
+        get: operations["dashboard_api_learners__learner_id__dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/activities/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Home Activities */
+        get: operations["home_activities_api_learners__learner_id__activities__language__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}": {
         parameters: {
             query?: never;
@@ -253,6 +324,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivitiesOut */
+        ActivitiesOut: {
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "ne" | "en";
+            /** Practicing */
+            practicing: string[];
+            /** Practice Words */
+            practice_words: string[];
+            /** Activities */
+            activities: {
+                [key: string]: unknown;
+            }[];
+        };
         /** AttemptLog */
         AttemptLog: {
             /** N */
@@ -321,6 +408,26 @@ export interface components {
         CloseRequest: {
             /** Story Id */
             story_id: string;
+        };
+        /** DashboardOut */
+        DashboardOut: {
+            learner: components["schemas"]["LearnerOut"];
+            /** Week */
+            week: {
+                [key: string]: components["schemas"]["SummaryOut"];
+            };
+            /** Used Today */
+            used_today: number;
+            /** Daily Minutes */
+            daily_minutes: number;
+            /** Practicing */
+            practicing: {
+                [key: string]: string[];
+            };
+            /** Recent */
+            recent: {
+                [key: string]: unknown;
+            }[];
         };
         /** DiagnosticOut */
         DiagnosticOut: {
@@ -413,6 +520,10 @@ export interface components {
             profile: {
                 [key: string]: string;
             };
+            /** Settings */
+            settings: {
+                [key: string]: number;
+            };
         };
         /** PartOut */
         PartOut: {
@@ -481,6 +592,14 @@ export interface components {
             /** Heard */
             heard: string;
         };
+        /** SettingsIn */
+        SettingsIn: {
+            /**
+             * Daily Minutes
+             * @enum {integer}
+             */
+            daily_minutes: 0 | 10 | 15 | 20 | 30;
+        };
         /** StartRequest */
         StartRequest: {
             /** Learner Id */
@@ -526,6 +645,27 @@ export interface components {
             image_latency_ms: number | null;
             /** Display */
             display: components["schemas"]["DisplayWord"][][];
+        };
+        /** SummaryOut */
+        SummaryOut: {
+            /** Days */
+            days: number;
+            /** Stories */
+            stories: number;
+            /** Words Read */
+            words_read: number;
+            /** Mean Accuracy */
+            mean_accuracy: number | null;
+            /** Mean Wcpm */
+            mean_wcpm: number | null;
+            /** Mastered */
+            mastered: string[];
+            /** Introduced */
+            introduced: string[];
+            /** Struggling */
+            struggling: string[];
+            /** Per Day */
+            per_day: number[];
         };
         /** TierOut */
         TierOut: {
@@ -898,6 +1038,136 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CloseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    praise_audio_api_praise__language___tier__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                language: "ne" | "en";
+                tier: "great" | "good" | "try";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_settings_api_learners__learner_id__settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dashboard_api_learners__learner_id__dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    home_activities_api_learners__learner_id__activities__language__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivitiesOut"];
                 };
             };
             /** @description Validation Error */
