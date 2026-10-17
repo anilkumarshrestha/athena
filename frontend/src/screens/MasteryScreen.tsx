@@ -76,6 +76,20 @@ export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack
             <MasteryGrid lang={lang} mastered={mastered} practicing={practicing} />
           </div>
 
+          <div className="mt-12 border-t border-line pt-6">
+            <button
+              type="button"
+              onClick={async () => {
+                if (!confirm(`Delete ${learner.name.en} and all their progress? This cannot be undone.`)) return
+                await api.deleteLearner(learner.id)
+                onBack()
+              }}
+              className="min-h-10 rounded-md border border-omitted px-4 text-body text-omitted hover:bg-omitted-soft"
+            >
+              Delete learner and their data
+            </button>
+          </div>
+
           {resting.length > 0 && (
             <p className="mt-4 font-mono text-mono text-ink-3">
               sitting out the next story: {resting.map((u) => u.slice(u.indexOf(':') + 1)).join(' ')}

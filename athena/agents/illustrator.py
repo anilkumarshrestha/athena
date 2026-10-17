@@ -5,6 +5,7 @@ waits on the verified text.
 """
 
 import time
+import zlib
 
 from google.genai import types
 
@@ -12,18 +13,23 @@ from athena.config import genai_client, settings
 from athena.models import Usage
 from athena.retry import with_retry
 
-# DESIGN.md §8, verbatim. Keeps illustrations inside the UI palette.
+# DESIGN.md §8. Keeps illustrations inside the UI palette.
 STYLE = (
-    "Simple flat vector children's book illustration. Warm off-white background #FBF7F0. "
-    "Limited palette: deep blue #1E4FB5, leaf green #1F7A3E, ochre #9A5B00, terracotta #B3360B, "
-    "teal #0B6E7A, warm dark brown #1F1B16 for outlines. Soft rounded shapes, no gradients, no text, "
-    "no letters. Animals or objects as main characters; any people shown small, simple, no detailed "
-    "faces. Not photorealistic. Setting: rural or small-town Nepal."
+    "Bright, cheerful flat vector children's book illustration, in the spirit of Cocomelon or "
+    "Duolingo ABC. Light sky-blue background #EAF6FF. Vivid saturated palette: sky blue #38A8FF, "
+    "grass green #3DBB4F, sunny yellow #FFC800, coral red #FF5A5F, deep navy #1E2A4A for thick "
+    "rounded outlines. Big simple rounded shapes, no gradients, no text, no letters. Animals or "
+    "objects as main characters; any people shown small, simple, no detailed faces. Not "
+    "photorealistic. Setting: rural or small-town Nepal."
 )
+
+# One dominant accent per story, picked from the theme so a retry keeps its colour.
+ACCENTS = ("sunny yellow", "coral red", "grass green", "sky blue")
 
 
 def build_prompt(theme: str) -> str:
-    return f"Picture for a story about: {theme}.\n\n{STYLE}"
+    accent = ACCENTS[zlib.crc32(theme.encode()) % len(ACCENTS)]
+    return f"Picture for a story about: {theme}.\n\nMain character in {accent}.\n\n{STYLE}"
 
 
 def illustrate(theme: str) -> tuple[bytes, str, Usage, int]:

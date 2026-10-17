@@ -1,9 +1,20 @@
-"""Learner + story store. In-memory for now (Cloud Run max-instances=1); Firestore later."""
+"""Learner + story store.
 
+Learners are persisted to a JSON file (state_dir/learners.json), written atomically after
+every change and loaded at startup, so a restart keeps every child's profile and progress.
+Stories stay in memory: they are per-session. The file holds children's first names and
+progress: it is git-ignored and learners can be deleted on request.
+Cloud Run disk is ephemeral; move to Firestore when deployed beyond one instance.
+"""
+
+import json
+import os
 import threading
 import time
 import uuid
 from dataclasses import dataclass, field
+from dataclasses import asdict
+from pathlib import Path
 from typing import Literal
 
 from athena.mastery import UnitState, allowed
@@ -43,11 +54,56 @@ class Story:
     created_at: float = field(default_factory=time.time)
 
 
+def learner_to_dict(learner: Learner) -> dict:
+    return asdict(learner)
+
+
+def learner_from_dict(d: dict) -> Learner:
+    return Learner(
+        id=d["id"],
+        name=d["name"],
+        avatar=d.get("avatar", ""),
+        units={lang: {sig: UnitState(**u) for sig, u in units.items()} for lang, units in d["units"].items()},
+        profile=d.get("profile", {}),
+        level=d.get("level", {"ne": 1, "en": 1}),
+        history=d.get("history", {"ne": [], "en": []}),
+    )
+
+
 class MemoryStore:
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
+    def __init__(self, path: Path | None = None) -> None:
+        self._lock = threading.RLock()
+        self.path = path  # None: memory only (tests)
         self.learners: dict[str, Learner] = {}
         self.stories: dict[str, Story] = {}
+
+    def load(self) -> bool:
+        """Load learners from disk. False if there is no file yet."""
+        if not self.path or not self.path.exists():
+            return False
+        data = json.loads(self.path.read_text(encoding="utf-8"))
+        with self._lock:
+            self.learners = {d["id"]: learner_from_dict(d) for d in data["learners"]}
+        return True
+
+    def save(self) -> None:
+        """Write all learners atomically: temp file, then rename (no half-written file)."""
+        if not self.path:
+            return
+        with self._lock:
+            payload = {"version": 1, "learners": [learner_to_dict(x) for x in self.learners.values()]}
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = self.path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+            os.replace(tmp, self.path)
+
+    def delete_learner(self, learner_id: str) -> bool:
+        with self._lock:
+            gone = self.learners.pop(learner_id, None) is not None
+            self.stories = {k: v for k, v in self.stories.items() if v.learner_id != learner_id}
+        if gone:
+            self.save()
+        return gone
 
     def list_learners(self) -> list[Learner]:
         return list(self.learners.values())
@@ -58,6 +114,7 @@ class MemoryStore:
     def put_learner(self, learner: Learner) -> None:
         with self._lock:
             self.learners[learner.id] = learner
+        self.save()
 
     def add_story(self, learner_id: str, language: Language, result: GenerationResult) -> Story:
         story = Story(id=uuid.uuid4().hex[:12], learner_id=learner_id, language=language, result=result)
@@ -112,5 +169,13 @@ def new_learner(name_ne: str, name_en: str, profile: dict[str, str], start: str)
     )
 
 
-store = MemoryStore()
-_seed(store)
+def _open_store() -> MemoryStore:
+    from athena.config import settings
+
+    st = MemoryStore(Path(settings().state_dir) / "learners.json")
+    if not st.load():
+        _seed(st)  # first run: demo learners, written to disk
+    return st
+
+
+store = _open_store()

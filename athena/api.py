@@ -314,6 +314,7 @@ def set_placement(learner_id: str, req: PlacementRequest) -> PlacementOut:
     learner.units[req.language] = units
     learner.level[req.language] = p.level
     learner.history[req.language] = []
+    store.save()
     return PlacementOut(
         level=p.level,
         reached_tier=p.reached_tier,
@@ -329,6 +330,14 @@ def create_learner(req: LearnerCreate) -> LearnerOut:
     learner = new_learner(req.name_ne, req.name_en.strip(), profile, req.start)
     store.put_learner(learner)
     return learner_out(learner)
+
+
+@app.delete("/api/learners/{learner_id}", status_code=204)
+def delete_learner(learner_id: str) -> Response:
+    """Remove a learner and everything stored about them (parent request / end of pilot)."""
+    if not store.delete_learner(learner_id):
+        raise HTTPException(404, "learner not found")
+    return Response(status_code=204)
 
 
 @app.get("/api/learners/{learner_id}", response_model=LearnerOut)
@@ -450,6 +459,7 @@ def close_session(req: CloseRequest) -> CloseOut:
             changes.append(Change(sig, "unseen", "practicing"))
 
     s.changes = changes
+    store.save()
     return CloseOut(
         story_id=s.id,
         accuracy=round(accuracy, 2),

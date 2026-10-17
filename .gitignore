@@ -26,3 +26,7 @@ logs/
 # graphify cache (regenerated locally)
 graphify-out/cache/
 media/
+
+presentation/
+# learner data (children's first names + progress): never commit
+state/

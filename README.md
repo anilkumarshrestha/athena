@@ -111,7 +111,10 @@ kill <pid>
 | `#/read/sita/ne` | Story for learner `sita` in Nepali (`en` for English) |
 | `#/styleguide` | Components from [DESIGN.md](DESIGN.md) |
 
-Two demo learners are seeded in memory (`sita`, `ram`). Data resets when the API restarts.
+Learners are saved to `state/learners.json` (atomic writes; survives restarts). Two demo learners
+(`sita`, `ram`) are seeded on first run. The file holds children's first names and progress: it is
+git-ignored, and a learner can be deleted from the teacher view (`DELETE /api/learners/{id}`).
+To reset everything, stop the API and delete `state/`.
 
 On the story screen, **"Show how this story was made"** opens the verifier log: every
 attempt, the words that broke the rules, and the unit that broke them.

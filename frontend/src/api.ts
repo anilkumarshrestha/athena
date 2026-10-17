@@ -29,6 +29,10 @@ export const api = {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ language, responses }),
     }).then(json<components['schemas']['PlacementOut']>),
+  deleteLearner: (id: string) =>
+    fetch(`/api/learners/${id}`, { method: 'DELETE' }).then((r) => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+    }),
   createLearner: (body: components['schemas']['LearnerCreate']) =>
     fetch('/api/learners', {
       method: 'POST',
