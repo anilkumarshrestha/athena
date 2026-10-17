@@ -262,6 +262,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learners/{learner_id}/letters/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Letters
+         * @description Letter-mode session: the same mastery rule as a story reading, so pre-readers progress
+         *     into stories. A letter not yet said counts as one error (resets the streak, no demotion).
+         */
+        post: operations["close_letters_api_learners__learner_id__letters_close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/letters/{language}/{unit}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Letter Audio
+         * @description Speak the example word for a letter card. The text comes from the server's own
+         *     example list for a valid unit, never from the client.
+         */
+        get: operations["letter_audio_api_letters__language___unit__audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}": {
         parameters: {
             query?: never;
@@ -640,6 +682,18 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /** LetterCheckIn */
+        LetterCheckIn: {
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "ne" | "en";
+            /** Results */
+            results: {
+                [key: string]: boolean;
+            };
+        };
         /** PartOut */
         PartOut: {
             /** Text */
@@ -760,6 +814,13 @@ export interface components {
             image_latency_ms: number | null;
             /** Display */
             display: components["schemas"]["DisplayWord"][][];
+            /**
+             * Letters
+             * @default []
+             */
+            letters: {
+                [key: string]: unknown;
+            }[];
         };
         /** SummaryOut */
         SummaryOut: {
@@ -1348,6 +1409,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HistoryStoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_letters_api_learners__learner_id__letters_close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LetterCheckIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CloseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    letter_audio_api_letters__language___unit__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                language: "ne" | "en";
+                unit: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

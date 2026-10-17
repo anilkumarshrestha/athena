@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, Moon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, type CloseResult, type Language, type ReadResult, type Story } from '../api'
 import { ReadingLog } from '../components/ReadingLog'
+import { LetterPractice } from '../components/LetterPractice'
 import { ReteachPanel } from '../components/ReteachPanel'
 import { RecordButton, StoryCard } from '../components/StoryCard'
 import { VerifierLog } from '../components/VerifierLog'
@@ -109,6 +110,21 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
         </section>
       ) : error ? (
         <p className="rounded-lg border border-line bg-card p-8 text-child-label text-omitted">{error}</p>
+      ) : story?.outcome === 'letters' ? (
+        closed ? (
+          <div className="flex justify-center">
+            <button type="button" onClick={load} className="flex min-h-16 items-center gap-2 rounded-xl border-2 border-b-4 border-primary-hover bg-primary px-8 text-child-label font-bold text-on-primary">
+              {lang === 'ne' ? 'अर्को' : 'Next'} <ArrowRight size={28} />
+            </button>
+          </div>
+        ) : (
+          <LetterPractice
+            learnerId={learnerId}
+            lang={lang}
+            cards={(story.letters ?? []) as { unit: string; example: string; practising: boolean }[]}
+            onClosed={setClosed}
+          />
+        )
       ) : (
         <StoryCard
           lang={lang}
@@ -185,7 +201,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
         </div>
       )}
 
-      {story && (
+      {story && story.outcome !== 'letters' && (
         <div className="mt-8">
           <button
             type="button"

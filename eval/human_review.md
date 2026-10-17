@@ -9,6 +9,7 @@ Cause column: **constraint** = the correct word was blocked by the learner's mas
 | 1 | 2026-10-17 | ram / `ne_mid` | ❌ fail (grammar) | see below |
 | 2 | 2026-10-17 | sita / `ne_basic` | ❌ fail (nonsense) | word-list fallback shown as a sentence; see below |
 | 3 | 2026-10-17 | (rule) | — | honorific verbs for elders; see below |
+| 4 | 2026-10-17 | kiran / card check | ❌ fail (nonsense) | "story" from 2 readable words; see below |
 
 ## 1 — ram / ne_mid
 
@@ -58,3 +59,21 @@ siblings and animals take plain forms.
 
 **Actions:** writer prompt states the rule with examples; templates add honorific elder sentences
 ("आमा खेत जानुभयो", "हजुरआमा घरमा हुनुहुन्छ"); test asserts no elder sentence ends in a plain verb.
+
+## 4 — kiran / placed with 3 letters
+
+```
+म ऊ किरण
+किरण, म, ऊ।
+ऊ म किरण।
+किरण ऊ म।
+```
+
+**Cause:** placement gave 3 letters (इ न स) + practising म, ऊ, no vowel signs → exactly two readable
+words (म, ऊ). The verifier passed it (every word readable) but no story is possible with two words.
+Practising units were picked by unlock value, which favours one-letter words for near-beginners.
+
+**Actions:** (1) below 15 readable words no story is generated: **letter mode** (letter cards with an
+example word to hear, adult marks each, same mastery rule, so the child grows into stories);
+(2) until 30 readable words, new units follow a **starter order** (क ा म न र छ ि ल स ो …) that opens
+real words fastest; placement uses it too. Regression test in tests/test_diagnostic.py.

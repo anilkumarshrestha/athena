@@ -35,6 +35,13 @@ export const api = {
     }),
   wordHelp: (storyId: string, index: number) =>
     fetch(`/api/stories/${storyId}/words/${index}`).then(json<components['schemas']['WordHelpOut']>),
+  letterAudioUrl: (lang: Language, unit: string) => `/api/letters/${lang}/${encodeURIComponent(unit)}/audio`,
+  closeLetters: (learnerId: string, language: Language, results: Record<string, boolean>) =>
+    fetch(`/api/learners/${learnerId}/letters/close`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ language, results }),
+    }).then(json<CloseResult>),
   praiseUrl: (lang: Language, tier: 'great' | 'good' | 'try') => `/api/praise/${lang}/${tier}`,
   history: (id: string) => fetch(`/api/learners/${id}/stories`).then(json<components['schemas']['HistoryItemOut'][]>),
   historyStory: (id: string, storyId: string) =>
