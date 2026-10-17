@@ -380,11 +380,32 @@ def start_session(req: StartRequest) -> StoryOut:
     image_future = _pool.submit(illustrator.illustrate, p.theme)
     result = generate(p, budget_s=STORY_BUDGET_S)
     story = store.add_story(learner.id, req.language, result)
+    store.history.append(
+        learner.id,
+        {
+            "type": "story",
+            "story_id": story.id,
+            "at": story.created_at,
+            "lang": req.language,
+            "title": result.title,
+            "sentences": result.sentences,
+            "theme": result.plan.theme,
+            "level": result.plan.level,
+            "outcome": result.outcome,
+            "units_used": result.units_used,
+            "attempts": [
+                {"n": a.n, "ms": a.latency_ms, "violations": [[v.word, v.unit, v.reason] for v in a.violations]}
+                for a in result.attempts
+            ],
+        },
+    )
 
     def _done(fut) -> None:
         try:
             data, mime, _usage, ms = fut.result()
-            store.set_image(story.id, "ready", media.save(data, mime), ms)
+            image_id = media.save(data, mime)
+            store.set_image(story.id, "ready", image_id, ms)
+            store.history.append(learner.id, {"type": "image", "story_id": story.id, "image_id": image_id})
         except Exception:
             log.exception("illustration failed for story %s", story.id)
             store.set_image(story.id, "failed", None, None)
@@ -424,6 +445,20 @@ def read_session(
     del data  # no audio retention beyond this request
     a = assess(s.language, reference, t.text, duration_s, allowed_words=names)
     s.readings.append(a)
+    store.history.append(
+        s.learner_id,
+        {
+            "type": "reading",
+            "story_id": s.id,
+            "at": time.time(),
+            "transcript": t.text,  # what STT heard; the audio itself is never kept
+            "engine": t.engine,
+            "wcpm": a.wcpm,
+            "words_correct": a.words_correct,
+            "words": [w.__dict__ for w in a.words],
+            "insertions": [i.__dict__ for i in a.insertions],
+        },
+    )
 
     return ReadOut(
         story_id=s.id,
@@ -488,6 +523,18 @@ def close_session(req: CloseRequest) -> CloseOut:
         }
     )
     store.save()
+    store.history.append(
+        learner.id,
+        {
+            "type": "close",
+            "story_id": s.id,
+            "at": time.time(),
+            "accuracy": round(accuracy, 3),
+            "level_before": level_before,
+            "level_after": learner.level[lang],
+            "changes": [[c.unit, c.before, c.after] for c in changes],
+        },
+    )
     return CloseOut(
         story_id=s.id,
         accuracy=round(accuracy, 2),
@@ -590,6 +637,73 @@ def home_activities(learner_id: str, language: Language) -> ActivitiesOut:
     ) or "animals and food"
     acts, words = coach.activities(learner.id, language, learner.name[language], allowed(units), practicing, interests)
     return ActivitiesOut(language=language, practicing=practicing, practice_words=words, activities=acts)
+
+
+class HistoryItemOut(BaseModel):
+    story_id: str
+    at: float
+    lang: Language
+    title: str
+    image_url: str | None
+    read: bool
+    accuracy: float | None
+
+
+class HistoryStoryOut(BaseModel):
+    story_id: str
+    at: float
+    lang: Language
+    title: str
+    theme: str
+    level: int
+    outcome: str
+    sentences: list[str]
+    display: list[list[DisplayWord]]
+    image_url: str | None
+    attempts: list[dict]
+    readings: list[dict]  # each: transcript, wcpm, words (per-word outcomes), insertions
+    close: dict | None
+
+
+@app.get("/api/learners/{learner_id}/stories", response_model=list[HistoryItemOut])
+def learner_stories(learner_id: str) -> list[HistoryItemOut]:
+    """Every story this child got, newest first: the parent-reviewable log."""
+    if not store.get_learner(learner_id):
+        raise HTTPException(404, "learner not found")
+    return [
+        HistoryItemOut(
+            story_id=r["story_id"],
+            at=r["at"],
+            lang=r["lang"],
+            title=r.get("title", ""),
+            image_url=f"/api/media/{r['image_id']}" if r.get("image_id") else None,
+            read=bool(r["readings"]),
+            accuracy=r["close"]["accuracy"] if r.get("close") else None,
+        )
+        for r in store.history.stories(learner_id)
+    ]
+
+
+@app.get("/api/learners/{learner_id}/stories/{story_id}", response_model=HistoryStoryOut)
+def learner_story(learner_id: str, story_id: str) -> HistoryStoryOut:
+    r = store.history.story(learner_id, story_id)
+    if not r:
+        raise HTTPException(404, "story not found")
+    return HistoryStoryOut(
+        story_id=r["story_id"],
+        at=r["at"],
+        lang=r["lang"],
+        title=r.get("title", ""),
+        theme=r.get("theme", ""),
+        level=r.get("level", 1),
+        outcome=r.get("outcome", ""),
+        sentences=r.get("sentences", []),
+        display=display_words(r["lang"], r.get("sentences", [])),
+        image_url=f"/api/media/{r['image_id']}" if r.get("image_id") else None,
+        attempts=r.get("attempts", []),
+        readings=r["readings"],
+        close=r.get("close"),
+    )
 
 
 class PartOut(BaseModel):

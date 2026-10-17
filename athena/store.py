@@ -17,6 +17,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Literal
 
+from athena.history import History
 from athena.mastery import UnitState, allowed
 from athena.models import GenerationResult, Language
 from athena.presets import preset
@@ -75,9 +76,10 @@ def learner_from_dict(d: dict) -> Learner:
 
 
 class MemoryStore:
-    def __init__(self, path: Path | None = None) -> None:
+    def __init__(self, path: Path | None = None, history: History | None = None) -> None:
         self._lock = threading.RLock()
         self.path = path  # None: memory only (tests)
+        self.history = history or History(None)  # story + reading events per learner
         self.learners: dict[str, Learner] = {}
         self.stories: dict[str, Story] = {}
 
@@ -107,6 +109,7 @@ class MemoryStore:
             self.stories = {k: v for k, v in self.stories.items() if v.learner_id != learner_id}
         if gone:
             self.save()
+            self.history.delete(learner_id)  # their stories and readings go too
         return gone
 
     def list_learners(self) -> list[Learner]:
@@ -176,7 +179,8 @@ def new_learner(name_ne: str, name_en: str, profile: dict[str, str], start: str)
 def _open_store() -> MemoryStore:
     from athena.config import settings
 
-    st = MemoryStore(Path(settings().state_dir) / "learners.json")
+    state = Path(settings().state_dir)
+    st = MemoryStore(state / "learners.json", History(state / "stories"))
     if not st.load():
         _seed(st)  # first run: demo learners, written to disk
     return st

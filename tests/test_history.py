@@ -1,0 +1,34 @@
+"""Story/reading history: append-only events folded into records. Temp dir."""
+
+from athena.history import History
+
+
+def test_events_fold_into_story_records(tmp_path):
+    h = History(tmp_path)
+    h.append("a1", {"type": "story", "story_id": "s1", "at": 1.0, "title": "पहिलो", "sentences": ["आमा।"]})
+    h.append("a1", {"type": "story", "story_id": "s2", "at": 2.0, "title": "दोस्रो", "sentences": ["बाबा।"]})
+    h.append("a1", {"type": "image", "story_id": "s1", "image_id": "img.png"})
+    h.append("a1", {"type": "reading", "story_id": "s1", "at": 1.5, "words": [{"index": 0, "outcome": "correct"}]})
+    h.append("a1", {"type": "close", "story_id": "s1", "at": 1.6, "accuracy": 1.0})
+    stories = h.stories("a1")
+    assert [s["story_id"] for s in stories] == ["s2", "s1"]  # newest first
+    s1 = h.story("a1", "s1")
+    assert s1["image_id"] == "img.png" and len(s1["readings"]) == 1 and s1["close"]["accuracy"] == 1.0
+    assert "पहिलो" in (tmp_path / "a1.jsonl").read_text(encoding="utf-8")
+
+
+def test_torn_last_line_is_skipped(tmp_path):
+    h = History(tmp_path)
+    h.append("a1", {"type": "story", "story_id": "s1", "at": 1.0})
+    with (tmp_path / "a1.jsonl").open("a") as f:
+        f.write('{"type": "reading", "story_')  # crash mid-write
+    assert len(h.stories("a1")) == 1
+
+
+def test_delete_and_bad_ids(tmp_path):
+    h = History(tmp_path)
+    h.append("a1", {"type": "story", "story_id": "s1", "at": 1.0})
+    h.delete("a1")
+    assert h.stories("a1") == []
+    h.append("../escape", {"type": "story", "story_id": "x", "at": 1.0})  # ignored, no file outside
+    assert not (tmp_path.parent / "escape.jsonl").exists()
