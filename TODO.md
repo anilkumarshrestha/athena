@@ -49,7 +49,10 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] Placement diagnostic: 2-min tiered card check (adult taps read / not yet), places units + level; runs after add-learner
 - [x] Re-teach: tap word → hear (Gemini TTS, cached, story words only), parts with error unit marked, practice retry (no STT hint)
 - [x] Persist learners: state/learners.json, atomic, delete endpoint + button (Firestore still needed for Cloud Run)
-- [ ] Parent dashboard: weekly summary, struggle alerts, home activities
+- [x] Parent dashboard #/parent/<id>: week stats, learned units, struggle alerts (demoted 2× in 30 days), home activities (model + verified child words), recent stories
+- [x] Encouragement: spoken praise from fixed phrases, 'new letters you can read' strip, gentle 'let's practise'
+- [x] Time controls: parent daily limit, friendly 'see you tomorrow'
+- [x] Re-teach picture cue for concrete nouns
 
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
