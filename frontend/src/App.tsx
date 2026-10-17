@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Language } from './api'
+import { AddLearner } from './screens/AddLearner'
 import { LearnerPick } from './screens/LearnerPick'
 import { MasteryScreen } from './screens/MasteryScreen'
 import { StoryScreen } from './screens/StoryScreen'
@@ -8,12 +9,14 @@ import { Styleguide } from './screens/Styleguide'
 type Route =
   | { name: 'pick' }
   | { name: 'styleguide' }
+  | { name: 'new' }
   | { name: 'mastery'; learnerId: string }
   | { name: 'story'; learnerId: string; lang: Language }
 
-// Hash routes: #/  #/styleguide  #/mastery/<learner>  #/read/<learner>/<ne|en>
+// Hash routes: #/  #/new  #/styleguide  #/mastery/<learner>  #/read/<learner>/<ne|en>
 function parse(hash: string): Route {
   if (hash === '#/styleguide') return { name: 'styleguide' }
+  if (hash === '#/new') return { name: 'new' }
   const mm = hash.match(/^#\/mastery\/([\w-]+)$/)
   if (mm) return { name: 'mastery', learnerId: mm[1] }
   const m = hash.match(/^#\/read\/([\w-]+)\/(ne|en)$/)
@@ -30,6 +33,7 @@ export default function App() {
   }, [])
 
   if (route.name === 'styleguide') return <Styleguide />
+  if (route.name === 'new') return <AddLearner onDone={() => (location.hash = '#/')} onBack={() => (location.hash = '#/')} />
   if (route.name === 'mastery') return <MasteryScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
   if (route.name === 'story') {
     return (

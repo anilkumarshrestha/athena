@@ -59,6 +59,13 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
             </a>
           </div>
         ))}
+        <a
+          href="#/new"
+          className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line-strong text-ink-2 transition-colors duration-150 hover:bg-paper-sunken"
+        >
+          <span className="font-story-ne text-child-title font-bold">+ नयाँ साथी</span>
+          <span className="text-body text-ink-3">Add a learner</span>
+        </a>
       </div>
     </main>
   )

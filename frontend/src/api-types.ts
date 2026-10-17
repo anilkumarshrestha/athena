@@ -31,7 +31,8 @@ export interface paths {
         /** List Learners */
         get: operations["list_learners_api_learners_get"];
         put?: never;
-        post?: never;
+        /** Create Learner */
+        post: operations["create_learner_api_learners_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -226,6 +227,36 @@ export interface components {
             /** Before Index */
             before_index: number;
         };
+        /**
+         * LearnerCreate
+         * @description Fixed choices only: these values reach the model prompt.
+         */
+        LearnerCreate: {
+            /** Name Ne */
+            name_ne: string;
+            /** Name En */
+            name_en: string;
+            /**
+             * Favorite Animal
+             * @enum {string}
+             */
+            favorite_animal: "goat" | "cat" | "dog" | "hen" | "cow" | "buffalo" | "bird" | "yak";
+            /**
+             * Favorite Food
+             * @enum {string}
+             */
+            favorite_food: "dal_bhat" | "momo" | "roti" | "mango" | "banana" | "milk" | "corn" | "egg";
+            /**
+             * Setting
+             * @enum {string}
+             */
+            setting: "hills" | "terai" | "mountains" | "city";
+            /**
+             * Start
+             * @enum {string}
+             */
+            start: "beginner" | "some" | "reads";
+        };
         /** LearnerOut */
         LearnerOut: {
             /** Id */
@@ -251,6 +282,10 @@ export interface components {
             /** Recent Accuracy */
             recent_accuracy: {
                 [key: string]: number[];
+            };
+            /** Profile */
+            profile: {
+                [key: string]: string;
             };
         };
         /** ReadOut */
@@ -423,6 +458,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearnerOut"][];
+                };
+            };
+        };
+    };
+    create_learner_api_learners_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearnerCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

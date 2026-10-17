@@ -11,7 +11,9 @@ export type CloseResult = components['schemas']['CloseOut']
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? `HTTP ${res.status}`)
+    // FastAPI validation errors come as a list: show the first message
+    const detail = Array.isArray(body.detail) ? body.detail[0]?.msg : body.detail
+    throw new Error(detail ?? `HTTP ${res.status}`)
   }
   return res.json()
 }
@@ -19,6 +21,12 @@ async function json<T>(res: Response): Promise<T> {
 export const api = {
   learners: () => fetch('/api/learners').then(json<Learner[]>),
   learner: (id: string) => fetch(`/api/learners/${id}`).then(json<Learner>),
+  createLearner: (body: components['schemas']['LearnerCreate']) =>
+    fetch('/api/learners', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(json<Learner>),
   startSession: (learner_id: string, language: Language) =>
     fetch('/api/session/start', {
       method: 'POST',
