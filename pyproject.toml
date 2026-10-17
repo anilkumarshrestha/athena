@@ -8,6 +8,7 @@ dependencies = [
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
     "google-genai>=1.0",
+    "google-cloud-speech>=2.27",
 ]
 
 [project.optional-dependencies]
