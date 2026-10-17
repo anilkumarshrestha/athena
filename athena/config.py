@@ -1,3 +1,4 @@
+import threading
 from functools import lru_cache
 
 from google import genai
@@ -16,6 +17,7 @@ class Settings(BaseSettings):
     cheap_model: str = "gemma-4-26b-a4b-it"
     image_model: str = "gemini-3.1-flash-image"
     writer_thinking_level: str = "low"
+    media_bucket: str = ""
 
 
 @lru_cache
@@ -23,8 +25,24 @@ def settings() -> Settings:
     return Settings()
 
 
-@lru_cache
-def genai_client() -> genai.Client:
+_clients: dict[str, genai.Client] = {}
+_client_lock = threading.Lock()
+
+
+def genai_client(purpose: str = "text") -> genai.Client:
+    """One client per purpose, so a slow image call never shares a pool with text calls.
+
+    Created under a lock: a duplicate created concurrently is garbage-collected
+    and closes its HTTP pool under the caller.
+    """
+    if purpose not in _clients:
+        with _client_lock:
+            if purpose not in _clients:
+                _clients[purpose] = _make_client()
+    return _clients[purpose]
+
+
+def _make_client() -> genai.Client:
     s = settings()
     if s.google_genai_use_vertexai:
         return genai.Client(vertexai=True, project=s.google_cloud_project, location=s.google_cloud_location)
