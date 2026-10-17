@@ -208,6 +208,12 @@ def test_devanagari_digit_is_violation():
     assert not v("c:क").verify("क ५").ok
 
 
+def test_allowed_words_for_names():
+    vv = NepaliVerifier(frozenset({"c:क"}), frozenset({"सीता"}))
+    assert vv.verify("सीता क").ok
+    assert not vv.verify("सीताको").ok  # inflected name is a different word
+
+
 def test_empty_text():
     result = v("c:क").verify("  । ")
     assert result.ok

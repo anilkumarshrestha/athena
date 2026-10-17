@@ -19,3 +19,6 @@ web/dist/
 eval/results/*.log
 *.egg-info/
 scripts/smoke_out/
+
+# runtime logs
+logs/

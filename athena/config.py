@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     writer_model: str = "gemini-flash-latest"
     cheap_model: str = "gemma-4-26b-a4b-it"
     image_model: str = "gemini-3.1-flash-image"
+    writer_thinking_level: str = "low"
 
 
 @lru_cache

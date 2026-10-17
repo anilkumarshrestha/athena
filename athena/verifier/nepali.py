@@ -155,14 +155,17 @@ def tokenize(text: str) -> list[str]:
 class NepaliVerifier:
     language = "ne"
 
-    def __init__(self, mastery: frozenset[str]) -> None:
+    def __init__(self, mastery: frozenset[str], allowed_words: frozenset[str] = frozenset()) -> None:
         self.mastery = mastery
+        self.allowed_words = frozenset(normalize(w) for w in allowed_words)
 
     def verify(self, text: str) -> VerifyResult:
         violations: list[Violation] = []
         used: set[str] = set()
         words = tokenize(text)
         for idx, word in enumerate(words):
+            if word in self.allowed_words:
+                continue
             try:
                 units = decompose(word)
             except DecomposeError as e:
