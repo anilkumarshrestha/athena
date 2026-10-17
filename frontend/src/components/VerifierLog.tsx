@@ -1,26 +1,37 @@
-import type { Attempt, Story } from '../api'
+import type { Attempt, Language, Story } from '../api'
+import { unitGlyph } from '../units'
 
 // DESIGN.md §6.4: "model proposes, code decides". An instrument readout.
 
-const norm = (w: string) => w.toLowerCase().replace(/[.,!?;:"'“”‘’()।॥\-—–…]/g, '')
+// Mirror the verifiers' tokenizers (athena/verifier/{nepali,english}.py) so a
+// violation's word matches what is on screen: NFC, no ZWJ/ZWNJ, same splits.
+const NE_SPLIT = /[\s।॥,.?!;:"'“”‘’()[\]\-—–…]+/
+const EN_WORD = /[a-z]+(?:'[a-z]+)?/g
+function tokens(w: string, lang: Language): string[] {
+  const s = w.normalize('NFC').replace(/[\u200c\u200d]/g, '')
+  return lang === 'ne' ? s.split(NE_SPLIT).filter(Boolean) : (s.toLowerCase().replace(/’/g, "'").match(EN_WORD) ?? [])
+}
 
-function AttemptText({ attempt }: { attempt: Attempt }) {
-  const bad = new Map<string, string | null>()
-  for (const v of attempt.violations) if (!bad.has(v.word)) bad.set(v.word, v.unit ?? null)
+function AttemptText({ attempt, lang }: { attempt: Attempt; lang: Language }) {
+  const bad = new Map<string, Set<string>>()
+  for (const v of attempt.violations) {
+    const units = bad.get(v.word) ?? new Set<string>()
+    units.add(v.unit ? unitGlyph(v.unit) : '?')
+    bad.set(v.word, units)
+  }
   const lines = [attempt.title, ...attempt.sentences]
   return (
     <div className="mt-1 text-ink">
       {lines.map((line, i) => (
         <div key={i}>
           {line.split(/\s+/).filter(Boolean).map((w, j) => {
-            const key = norm(w)
-            if (!bad.has(key)) return <span key={j}>{w} </span>
-            const unit = bad.get(key)
+            const units = new Set(tokens(w, lang).flatMap((t) => [...(bad.get(t) ?? [])]))
+            if (!units.size) return <span key={j}>{w} </span>
             return (
               <span key={j}>
                 <span className="bg-omitted-soft text-omitted line-through">{w}</span>
                 <sup className="ml-0.5 rounded-sm bg-omitted-soft px-1 text-omitted no-underline">
-                  {unit ? unit.split(':')[1] : '?'} ✗
+                  {[...units].join(' ')} ✗
                 </sup>{' '}
               </span>
             )
@@ -39,17 +50,17 @@ export function VerifierLog({ story }: { story: Story }) {
         {story.attempts.map((a) => (
           <li key={a.n} className="relative mb-4">
             <span
-              className={`absolute -left-[26px] top-1.5 size-2.5 rounded-full ${
+              className={`absolute -left-6.5 top-1.5 size-2.5 rounded-full ${
                 a.violations.length ? 'border-2 border-omitted bg-paper-sunken' : 'bg-correct'
               }`}
             />
             <div className="text-ink-3 tabular-nums">
               attempt {a.n} · {a.model} · {a.ms.toLocaleString()} ms ·{' '}
               <span className={a.violations.length ? 'text-omitted' : 'text-correct'}>
-                {a.violations.length} violations
+                {a.violations.length} {a.violations.length === 1 ? 'violation' : 'violations'}
               </span>
             </div>
-            <AttemptText attempt={a} />
+            <AttemptText attempt={a} lang={story.language} />
           </li>
         ))}
       </ol>
@@ -57,7 +68,7 @@ export function VerifierLog({ story }: { story: Story }) {
         {fallback ? `↺ fallback (${story.outcome}) · 0 violations shipped` : '✓ 0 violations shipped'}
       </div>
       <div className="mt-1 text-ink-3 tabular-nums">
-        units used: {story.units_used.map((u) => u.split(':')[1]).join(' ')}
+        units used: {story.units_used.map(unitGlyph).join(' ')}
       </div>
     </section>
   )

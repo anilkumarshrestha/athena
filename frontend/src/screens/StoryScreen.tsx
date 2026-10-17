@@ -34,7 +34,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   }, [story])
 
   return (
-    <main className="mx-auto max-w-[784px] px-4 pb-16 pt-4 md:px-8">
+    <main className="mx-auto box-content max-w-story px-4 pb-16 pt-4 md:px-8">
       <button
         type="button"
         onClick={onBack}
@@ -72,7 +72,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
       )}
 
       {story && (
-        <div className="mx-auto mt-8 max-w-[720px]">
+        <div className="mt-8">
           <button
             type="button"
             onClick={() => setShowLog((v) => !v)}

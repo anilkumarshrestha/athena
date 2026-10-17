@@ -32,7 +32,7 @@
   --font-story-ne: "Baloo 2", "IBM Plex Sans Devanagari", sans-serif;
   --font-story-en: "Andika", "IBM Plex Sans", sans-serif;
   --font-ui: "IBM Plex Sans", "IBM Plex Sans Devanagari", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-mono: "IBM Plex Mono", "IBM Plex Sans Devanagari", ui-monospace, monospace;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -41,6 +41,10 @@
   --shadow-float: 0 1px 2px rgb(31 27 22 / .06), 0 8px 24px rgb(31 27 22 / .08);
 
   --ease-out: cubic-bezier(.2, .8, .2, 1);
+
+  /* Layout widths */
+  --container-story: 720px;
+  --container-page: 1200px;
 
   /* DESIGN.md §3 type scales */
   --text-story-xl: 48px;
@@ -70,6 +74,16 @@
   --text-mono--line-height: 1.6;
   --text-stat: 28px;
   --text-stat--line-height: 1.1;
+  --text-unit-sm: 18px;
+  --text-unit-sm--line-height: 1;
+
+  /* §4: one pulse when a unit's mastery changes */
+  --animate-chip-pulse: chip-pulse 400ms var(--ease-out) 1;
+}
+
+@keyframes chip-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 
 html { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-ui); }
@@ -85,10 +99,9 @@ body { margin: 0; background: var(--color-paper); }
   0%, 80%, 100% { opacity: .25; }
   40% { opacity: 1; }
 }
-@keyframes underline-draw {
-  from { background-size: 0% 3px; }
-  to { background-size: 100% 3px; }
-}
+
+/* §3: children need visible word boundaries */
+@utility story-spacing { word-spacing: 0.3em; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }

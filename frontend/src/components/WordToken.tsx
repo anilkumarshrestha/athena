@@ -3,12 +3,13 @@ import type { Language } from '../api'
 export type Outcome = 'pending' | 'correct' | 'substituted' | 'omitted' | 'self_corrected'
 
 // DESIGN.md §2 outcome table: colour AND shape for every state.
+// Pending keeps a transparent underline so the outcome colour fades in (§4).
 const OUTCOME: Record<Outcome, string> = {
-  pending: 'text-ink',
-  correct: 'text-ink underline decoration-correct decoration-solid decoration-[3px]',
-  substituted: 'text-ink underline decoration-substituted decoration-wavy decoration-2',
+  pending: 'text-ink decoration-transparent decoration-3',
+  correct: 'text-ink decoration-correct decoration-solid decoration-3',
+  substituted: 'text-ink decoration-substituted decoration-wavy decoration-2',
   omitted: 'text-ink-3 outline-2 outline-dashed outline-omitted rounded-sm',
-  self_corrected: 'text-ink underline decoration-selfcorrected decoration-solid decoration-[3px] relative',
+  self_corrected: 'text-ink decoration-selfcorrected decoration-solid decoration-3 relative',
 }
 
 export function WordToken({
@@ -27,8 +28,12 @@ export function WordToken({
   return (
     <span
       onClick={onTap}
+      role={onTap ? 'button' : undefined}
+      tabIndex={onTap ? 0 : undefined}
+      onKeyDown={onTap ? (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onTap()) : undefined}
       className={[
-        'inline-block px-0.5 underline-offset-[6px] transition-colors duration-150',
+        'inline-block px-0.5 underline-offset-6 transition-colors duration-200',
+        outcome === 'omitted' ? '' : 'underline',
         lang === 'ne' ? 'font-story-ne font-medium' : 'font-story-en',
         OUTCOME[outcome],
         active ? 'bg-primary-soft rounded-sm' : '',

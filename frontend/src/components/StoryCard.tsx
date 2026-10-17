@@ -20,12 +20,12 @@ export function StoryCard({
   footer?: ReactNode
 }) {
   return (
-    <article className="relative mx-auto w-full max-w-[720px] rounded-lg border border-line bg-card">
+    <article className="relative mx-auto w-full max-w-story rounded-lg border border-line bg-card">
       <span className="absolute left-4 top-4 z-10 rounded-full bg-paper-sunken px-3 py-1 text-caption text-ink-2">
         {lang === 'ne' ? 'ने' : 'EN'}
       </span>
 
-      <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-t-lg bg-paper-sunken">
+      <div className="flex aspect-4/3 items-center justify-center overflow-hidden rounded-t-lg bg-paper-sunken">
         {imageUrl ? (
           <img src={imageUrl} alt="" className="size-full object-cover" />
         ) : imageStatus === 'failed' ? null : (
@@ -41,7 +41,7 @@ export function StoryCard({
                 {title}
               </h1>
             )}
-            <div className="text-story-md [word-spacing:0.3em] md:text-story-lg lg:text-story-xl">
+            <div className="story-spacing text-story-md md:text-story-lg lg:text-story-xl">
               {sentences.map((s, i) => (
                 <p key={i} className="m-0">
                   {s.split(/\s+/).filter(Boolean).map((w, j) => (

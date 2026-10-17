@@ -92,9 +92,9 @@ All ink colors pass 4.5:1 on both `paper` and their own soft background.
 | State | Fill | Border | Glyph color |
 |---|---|---|---|
 | `mastered` | `correct` ink `#1F7A3E` | same | `on-primary` |
-| `practicing` | `substituted` soft `#FBEED6`, bottom half filled with `#9A5B00` at 25% | 1.5px `#9A5B00` | `ink` |
-| `unseen` | transparent | 1.5px dashed `line-strong` | `ink-3` |
-| `excluded` (demo: deliberately removed) | `paper-sunken` | 1.5px `line` | `ink-4`, strikethrough |
+| `practicing` | `substituted` soft `#FBEED6`, bottom half filled with `#9A5B00` at 25% | 2px `#9A5B00` | `ink` |
+| `unseen` | transparent | 2px dashed `line-strong` | `ink-3` |
+| `excluded` (demo: deliberately removed) | `paper-sunken` | 2px `line` | `ink-4`, strikethrough |
 
 Semantics are shared on purpose: green means "can read this" in both the
 story and the grid. That lets the demo say "every word uses only green units".
@@ -187,7 +187,7 @@ Max weight is 600 (Baloo `700` allowed only for the child title). No letter-spac
 
 **Motion.** Motion carries meaning only.
 - Color/state change: 150ms `ease-out`
-- WordToken outcome reveal: 200ms underline draw left→right
+- WordToken outcome reveal: 200ms underline colour fade (from transparent)
 - Mastery change in grid: one 400ms scale pulse (1 → 1.08 → 1), then settle
 - Record button while listening: slow 1.6s ring pulse
 - No page transitions, parallax, hover lifts, or entrance animations.
@@ -236,7 +236,7 @@ no raw hex, no arbitrary values like `p-[13px]`.
   --font-story-ne: "Baloo 2", "IBM Plex Sans Devanagari", sans-serif;
   --font-story-en: "Andika", "IBM Plex Sans", sans-serif;
   --font-ui: "IBM Plex Sans", "IBM Plex Sans Devanagari", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-mono: "IBM Plex Mono", "IBM Plex Sans Devanagari", ui-monospace, monospace;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -245,7 +245,11 @@ no raw hex, no arbitrary values like `p-[13px]`.
   --shadow-float: 0 1px 2px rgb(31 27 22 / .06), 0 8px 24px rgb(31 27 22 / .08);
 
   --ease-out: cubic-bezier(.2, .8, .2, 1);
+
+  --container-story: 720px;  /* max-w-story; pair with box-content so padding sits outside */
 }
+
+@utility story-spacing { word-spacing: 0.3em; }
 
 html { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-ui); }
 :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
@@ -276,7 +280,7 @@ One word of story text.
 - `active` (word the child should read now, optional): `primary-soft` background, `radius-sm`, 2px horizontal padding. Only one active word at a time.
 - Outcomes: exactly per §2 outcome table, including the shape. Underline offset 6px so it clears Devanagari descenders and lower matras (ु ू ृ).
 - Tap → plays TTS for that word (when TTS exists). Tap target ≥ 64px tall via padding, not font size.
-- Reveal animation: 200ms underline draw.
+- Reveal animation: 200ms underline colour fade. `pending` keeps a transparent underline so the colour can transition.
 
 ### 6.2 `UnitChip`
 
