@@ -29,16 +29,17 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [ ] **GATE: verified illustrated story on public URL**
 
 ## Next
-- [ ] H6 Eval harness v1: 50 req/lang × 10 mastery sets; first-pass vs final violation, attempts, fallback %
-- [ ] H7–8 Record → STT (chirp_3 + hints) → alignment → per-word outcomes
+- [x] H6 Eval harness: verdict line, retries, cost. Full runs 100/100 SUCCESS, 0 shipped (eval/results/)
+- [x] Theme-aware planner (ne fallback 38%→28%) + 20s app generation budget
+- [x] H7 Alignment (audible-only Nepali scoring), STT chirp_3 + Gemini fallback, /api/session/read, record button + word colours
+- [ ] H7 **You: try read-aloud in a browser with a real mic** (headless can't)
+- [ ] Eval C: human recordings with scripted errors (TTS 'fixes' scripted errors; non-words need humans)
 - [ ] H9 Mastery update rule, `/api/session/close`, MasteryGrid
 - [ ] H10 Thin ADK wrap; Gemma safety pre-screen; cost/latency instrumentation
 - [ ] H11 Teacher view, print pack, GitHub Action (tests + eval)
 - [ ] H12 Eval run, charts
 
 ## Tech debt / decisions pending
-- [ ] **Generation time budget for the app** (~20s): timeouts × retries × 3 attempts can reach ~2 min (seen 111s in eval). Past budget → verified fallback immediately
-- [ ] Restart API on :8077 after eval (still on old AI Studio config, no timeouts)
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
 - [ ] Gemma not served on Vertex as plain API → Model Garden GPU endpoint or Flash-Lite as cheap tier (H10)
 - [x] ~~Move generation to Vertex AI~~ done (AQ. Vertex key)
@@ -46,7 +47,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [ ] Writer quality on tiny Nepali sets: pruned sentences can be ungrammatical (eval B)
 - [ ] Grapheme mastery is spelling-level (ow cow/snow, oo moon/book): README limitation
 - [ ] STT phrase hints may mask real child errors: eval C with/without hints
-- [ ] TTS prompt reads the instruction aloud; use bare text
+- [ ] TTS (H11): Cloud TTS has NO ne-NP voices → use gemini-3.8-flash-tts with bare text
 - [ ] `rr` grapheme unused in lexicon
 
 ## Needs a human
