@@ -1,57 +1,88 @@
 """Template fallback (PLAN §4): when no model draft passes, build a short, grammatical
 story from words the child can read. No model call; every sentence is verified.
 
-Slots use hand-picked word groups that make sense together (an animal can be small
-or hungry, food can be hot or sweet), not raw seed categories, so the output never
-says "the rice is blue". Sentences are anchored on the theme's key words so they
-hang together. Nepali only: English has the closed lexicon and rarely falls back.
+Grammatical is not enough: "मह तातो छ" (the honey is hot) and "आमाको बल" (mother's
+ball) are correct but nobody says them (native review, 17 Oct). So slots are not
+free cross-products: each noun lists only what is commonly said about it, and
+possessions fit their owner (a brother's ball, a mother's umbrella). Edit the maps
+below to tune; every sentence still goes through the verifier.
+
+Sentences are anchored on the theme's key words so they hang together.
+Nepali only: English has the closed lexicon and rarely falls back.
 """
 
 import random
 
 from athena.verifier.base import Verifier
 
-ANIMALS = "बिरालो कुकुर गाई भैंसी बाख्रा खसी भेडा कुखुरा हाँस चरा मुसा घोडा बाँदर खरायो याक परेवा सुगा पुतली".split()
-ANIMAL_ADJ = "सानो ठूलो कालो सेतो खैरो भोको खुसी".split()
-FOOD = "भात दाल रोटी दूध दही मह चिया आलु केरा स्याउ आँप सुन्तला मकै साग".split()
-FOOD_ADJ = "मीठो तातो चिसो अमिलो नरम".split()
-FAMILY = "आमा बुबा बाबा दाइ दिदी भाइ बहिनी हजुरआमा हजुरबुबा काका काकी मामा".split()
-OBJECTS = "किताब कापी कलम झोला लुगा टोपी थाल गिलास बल छाता घडी".split()
-OBJ_ADJ = "रातो निलो हरियो सेतो कालो नयाँ सानो ठूलो राम्रो".split()
-ANIMAL_PLACES = "घर आँगन बारी खेत बाटो गाउँ".split()
-PEOPLE_PLACES = "घर स्कुल बजार खेत बारी आँगन कोठा भान्सा गाउँ".split()
+# noun -> what is naturally said about it
+ANIMAL_ADJ: dict[str, list[str]] = {
+    "बिरालो": ["सानो", "कालो", "सेतो", "खैरो", "भोको"],
+    "कुकुर": ["सानो", "ठूलो", "कालो", "सेतो", "खैरो", "भोको"],
+    "गाई": ["ठूलो", "सेतो", "खैरो", "भोको"],
+    "भैंसी": ["ठूलो", "कालो", "भोको"],
+    "बाख्रा": ["सानो", "कालो", "सेतो", "भोको"],
+    "खसी": ["सानो", "कालो", "सेतो", "भोको"],
+    "भेडा": ["सानो", "सेतो"],
+    "कुखुरा": ["सानो", "सेतो", "रातो", "भोको"],
+    "हाँस": ["सेतो", "सानो"],
+    "चरा": ["सानो"],
+    "मुसा": ["सानो", "खैरो"],
+    "घोडा": ["ठूलो", "कालो", "सेतो", "खैरो"],
+    "खरायो": ["सानो", "सेतो"],
+    "याक": ["ठूलो", "कालो"],
+    "सुगा": ["हरियो", "सानो"],
+}
+FOOD_ADJ: dict[str, list[str]] = {
+    "भात": ["तातो", "मीठो"],
+    "दाल": ["तातो", "मीठो"],
+    "रोटी": ["तातो", "मीठो", "नरम"],
+    "दूध": ["तातो", "मीठो"],
+    "दही": ["मीठो", "अमिलो"],
+    "मह": ["मीठो"],
+    "चिया": ["तातो", "मीठो"],
+    "केरा": ["मीठो", "पहेंलो"],
+    "स्याउ": ["मीठो", "रातो"],
+    "आँप": ["मीठो", "पहेंलो"],
+    "सुन्तला": ["मीठो", "अमिलो"],
+    "कागती": ["अमिलो"],
+    "साग": ["हरियो", "तातो"],
+}
+# owner -> things they naturally have
+CHILDREN = "दाइ दिदी भाइ बहिनी".split()
+ADULTS = "आमा बुबा बाबा हजुरआमा हजुरबुबा काका काकी मामा".split()
+OWNS: dict[str, list[str]] = {
+    **{c: ["बल", "किताब", "कापी", "कलम", "झोला", "टोपी"] for c in CHILDREN},
+    **{a: ["छाता", "घडी", "झोला", "टोपी", "किताब"] for a in ADULTS},
+}
+OBJECT_ADJ: dict[str, list[str]] = {
+    "बल": ["रातो", "निलो", "सानो", "नयाँ"],
+    "किताब": ["नयाँ", "ठूलो", "राम्रो"],
+    "कापी": ["नयाँ", "सानो"],
+    "कलम": ["नयाँ", "निलो", "कालो"],
+    "झोला": ["नयाँ", "रातो", "ठूलो"],
+    "टोपी": ["नयाँ", "रातो", "कालो"],
+    "छाता": ["कालो", "रातो", "ठूलो", "नयाँ"],
+    "घडी": ["नयाँ", "राम्रो", "सानो"],
+}
+ANIMAL_PLACES = "घर आँगन बारी खेत गाउँ".split()
+PEOPLE_PLACES = "घर स्कुल बजार खेत बारी आँगन भान्सा गाउँ".split()
 
-# (pattern, slot groups). Slots fill left to right.
-PATTERNS: list[tuple[str, list[list[str]]]] = [
-    ("{}मा {} छ।", [ANIMAL_PLACES, ANIMALS]),
-    ("{} {} छ।", [ANIMALS, ANIMAL_ADJ]),
-    ("{} {} छ।", [FOOD, FOOD_ADJ]),
-    ("{}को {} {} छ।", [FAMILY, OBJECTS, OBJ_ADJ]),
-    ("यो {} हो।", [OBJECTS]),
-    ("म {}मा छु।", [PEOPLE_PLACES]),
-    ("यो {} हो।", [FOOD]),
-]
+
+def _candidates() -> list[list[str]]:
+    """Every natural sentence, grouped by pattern (one sentence per pattern per story)."""
+    return [
+        [f"{p}मा {a} छ।" for p in ANIMAL_PLACES for a in ANIMAL_ADJ],
+        [f"{a} {adj} छ।" for a, adjs in ANIMAL_ADJ.items() for adj in adjs],
+        [f"{f} {adj} छ।" for f, adjs in FOOD_ADJ.items() for adj in adjs],
+        [f"{o}को {t} {adj} छ।" for o, things in OWNS.items() for t in things for adj in OBJECT_ADJ[t]],
+        [f"यो {t} हो।" for t in OBJECT_ADJ],
+        [f"यो {f} हो।" for f in FOOD_ADJ],
+        [f"म {p}मा छु।" for p in PEOPLE_PLACES],
+    ]
+
+
 MAX_SENTENCES = 4
-
-
-def _fill(pattern: str, groups: list[list[str]], readable: set[str], focus: list[str], rng: random.Random,
-          verifier: Verifier) -> str | None:
-    """First verified filling, trying focus words first in each slot."""
-    options = []
-    for g in groups:
-        words = [w for w in g if w in readable or w in focus]
-        first = [w for w in focus if w in words]
-        rest = [w for w in words if w not in first]
-        rng.shuffle(rest)
-        options.append(first + rest)
-    if not all(options):
-        return None
-    # Small search: vary each slot over its first few options.
-    for _ in range(12):
-        s = pattern.format(*(o[0] if rng.random() < 0.6 else rng.choice(o[:4]) for o in options))
-        if verifier.verify(s).ok:
-            return s
-    return None
 
 
 def template_story(
@@ -60,26 +91,31 @@ def template_story(
     """(title, sentences), all verified; ("", []) if nothing fits."""
     if language != "ne":
         return "", []
-    readable = set(readable_words)
-    focus = [w for w in key_words if w in readable] or []
+    # Readability is the verifier's call, not seed-list membership (खसी is readable
+    # for most learners but not in the seed list).
+    def readable(w: str) -> bool:
+        return w in readable_words or verifier.verify(w).ok
+
+    focus = [w for w in key_words if readable(w)]
     # Anchor on one animal and one family member so sentences share characters.
-    for group in (ANIMALS, FAMILY):
-        pool = [w for w in group if w in readable and w not in focus]
-        if pool:
-            focus.append(rng.choice(pool))
+    for pool in (list(ANIMAL_ADJ), CHILDREN + ADULTS):
+        options = [w for w in pool if readable(w) and w not in focus]
+        if options:
+            focus.append(rng.choice(options))
 
-    sentences: list[str] = []
-    patterns = PATTERNS[:]
-    rng.shuffle(patterns)
-    # Patterns that can use a focus word go first.
-    patterns.sort(key=lambda p: not any(w in g for g in p[1] for w in focus))
-    for pattern, groups in patterns:
-        s = _fill(pattern, groups, readable, focus, rng, verifier)
-        if s and s not in sentences:
-            sentences.append(s)
-        if len(sentences) == MAX_SENTENCES:
-            break
+    def score(s: str) -> int:
+        return sum(w in s.split() or s.startswith(w) for w in focus)
 
+    groups = []
+    for group in _candidates():
+        ok = [s for s in group if verifier.verify(s).ok]
+        if ok:
+            rng.shuffle(ok)
+            ok.sort(key=score, reverse=True)  # focus words first, random among equals
+            groups.append(ok)
+    groups.sort(key=lambda g: score(g[0]), reverse=True)
+
+    sentences = [g[0] for g in groups[:MAX_SENTENCES]]
     named = [w for w in focus if any(w in s for s in sentences)][:2]
     title = " र ".join(named) if len(named) == 2 else (named[0] if named else "")
     if title and not verifier.verify(title).ok:

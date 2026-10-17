@@ -43,3 +43,8 @@ connection), so no retry was possible; only one sentence of the draft verified.
 fallback builds short grammatical sentences from readable words ("खेतमा कुखुरा छ।",
 "भात तातो छ।"), all verified; the word list remains only as a last resort and is rendered as
 separate practice words, not a sentence. Template output needs native review.
+
+**Follow-up (native review of template output):** "मह तातो छ" and "आमाको बल" are grammatical but
+not things people say. Templates now use natural pairings instead of free cross-products: each
+noun lists only what is commonly said about it (मह मीठो; भात तातो/मीठो), and possessions fit the
+owner (दिदीको बल, आमाको छाता). Maps live in athena/fallback.py.
