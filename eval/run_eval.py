@@ -13,7 +13,7 @@ import json
 import statistics
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
@@ -80,17 +80,24 @@ def summarize(rows: list[tuple[str, GenerationResult]], prices: dict) -> dict:
     return out
 
 
-def run_one(job: tuple[str, str, int]) -> tuple[str, GenerationResult]:
+def run_one(job: tuple[str, str, int]) -> tuple[str, GenerationResult | str]:
+    """Returns the result, or an error string. 429s are retried with backoff."""
     lang, set_name, i = job
     _, mastery = preset(set_name)
     p = plan(lang, mastery, NAMES[lang], theme=THEMES[i % len(THEMES)], seed=i)
-    return set_name, generate(p, log=False)
+    for wait in (10, 30, 60, None):
+        try:
+            return set_name, generate(p, log=False)
+        except Exception as e:  # noqa: BLE001 - recorded, not hidden
+            if wait is None or "429" not in str(e):
+                return set_name, f"{lang}: {type(e).__name__}: {str(e)[:200]}"
+            time.sleep(wait)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=3, help="generations per language")
-    ap.add_argument("--workers", type=int, default=2)
+    ap.add_argument("--workers", type=int, default=2, help="Vertex 429s above ~2 concurrent")
     args = ap.parse_args()
 
     jobs = [(lang, SETS[lang][i % len(SETS[lang])], i) for lang in ("ne", "en") for i in range(args.n)]
@@ -100,20 +107,49 @@ def main() -> None:
 
     t0 = time.perf_counter()
     rows: list[tuple[str, GenerationResult]] = []
+    errors: list[str] = []
     with ThreadPoolExecutor(args.workers) as pool, (RESULTS / f"{stamp}.jsonl").open("w", encoding="utf-8") as f:
-        for set_name, r in pool.map(run_one, jobs):
+        for fut in as_completed([pool.submit(run_one, j) for j in jobs]):
+            set_name, r = fut.result()
+            if isinstance(r, str):
+                errors.append(r)
+                print(f"ERROR {set_name}: {r}", flush=True)
+                continue
             rows.append((set_name, r))
             f.write(json.dumps({"set": set_name, **r.model_dump()}, ensure_ascii=False) + "\n")
+            f.flush()
             print(
                 f"{r.plan.language} {set_name:<13} {r.outcome:<11} attempts={len(r.attempts)} "
-                f"first_pass_violations={r.first_pass_violations:<3} {r.total_latency_ms:>6}ms  {r.title}"
+                f"first_pass_violations={r.first_pass_violations:<3} {r.total_latency_ms:>6}ms  {r.title}",
+                flush=True,
             )
 
-    summary = {"stamp": stamp, "n_per_lang": args.n, "wall_s": round(time.perf_counter() - t0, 1), **summarize(rows, prices)}
+    shipped_violations = sum(r.final_violation_count for _, r in rows)
+    problems = []
+    if errors:
+        problems.append(f"{len(errors)} job(s) errored")
+    if len(rows) + len(errors) != len(jobs):
+        problems.append(f"{len(jobs) - len(rows) - len(errors)} job(s) missing")
+    if shipped_violations:
+        problems.append(f"{shipped_violations} violation(s) shipped: verifier guarantee broken")
+
+    summary = {
+        "stamp": stamp,
+        "status": "FAILED" if problems else "SUCCESS",
+        "problems": problems,
+        "jobs": len(jobs),
+        "completed": len(rows),
+        "n_per_lang": args.n,
+        "wall_s": round(time.perf_counter() - t0, 1),
+        "errors": errors,
+        **summarize(rows, prices),
+    }
     (RESULTS / f"{stamp}.summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
-    assert all(r.final_violation_count == 0 for _, r in rows), "verifier guarantee broken"
+    # Last line is the verdict; exit code matches it.
+    print(f"EVAL {summary['status']}: {len(rows)}/{len(jobs)} completed" + (f" — {'; '.join(problems)}" if problems else ""))
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

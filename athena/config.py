@@ -2,6 +2,7 @@ import threading
 from functools import lru_cache
 
 from google import genai
+from google.genai import types
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,11 +14,12 @@ class Settings(BaseSettings):
     google_genai_use_vertexai: bool = False
     gemini_api_key: str = ""
 
-    writer_model: str = "gemini-flash-latest"
+    writer_model: str = "gemini-3.8-flash"
     cheap_model: str = "gemma-4-26b-a4b-it"
     image_model: str = "gemini-3.1-flash-image"
     writer_thinking_level: str = "low"
     media_bucket: str = ""
+    request_timeout_ms: int = 30_000  # normal calls 2-15s; cut runaway thinking and retry
 
 
 @lru_cache
@@ -44,8 +46,14 @@ def genai_client(purpose: str = "text") -> genai.Client:
 
 def _make_client() -> genai.Client:
     s = settings()
+    # Without a timeout a stalled request hangs forever (seen in eval).
+    http = types.HttpOptions(timeout=s.request_timeout_ms)
     if s.google_genai_use_vertexai:
-        return genai.Client(vertexai=True, project=s.google_cloud_project, location=s.google_cloud_location)
+        if s.gemini_api_key:  # Vertex AI API key (AQ.…): billed to the key's project
+            return genai.Client(vertexai=True, api_key=s.gemini_api_key, http_options=http)
+        return genai.Client(
+            vertexai=True, project=s.google_cloud_project, location=s.google_cloud_location, http_options=http
+        )
     if not s.gemini_api_key:
         raise RuntimeError("GEMINI_API_KEY missing in .env")
-    return genai.Client(api_key=s.gemini_api_key)
+    return genai.Client(api_key=s.gemini_api_key, http_options=http)

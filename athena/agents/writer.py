@@ -6,6 +6,7 @@ from google.genai import types
 
 from athena.config import genai_client, settings
 from athena.models import StoryDraft, StoryPlan, Usage, ViolationOut
+from athena.retry import with_retry
 
 _LANG = {"ne": "Nepali (Devanagari script)", "en": "simple English"}
 
@@ -77,15 +78,19 @@ def write(plan: StoryPlan, feedback: list[ViolationOut] | None = None) -> tuple[
     s = settings()
     prompt = build_prompt(plan, feedback)
     t0 = time.perf_counter()
-    r = genai_client().models.generate_content(
-        model=s.writer_model,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=StoryDraft,
-            thinking_config=types.ThinkingConfig(thinking_level=s.writer_thinking_level),
-            temperature=0.9,
+    r = with_retry(
+        lambda: genai_client().models.generate_content(
+            model=s.writer_model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=StoryDraft,
+                thinking_config=types.ThinkingConfig(thinking_level=s.writer_thinking_level),
+                temperature=0.9,
+                max_output_tokens=2048,  # bounds runaway generations (seen as 504s on Vertex)
+            ),
         ),
+        "writer",
     )
     latency_ms = int((time.perf_counter() - t0) * 1000)
     draft = r.parsed if isinstance(r.parsed, StoryDraft) else StoryDraft.model_validate_json(r.text)

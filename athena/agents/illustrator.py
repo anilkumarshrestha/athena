@@ -10,6 +10,7 @@ from google.genai import types
 
 from athena.config import genai_client, settings
 from athena.models import Usage
+from athena.retry import with_retry
 
 # DESIGN.md §8, verbatim. Keeps illustrations inside the UI palette.
 STYLE = (
@@ -29,13 +30,16 @@ def illustrate(theme: str) -> tuple[bytes, str, Usage, int]:
     """Returns (image bytes, mime type, usage, latency ms)."""
     s = settings()
     t0 = time.perf_counter()
-    r = genai_client("image").models.generate_content(
-        model=s.image_model,
-        contents=build_prompt(theme),
-        config=types.GenerateContentConfig(
-            response_modalities=["IMAGE"],
-            image_config=types.ImageConfig(aspect_ratio="4:3"),
+    r = with_retry(
+        lambda: genai_client("image").models.generate_content(
+            model=s.image_model,
+            contents=build_prompt(theme),
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+                image_config=types.ImageConfig(aspect_ratio="4:3"),
+            ),
         ),
+        "illustrator",
     )
     latency_ms = int((time.perf_counter() - t0) * 1000)
     for part in r.candidates[0].content.parts:
