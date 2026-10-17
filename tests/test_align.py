@@ -29,17 +29,35 @@ def test_omission():
 
 
 def test_substitution_names_the_unit_that_went_wrong():
-    # long ू read as short ु
+    # aspiration dropped: घ read as ग (audible, a common beginner error)
+    r = assess("ne", NE, "आमा र बिरालो गरमा छन् बिरालो दूध पिउँछ", duration_s=60)
+    w = r.words[3]
+    assert (w.expected, w.outcome, w.heard) == ("घरमा", "substituted", "गरमा")
+    assert w.error_units == ["c:घ"]
+
+
+def test_vowel_length_is_not_audible_so_not_an_error():
+    # दूध and दुध sound the same in Nepali; STT may write either
     r = assess("ne", NE, "आमा र बिरालो घरमा छन् बिरालो दुध पिउँछ", duration_s=60)
-    w = r.words[6]
-    assert (w.expected, w.outcome, w.heard) == ("दूध", "substituted", "दुध")
-    assert w.error_units == ["m:ू"]
+    assert all(w.outcome == "correct" for w in r.words)
 
 
-def test_dropped_chandrabindu():
+def test_nasal_marks_are_not_scored():
+    # STT drops ँ on correct reads; never blame the child for it
     r = assess("ne", NE, "आमा र बिरालो घरमा छन् बिरालो दूध पिउछ", duration_s=60)
-    assert r.words[7].outcome == "substituted"
-    assert r.words[7].error_units == ["m:ँ"]
+    assert r.words[7].outcome == "correct"
+    assert "m:ँ" not in r.unit_correct and "m:ँ" not in r.unit_errors
+
+
+def test_sibilants_merge():
+    r = assess("ne", "शिक्षक आए।", "सिक्सक आए", duration_s=60)
+    assert r.words[0].outcome == "correct"
+
+
+def test_split_word_glued_back():
+    r = assess("ne", "आमा हाँस्नुहुन्छ।", "आमा हास्नु हुन्छ", duration_s=60)
+    assert all(w.outcome == "correct" for w in r.words)
+    assert r.insertions == []
 
 
 def test_insertion():
@@ -50,8 +68,8 @@ def test_insertion():
 
 def test_self_correction():
     # wrong attempt immediately followed by the right word
-    r = assess("ne", NE, "आमा र बिरालो घरमा छन् बिरालो दुध दूध पिउँछ", duration_s=60)
-    assert r.words[6].outcome == "self_corrected"
+    r = assess("ne", NE, "आमा र बिरालो गरमा घरमा छन् बिरालो दूध पिउँछ", duration_s=60)
+    assert r.words[3].outcome == "self_corrected"
     assert r.insertions == []
     assert r.words_correct == 8  # self-corrections count as correct
 
@@ -69,8 +87,8 @@ def test_empty_hypothesis_all_omitted():
 
 
 def test_unit_tally():
-    r = assess("ne", NE, "आमा र बिरालो घरमा छन् बिरालो दुध पिउँछ", duration_s=60)
-    assert r.unit_errors == {"m:ू": 1}
+    r = assess("ne", NE, "आमा र बिरालो गरमा छन् बिरालो दूध पिउँछ", duration_s=60)
+    assert r.unit_errors == {"c:घ": 1}
     assert r.unit_correct["c:ब"] == 2  # बिरालो read correctly twice
 
 
