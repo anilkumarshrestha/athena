@@ -38,3 +38,15 @@ def test_english_returns_nothing_rather_than_guessing():
     lang, m = preset("en_p2")
     v = verifier_for(lang, m)
     assert template_story(lang, v, decodable_words(lang, m), [], random.Random(0)) == ("", [])
+
+
+def test_elders_always_get_honorific_verbs():
+    from athena.fallback import ELDERS
+
+    for name in ("ne_basic", "ne_mid", "ne_mid_conj"):
+        for seed in range(8):
+            _, _, sentences = story(name, seed=seed)
+            for s in sentences:
+                words = s.rstrip("।").split()
+                if words[0] in ELDERS:
+                    assert words[-1] in ("हुनुहुन्छ", "जानुभयो"), s  # never plain छ / गयो

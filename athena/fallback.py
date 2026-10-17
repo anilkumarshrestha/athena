@@ -65,6 +65,8 @@ OBJECT_ADJ: dict[str, list[str]] = {
     "छाता": ["कालो", "रातो", "ठूलो", "नयाँ"],
     "घडी": ["नयाँ", "राम्रो", "सानो"],
 }
+# Elders and older siblings take honorific verbs (आमा घरमा हुनुहुन्छ), never plain (आमा घरमा छ).
+ELDERS = "आमा बुबा बाबा हजुरआमा हजुरबुबा काका काकी मामा दाइ दिदी".split()
 ANIMAL_PLACES = "घर आँगन बारी खेत गाउँ".split()
 PEOPLE_PLACES = "घर स्कुल बजार खेत बारी आँगन भान्सा गाउँ".split()
 
@@ -79,6 +81,8 @@ def _candidates() -> list[list[str]]:
         [f"यो {t} हो।" for t in OBJECT_ADJ],
         [f"यो {f} हो।" for f in FOOD_ADJ],
         [f"म {p}मा छु।" for p in PEOPLE_PLACES],
+        [f"{e} {p}मा हुनुहुन्छ।" for e in ELDERS for p in PEOPLE_PLACES],
+        [f"{e} {p} जानुभयो।" for e in ELDERS for p in ("बजार", "खेत", "बारी", "घर", "स्कुल")],
     ]
 
 

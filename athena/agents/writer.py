@@ -45,6 +45,7 @@ def build_prompt(plan: StoryPlan, feedback: list[ViolationOut] | None = None) ->
         """
 Nepali grammar and idiom (a native speaker will read this):
 - Transitive verbs in the past tense take the ergative -ले on the subject: "रामले झोला लियो", "आमाले भात पकाउनुभयो". Never "राम झोला लियो".
+- RESPECT: elders and older siblings (आमा, बुबा, बाबा, हजुरआमा, हजुरबुबा, काका, काकी, मामा, गुरु, दाइ, दिदी) ALWAYS take honorific verbs: "आमा आउनुभयो", "दाइले खाना खानुभयो", "हजुरआमा घरमा हुनुहुन्छ", "बुबा बजार जानुहुन्छ". Never "आमा आयो" or "दाइले खायो". The child, younger siblings (भाइ, बहिनी) and animals take plain forms ("भाइ खेल्यो", "बिरालो सुत्यो"). If the honorific form is not allowed, write a sentence where the elder is not the subject of a verb.
 - Use the natural verb for each noun, never a near-synonym: rain falls "पानी पर्यो" (not "पानी आयो").
 - Prefer the lively idiomatic verb: "राम रमायो" over "राम खुसी भयो" where it fits.
 - If the natural word is not allowed, REPHRASE the whole sentence around a different idea. Never swap in an unnatural or ungrammatical word to satisfy the letter rules. A shorter correct story beats a longer wrong one.

@@ -8,6 +8,7 @@ Cause column: **constraint** = the correct word was blocked by the learner's mas
 |---|---|---|---|---|
 | 1 | 2026-10-17 | ram / `ne_mid` | ❌ fail (grammar) | see below |
 | 2 | 2026-10-17 | sita / `ne_basic` | ❌ fail (nonsense) | word-list fallback shown as a sentence; see below |
+| 3 | 2026-10-17 | (rule) | — | honorific verbs for elders; see below |
 
 ## 1 — ram / ne_mid
 
@@ -48,3 +49,12 @@ separate practice words, not a sentence. Template output needs native review.
 not things people say. Templates now use natural pairings instead of free cross-products: each
 noun lists only what is commonly said about it (मह मीठो; भात तातो/मीठो), and possessions fit the
 owner (दिदीको बल, आमाको छाता). Maps live in athena/fallback.py.
+
+## 3 — rule: respect for elders
+
+Elders and older siblings (आमा, बुबा, हजुरआमा, काका, गुरु, दाइ, दिदी …) always take honorific
+verbs: "आमा आउनुभयो", "दाइले खाना खानुभयो" — never "आमा आयो", "दाइले खायो". Child, younger
+siblings and animals take plain forms.
+
+**Actions:** writer prompt states the rule with examples; templates add honorific elder sentences
+("आमा खेत जानुभयो", "हजुरआमा घरमा हुनुहुन्छ"); test asserts no elder sentence ends in a plain verb.
