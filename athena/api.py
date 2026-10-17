@@ -15,6 +15,7 @@ from athena.agents.planner import plan
 from athena.assess import stt
 from athena.assess.align import assess, tokens
 from athena.generate import generate
+from athena.mastery import allowed, apply_session, practice_targets
 from athena.models import Language
 from athena.ratelimit import RateLimit
 from athena.store import Learner, Story, store
@@ -31,11 +32,36 @@ DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 # --- schemas -------------------------------------------------------------------
 
 
+class UnitOut(BaseModel):
+    unit: str
+    state: str  # mastered | practicing | unseen | excluded
+    streak: int
+    seen: int
+    cooldown: int
+
+
 class LearnerOut(BaseModel):
     id: str
     name: dict[str, str]
     avatar: str
-    mastery: dict[str, list[str]]
+    mastery: dict[str, list[str]]  # units stories may use now
+    units: dict[str, list[UnitOut]]
+
+
+class ChangeOut(BaseModel):
+    unit: str
+    before: str
+    after: str
+
+
+class CloseRequest(BaseModel):
+    story_id: str
+
+
+class CloseOut(BaseModel):
+    story_id: str
+    changes: list[ChangeOut]
+    learner: LearnerOut
 
 
 class ViolationLog(BaseModel):
@@ -114,6 +140,10 @@ def learner_out(learner: Learner) -> LearnerOut:
         name=learner.name,
         avatar=learner.avatar,
         mastery={lang: sorted(units) for lang, units in learner.mastery.items()},
+        units={
+            lang: [UnitOut(unit=sig, **u.__dict__) for sig, u in sorted(units.items())]
+            for lang, units in learner.units.items()
+        },
     )
 
 
@@ -188,7 +218,14 @@ def start_session(req: StartRequest) -> StoryOut:
     learner = store.get_learner(req.learner_id)
     if not learner:
         raise HTTPException(404, "learner not found")
-    p = plan(req.language, frozenset(learner.mastery[req.language]), learner.name[req.language], theme=req.theme)
+    units = learner.units[req.language]
+    p = plan(
+        req.language,
+        allowed(units),
+        learner.name[req.language],
+        theme=req.theme,
+        target_units=practice_targets(units)[:3] or None,  # practise what is being learned
+    )
 
     # Image starts now from the theme; text is generated + verified meanwhile.
     image_future = _pool.submit(illustrator.illustrate, p.theme)
@@ -250,6 +287,29 @@ def read_session(
         wcpm=a.wcpm,
         unit_errors=a.unit_errors,
         unit_correct=a.unit_correct,
+    )
+
+
+@app.post("/api/session/close", response_model=CloseOut)
+def close_session(req: CloseRequest) -> CloseOut:
+    """Apply the latest reading of a story to the learner's mastery (PLAN §5). Once per story."""
+    s = store.get_story(req.story_id)
+    if not s:
+        raise HTTPException(404, "story not found")
+    learner = store.get_learner(s.learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    if s.changes is not None:
+        raise HTTPException(409, "session already closed")
+    if not s.readings:
+        raise HTTPException(400, "no reading to score yet")
+    a = s.readings[-1]
+    changes = apply_session(learner.units[s.language], a.unit_correct, a.unit_errors)
+    s.changes = changes
+    return CloseOut(
+        story_id=s.id,
+        changes=[ChangeOut(unit=c.unit, before=c.before, after=c.after) for c in changes],
+        learner=learner_out(learner),
     )
 
 

@@ -6,6 +6,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Literal
 
+from athena.mastery import UnitState, allowed
 from athena.models import GenerationResult, Language
 from athena.presets import preset
 
@@ -17,7 +18,12 @@ class Learner:
     id: str
     name: dict[str, str]  # per language: {"ne": "सीता", "en": "Sita"}
     avatar: str
-    mastery: dict[str, set[str]]
+    units: dict[str, dict[str, UnitState]]  # per language: signature -> state
+
+    @property
+    def mastery(self) -> dict[str, frozenset[str]]:
+        """Signatures stories may use now, per language (mastered + active practicing)."""
+        return {lang: allowed(u) for lang, u in self.units.items()}
 
 
 @dataclass
@@ -30,6 +36,7 @@ class Story:
     image_id: str | None = None
     image_latency_ms: int | None = None
     readings: list = field(default_factory=list)  # Assessment per read-aloud attempt (no audio kept)
+    changes: list | None = None  # mastery Changes once the session is closed
     created_at: float = field(default_factory=time.time)
 
 
@@ -66,18 +73,17 @@ class MemoryStore:
 
 
 def _seed(store: MemoryStore) -> None:
-    for lid, names, avatar, ne, en in [
-        ("sita", {"ne": "सीता", "en": "Sita"}, "goat", "ne_basic", "en_satpin_sh"),
-        ("ram", {"ne": "राम", "en": "Ram"}, "yak", "ne_mid", "en_p3"),
+    for lid, names, avatar, ne, ne_p, en, en_p in [
+        # preset = mastered units; then a few units the learner is practising
+        ("sita", {"ne": "सीता", "en": "Sita"}, "goat", "ne_basic", ["c:ड", "m:ै"], "en_satpin_sh", ["g:m", "g:d"]),
+        ("ram", {"ne": "राम", "en": "Ram"}, "yak", "ne_mid", ["k:क्ष", "k:न्छ"], "en_p3", ["g:ay", "g:ou"]),
     ]:
-        store.put_learner(
-            Learner(
-                id=lid,
-                name=names,
-                avatar=avatar,
-                mastery={"ne": set(preset(ne)[1]), "en": set(preset(en)[1])},
-            )
-        )
+        units = {}
+        for lang, preset_name, practicing in (("ne", ne, ne_p), ("en", en, en_p)):
+            u = {sig: UnitState("mastered", streak=3, seen=3) for sig in preset(preset_name)[1]}
+            u.update({sig: UnitState("practicing", streak=0, seen=1) for sig in practicing})
+            units[lang] = u
+        store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units))
 
 
 store = MemoryStore()
