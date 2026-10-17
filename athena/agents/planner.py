@@ -40,6 +40,7 @@ THEMES = [
 _BY_TEXT = {t.text: t for t in THEMES}
 
 WORD_BANK_MAX = 150
+PERSONAL_SHARE = 0.6
 
 
 def _resolve(theme: Theme, language: Language, mastery: frozenset[str]) -> tuple[bool, list[str], list[str]]:
@@ -66,15 +67,22 @@ def plan(
     target_units: list[str] | None = None,
     seed: int | None = None,
     level: int = 2,
+    personal: list[Theme] | None = None,
+    setting: str | None = None,
 ) -> StoryPlan:
+    """personal: themes from the child's favourites, preferred when readable.
+    setting: where the child lives, e.g. "a hill village in Nepal" (story + picture)."""
     rng = random.Random(seed)
 
     if theme:  # explicit theme: honour it, resolve key words if we know it
         chosen = _BY_TEXT.get(theme, Theme(theme))
     else:
+        mine = [t for t in personal or [] if _resolve(t, language, mastery)[0]]
         readable = [t for t in THEMES if _resolve(t, language, mastery)[0]]
-        chosen = rng.choice(readable or THEMES)
+        # Favourites most of the time; general themes keep it from getting repetitive.
+        chosen = rng.choice(mine) if mine and rng.random() < PERSONAL_SHARE else rng.choice(readable or THEMES)
     _, key_words, avoid_words = _resolve(chosen, language, mastery)
+    theme_text = f"{chosen.text}, in {setting}" if setting else chosen.text
 
     words = decodable_words(language, mastery)
     if not target_units:
@@ -94,7 +102,7 @@ def plan(
     return StoryPlan(
         language=language,
         learner_name=learner_name,
-        theme=chosen.text,
+        theme=theme_text,
         key_words=key_words,
         avoid_words=avoid_words,
         target_units=list(target_units),

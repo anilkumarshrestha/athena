@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from athena import media
 from athena.agents import illustrator
@@ -19,7 +19,9 @@ from athena.mastery import Change, UnitState, allowed, apply_session, practice_t
 from athena.progression import MAX_PRACTICING, next_level, next_units, should_introduce
 from athena.models import Language
 from athena.ratelimit import RateLimit
-from athena.store import Learner, Story, store
+from athena.profile import SETTINGS, AnimalId, FoodId, SettingId, StartId, personal_themes
+from athena.store import Learner, Story, new_learner, store
+from athena.verifier.nepali import DecomposeError, decompose, normalize
 
 log = logging.getLogger("athena")
 app = FastAPI(title="Athena")
@@ -49,6 +51,29 @@ class LearnerOut(BaseModel):
     units: dict[str, list[UnitOut]]
     level: dict[str, int]
     recent_accuracy: dict[str, list[float]]  # last 5 sessions, oldest first
+    profile: dict[str, str]
+
+
+class LearnerCreate(BaseModel):
+    """Fixed choices only: these values reach the model prompt."""
+
+    name_ne: str = Field(min_length=1, max_length=20)
+    name_en: str = Field(min_length=1, max_length=20, pattern=r"^[A-Za-z][A-Za-z ]*$")
+    favorite_animal: AnimalId
+    favorite_food: FoodId
+    setting: SettingId
+    start: StartId
+
+    @field_validator("name_ne")
+    @classmethod
+    def devanagari_name(cls, v: str) -> str:
+        v = normalize(v.strip())
+        try:
+            for part in v.split():
+                decompose(part)  # Devanagari letters only, well formed
+        except DecomposeError as e:
+            raise ValueError("name must be written in Devanagari") from e
+        return v
 
 
 class ChangeOut(BaseModel):
@@ -152,6 +177,7 @@ def learner_out(learner: Learner) -> LearnerOut:
         },
         level=learner.level,
         recent_accuracy={lang: [round(a, 2) for a in h[-5:]] for lang, h in learner.history.items()},
+        profile=learner.profile,
     )
 
 
@@ -213,6 +239,17 @@ def list_learners() -> list[LearnerOut]:
     return [learner_out(x) for x in store.list_learners()]
 
 
+create_limit = RateLimit(per_ip=10, global_=60)
+
+
+@app.post("/api/learners", response_model=LearnerOut, status_code=201, dependencies=[Depends(create_limit)])
+def create_learner(req: LearnerCreate) -> LearnerOut:
+    profile = {"favorite_animal": req.favorite_animal, "favorite_food": req.favorite_food, "setting": req.setting}
+    learner = new_learner(req.name_ne, req.name_en.strip(), profile, req.start)
+    store.put_learner(learner)
+    return learner_out(learner)
+
+
 @app.get("/api/learners/{learner_id}", response_model=LearnerOut)
 def get_learner(learner_id: str) -> LearnerOut:
     learner = store.get_learner(learner_id)
@@ -234,6 +271,8 @@ def start_session(req: StartRequest) -> StoryOut:
         theme=req.theme,
         target_units=practice_targets(units)[:3] or None,  # practise what is being learned
         level=learner.level[req.language],
+        personal=personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food")),
+        setting=SETTINGS.get(learner.profile.get("setting", "")),
     )
 
     # Image starts now from the theme; text is generated + verified meanwhile.

@@ -19,6 +19,7 @@ class Learner:
     name: dict[str, str]  # per language: {"ne": "सीता", "en": "Sita"}
     avatar: str
     units: dict[str, dict[str, UnitState]]  # per language: signature -> state
+    profile: dict[str, str] = field(default_factory=dict)  # favorite_animal, favorite_food, setting (fixed ids)
     level: dict[str, int] = field(default_factory=lambda: {"ne": 1, "en": 1})  # story shape band
     history: dict[str, list[float]] = field(default_factory=lambda: {"ne": [], "en": []})  # accuracy per session
 
@@ -86,7 +87,29 @@ def _seed(store: MemoryStore) -> None:
             u.update({sig: UnitState("practicing", streak=0, seen=1) for sig in practicing})
             units[lang] = u
         level = {"sita": {"ne": 1, "en": 1}, "ram": {"ne": 2, "en": 2}}[lid]
-        store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units, level=level))
+        profile = {
+            "sita": {"favorite_animal": "goat", "favorite_food": "dal_bhat", "setting": "hills"},
+            "ram": {"favorite_animal": "yak", "favorite_food": "momo", "setting": "mountains"},
+        }[lid]
+        store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units, level=level, profile=profile))
+
+
+def new_learner(name_ne: str, name_en: str, profile: dict[str, str], start: str) -> Learner:
+    from athena.profile import STARTS  # lazy: profile imports the planner
+
+    ne_preset, en_preset, level = STARTS[start]
+    units = {
+        lang: {sig: UnitState("mastered", streak=3, seen=3) for sig in preset(p)[1]}
+        for lang, p in (("ne", ne_preset), ("en", en_preset))
+    }
+    return Learner(
+        id=uuid.uuid4().hex[:8],
+        name={"ne": name_ne, "en": name_en},
+        avatar=profile.get("favorite_animal", ""),
+        units=units,
+        level={"ne": level, "en": level},
+        profile=profile,
+    )
 
 
 store = MemoryStore()
