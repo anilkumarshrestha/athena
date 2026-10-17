@@ -22,7 +22,11 @@ def _violations(result) -> list[ViolationOut]:
     return [ViolationOut(word=v.word, word_index=v.word_index, unit=v.unit, reason=v.reason) for v in result.violations]
 
 
-def generate(plan: StoryPlan, log: bool = True) -> GenerationResult:
+MIN_CALL_MS = 5_000
+
+
+def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -> GenerationResult:
+    """budget_s: total time for model attempts. Past it, go straight to the verified fallback."""
     t0 = time.perf_counter()
     mastery = frozenset(plan.mastery)
     names = frozenset(plan.learner_name.split()) | frozenset(plan.learner_name.lower().split())
@@ -34,8 +38,14 @@ def generate(plan: StoryPlan, log: bool = True) -> GenerationResult:
     outcome = None
 
     for n in range(1, MAX_ATTEMPTS + 1):
+        timeout_ms = None
+        if budget_s is not None:
+            remaining_ms = int((budget_s - (time.perf_counter() - t0)) * 1000)
+            if remaining_ms < MIN_CALL_MS:
+                break  # out of time: verified fallback below
+            timeout_ms = remaining_ms
         try:
-            draft, prompt, usage, latency = writer.write(plan, list(banned.values()) or None)
+            draft, prompt, usage, latency = writer.write(plan, list(banned.values()) or None, timeout_ms)
         except writer.WriterFailed as e:
             # No usable draft (truncated JSON, model error): a failed attempt, not a crash.
             attempts.append(

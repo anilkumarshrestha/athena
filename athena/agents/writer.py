@@ -52,12 +52,17 @@ Nepali grammar and idiom (a native speaker will read this):
         if plan.language == "ne"
         else ""
     )
+    key_line = ""
+    if plan.key_words:
+        key_line += f"Key words for this theme (the child can read these; use them): {' '.join(plan.key_words)}\n"
+    if plan.avoid_words:
+        key_line += f"Do NOT write these even though they are natural (the child cannot read them yet): {' '.join(plan.avoid_words)}\n"
     prompt = f"""You write decodable reading stories for a {lang} beginner reader aged 5-8 in Nepal.
 
 Child's name: {plan.learner_name} (always allowed; write it EXACTLY like this, no suffixes attached)
 Theme: {plan.theme}
 Focus units to practise often: {", ".join(u.split(":", 1)[1] for u in plan.target_units)}
-
+{key_line}
 {bank_rule}
 {_units_line(plan)}
 
@@ -94,7 +99,9 @@ class WriterFailed(Exception):
         self.reason, self.prompt, self.usage, self.latency_ms = reason, prompt, usage, latency_ms
 
 
-def write(plan: StoryPlan, feedback: list[ViolationOut] | None = None) -> tuple[StoryDraft, str, Usage, int]:
+def write(
+    plan: StoryPlan, feedback: list[ViolationOut] | None = None, timeout_ms: int | None = None
+) -> tuple[StoryDraft, str, Usage, int]:
     s = settings()
     prompt = build_prompt(plan, feedback)
     t0 = time.perf_counter()
@@ -111,9 +118,12 @@ def write(plan: StoryPlan, feedback: list[ViolationOut] | None = None) -> tuple[
                     # Thinking counts toward this cap on Gemini 3; 2048 truncated the JSON.
                     # Runaways are bounded by the request timeout instead.
                     max_output_tokens=4096,
+                    # Per-call override so generate() can enforce its time budget.
+                    http_options=types.HttpOptions(timeout=timeout_ms) if timeout_ms else None,
                 ),
             ),
             "writer",
+            deadline=time.monotonic() + timeout_ms / 1000 if timeout_ms else None,
         )
     except errors.APIError as e:
         ms = int((time.perf_counter() - t0) * 1000)

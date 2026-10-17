@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from athena.agents.planner import THEMES, plan  # noqa: E402
+from athena.agents.planner import plan  # noqa: E402
 from athena.generate import generate  # noqa: E402
 from athena.models import GenerationResult  # noqa: E402
 from athena.presets import preset  # noqa: E402
@@ -84,7 +84,7 @@ def run_one(job: tuple[str, str, int]) -> tuple[str, GenerationResult | str]:
     """Returns the result, or an error string. 429s are retried with backoff."""
     lang, set_name, i = job
     _, mastery = preset(set_name)
-    p = plan(lang, mastery, NAMES[lang], theme=THEMES[i % len(THEMES)], seed=i)
+    p = plan(lang, mastery, NAMES[lang], seed=i)  # planner picks a readable theme
     for wait in (10, 30, 60, None):
         try:
             return set_name, generate(p, log=False)

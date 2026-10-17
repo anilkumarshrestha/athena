@@ -44,6 +44,8 @@ class StoryPlan(BaseModel):
     language: Language
     learner_name: str
     theme: str
+    key_words: list[str] = []  # readable words for the theme's key things
+    avoid_words: list[str] = []  # natural words for them the child cannot read yet
     target_units: list[str]
     word_bank: list[str]
     mastery: list[str]

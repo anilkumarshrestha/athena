@@ -21,6 +21,7 @@ log = logging.getLogger("athena")
 app = FastAPI(title="Athena")
 _pool = ThreadPoolExecutor(max_workers=8)
 story_limit = RateLimit(per_ip=6, global_=40)
+STORY_BUDGET_S = 20  # a child should not wait longer; past it the verified fallback is served
 
 DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 
@@ -143,7 +144,7 @@ def start_session(req: StartRequest) -> StoryOut:
 
     # Image starts now from the theme; text is generated + verified meanwhile.
     image_future = _pool.submit(illustrator.illustrate, p.theme)
-    result = generate(p)
+    result = generate(p, budget_s=STORY_BUDGET_S)
     story = store.add_story(learner.id, req.language, result)
 
     def _done(fut) -> None:
