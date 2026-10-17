@@ -1,0 +1,55 @@
+{
+  "stamp": "20261017-180450",
+  "n_per_lang": 3,
+  "wall_s": 15.4,
+  "ne": {
+    "n": 3,
+    "first_pass_ok_rate": 0.3333333333333333,
+    "first_pass_mean_violations": 2.6666666666666665,
+    "final_violation_count_total": 0,
+    "mean_attempts": 1.6666666666666667,
+    "fallback_rate": 0.0,
+    "outcomes": {
+      "first_pass": 1,
+      "regenerated": 2,
+      "pruned": 0,
+      "wordlist": 0
+    },
+    "latency_ms_p50": 6002,
+    "latency_ms_p95": 11618,
+    "tokens_mean": {
+      "input_tokens": 1065.3333333333333,
+      "output_tokens": 186.66666666666666,
+      "thinking_tokens": 409.3333333333333
+    },
+    "cost_usd_per_story": null,
+    "models": [
+      "gemini-3.8-flash"
+    ]
+  },
+  "en": {
+    "n": 3,
+    "first_pass_ok_rate": 1.0,
+    "first_pass_mean_violations": 0,
+    "final_violation_count_total": 0,
+    "mean_attempts": 1,
+    "fallback_rate": 0.0,
+    "outcomes": {
+      "first_pass": 3,
+      "regenerated": 0,
+      "pruned": 0,
+      "wordlist": 0
+    },
+    "latency_ms_p50": 1920,
+    "latency_ms_p95": 3327,
+    "tokens_mean": {
+      "input_tokens": 328.6666666666667,
+      "output_tokens": 84,
+      "thinking_tokens": 0
+    },
+    "cost_usd_per_story": null,
+    "models": [
+      "gemini-3.8-flash"
+    ]
+  }
+}

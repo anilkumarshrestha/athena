@@ -16,7 +16,7 @@ node_modules/
 frontend/dist/
 
 # eval outputs
-eval/results/*.log
+eval/results/*.jsonl
 *.egg-info/
 scripts/smoke_out/
 

@@ -1,0 +1,4 @@
+{
+  "gemini-3.8-flash": {"input_per_m": null, "output_per_m": null, "source": "fill from https://ai.google.dev/pricing (USD per 1M tokens)"},
+  "gemma-4": {"input_per_m": null, "output_per_m": null, "source": "fill from https://ai.google.dev/pricing"}
+}
