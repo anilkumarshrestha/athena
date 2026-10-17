@@ -87,9 +87,24 @@ def unlock_value(language: str, known: frozenset[str], unit: str) -> int:
     return readable_count(language, known | {unit}) - readable_count(language, known)
 
 
+# Beginners: until a child can read STARTER_UNTIL words, follow a fixed starter order that
+# opens real words fast (vowel signs and छ early: "… छ।" is in almost every first sentence).
+# Greedy unlock value misleads here: it prefers one-letter words like म or ऊ (seen 17 Oct).
+STARTER: dict[str, list[str]] = {
+    "ne": "c:क m:ा c:म c:न c:र c:छ m:ि c:ल c:स m:ो c:त c:प c:ग m:ी m:ु c:ब c:द c:ह m:े".split(),
+    "en": "g:s g:a g:t g:p g:i g:n g:m g:d g:g g:o g:c g:k g:e g:u g:r g:h".split(),
+}
+STARTER_UNTIL = 30
+
+
 def next_units(language: str, units: dict[str, UnitState], k: int = 2) -> list[str]:
-    """Up to k unseen units: highest unlock value within the next WINDOW of the teaching order."""
+    """Up to k unseen units: the starter order for beginners, then the highest unlock value
+    within the next WINDOW of the teaching order."""
     known = frozenset(s for s, u in units.items() if u.state in ("mastered", "practicing"))
+    if readable_count(language, known) < STARTER_UNTIL:
+        starter = [s for s in STARTER[language] if s not in known][:k]
+        if starter:
+            return starter
     unseen = [s for s in SEQUENCE[language] if s not in units or units[s].state == "unseen"]
     picked: list[str] = []
     for _ in range(k):

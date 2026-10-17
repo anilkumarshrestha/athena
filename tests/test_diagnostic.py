@@ -37,7 +37,7 @@ def test_beginner_who_knows_nothing():
     p = place("ne", d, r)
     assert p.level == 1
     assert len(p.mastered) == 0
-    assert p.practicing == ["c:अ", "c:आ"]  # start at the beginning
+    assert p.practicing == ["c:क", "m:ा"]  # starter order: opens real words fastest
 
 
 def test_passed_tier_masters_untested_units_too():
@@ -69,3 +69,13 @@ def test_english_tricky_words_scored_separately():
     p = place("en", d, r)
     assert all(f"w:{c.text.lower()}" in p.mastered for c in tricky.cards)
     assert {"g:s", "g:a", "g:t"} <= p.mastered
+
+
+def test_near_beginner_practises_starter_units_not_one_letter_words():
+    # Kiran (17 Oct): knew इ न स, was given म + ऊ (one-letter words) and got a "story" of म ऊ.
+    from athena.diagnostic import Placement  # noqa: F401
+    from athena.mastery import UnitState
+    from athena.progression import next_units
+
+    units = {u: UnitState("mastered") for u in ("c:इ", "c:न", "c:स")}
+    assert next_units("ne", units, k=2) == ["c:क", "m:ा"]

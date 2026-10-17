@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 import hashlib
+import re
 import time
 from typing import Literal
 
@@ -140,6 +141,7 @@ class StoryOut(BaseModel):
     image_url: str | None
     image_latency_ms: int | None
     display: list[list[DisplayWord]]
+    letters: list[dict] = []  # letter mode only: [{unit, example, practising}]
 
 
 class WordOut(BaseModel):
@@ -365,6 +367,16 @@ def start_session(req: StartRequest) -> StoryOut:
         # Parent's daily limit: a friendly stop, shown to the child as "see you tomorrow".
         raise HTTPException(403, "daily_limit")
     units = learner.units[req.language]
+    # Too few readable words for any real story: letter practice instead (no model call).
+    from athena.letters import MIN_STORY_WORDS, letter_cards
+    from athena.lexicon import decodable_words
+
+    if len(decodable_words(req.language, allowed(units))) < MIN_STORY_WORDS:
+        return StoryOut(
+            id="", learner_id=learner.id, language=req.language, theme="letters", title="", sentences=[],
+            outcome="letters", units_used=[], attempts=[], total_latency_ms=0, image_status="failed",
+            image_url=None, image_latency_ms=None, display=[], letters=letter_cards(req.language, units),
+        )
     p = plan(
         req.language,
         allowed(units),
@@ -704,6 +716,59 @@ def learner_story(learner_id: str, story_id: str) -> HistoryStoryOut:
         readings=r["readings"],
         close=r.get("close"),
     )
+
+
+letters_limit = RateLimit(per_ip=40, global_=200)
+
+
+class LetterCheckIn(BaseModel):
+    language: Language
+    results: dict[str, bool]  # unit -> said it (adult marks, like the card check)
+
+
+@app.post("/api/learners/{learner_id}/letters/close", response_model=CloseOut)
+def close_letters(learner_id: str, req: LetterCheckIn) -> CloseOut:
+    """Letter-mode session: the same mastery rule as a story reading, so pre-readers progress
+    into stories. A letter not yet said counts as one error (resets the streak, no demotion)."""
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    lang, units = req.language, learner.units[req.language]
+    if not req.results or any(not re.fullmatch(r"[cmkgw]:[^\s/]{1,8}", u) for u in req.results):
+        raise HTTPException(400, "results must be unit signatures")
+    correct = {u: 1 for u, ok in req.results.items() if ok}
+    errors = {u: 1 for u, ok in req.results.items() if not ok}
+    changes = apply_session(units, correct, errors)
+    accuracy = len(correct) / len(req.results)
+    learner.history[lang].append(accuracy)
+    if should_introduce(units, learner.history[lang]):
+        practicing = sum(u.state == "practicing" for u in units.values())
+        for sig in next_units(lang, units, k=MAX_PRACTICING - practicing):
+            units[sig] = UnitState("practicing", streak=0, seen=0)
+            changes.append(Change(sig, "unseen", "practicing"))
+    learner.sessions.append(
+        {"at": time.time(), "started": time.time() - 60, "lang": lang, "title": "letters", "accuracy": round(accuracy, 3),
+         "wcpm": 0.0, "words": 0, "changes": [[c.unit, c.before, c.after] for c in changes]}
+    )
+    store.save()
+    return CloseOut(
+        story_id="", accuracy=round(accuracy, 2), level_before=learner.level[lang], level_after=learner.level[lang],
+        changes=[ChangeOut(unit=c.unit, before=c.before, after=c.after) for c in changes], learner=learner_out(learner),
+    )
+
+
+@app.get("/api/letters/{language}/{unit}/audio", dependencies=[Depends(letters_limit)])
+def letter_audio(language: Language, unit: str) -> Response:
+    """Speak the example word for a letter card. The text comes from the server's own
+    example list for a valid unit, never from the client."""
+    from athena.letters import example_word
+
+    if not re.fullmatch(r"[cmkgw]:[^\s/]{1,8}", unit):
+        raise HTTPException(404, "unknown unit")
+    word = example_word(language, unit)
+    if not word:
+        raise HTTPException(404, "no example for this unit")
+    return Response(tts.speak_word(language, word), media_type="audio/wav", headers={"Cache-Control": "public, max-age=604800"})
 
 
 class PartOut(BaseModel):

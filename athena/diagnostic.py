@@ -155,6 +155,12 @@ def place(language: str, tiers: list[Tier], responses: dict[str, bool]) -> Place
     from athena.progression import next_units, unlock_value
 
     known = frozenset(p.mastered)
+    from athena.progression import STARTER_UNTIL, readable_count
+
+    if readable_count(language, known) < STARTER_UNTIL:
+        # Too few readable words for missed-card ranking to mean much: use the starter order.
+        p.practicing = next_units(language, {u: UnitState("mastered") for u in p.mastered}, k=MAX_PRACTICING)
+        return p
     pool = [u for u in dict.fromkeys(missed) if u not in p.mastered]
     units = {u: UnitState("mastered") for u in p.mastered}
     pool += [u for u in next_units(language, units, k=MAX_PRACTICING) if u not in pool]
