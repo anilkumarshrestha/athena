@@ -2,7 +2,8 @@
 
 import time
 
-from google.genai import types
+from google.genai import errors, types
+from pydantic import ValidationError
 
 from athena.config import genai_client, settings
 from athena.models import StoryDraft, StoryPlan, Usage, ViolationOut
@@ -85,26 +86,40 @@ Rules:
     return prompt
 
 
+class WriterFailed(Exception):
+    """The writer produced no usable draft. generate() counts it as a failed attempt."""
+
+    def __init__(self, reason: str, prompt: str, usage: Usage, latency_ms: int) -> None:
+        super().__init__(reason)
+        self.reason, self.prompt, self.usage, self.latency_ms = reason, prompt, usage, latency_ms
+
+
 def write(plan: StoryPlan, feedback: list[ViolationOut] | None = None) -> tuple[StoryDraft, str, Usage, int]:
     s = settings()
     prompt = build_prompt(plan, feedback)
     t0 = time.perf_counter()
-    r = with_retry(
-        lambda: genai_client().models.generate_content(
-            model=s.writer_model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=StoryDraft,
-                thinking_config=types.ThinkingConfig(thinking_level=s.writer_thinking_level),
-                temperature=0.9,
-                max_output_tokens=2048,  # bounds runaway generations (seen as 504s on Vertex)
+    try:
+        r = with_retry(
+            lambda: genai_client().models.generate_content(
+                model=s.writer_model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=StoryDraft,
+                    thinking_config=types.ThinkingConfig(thinking_level=s.writer_thinking_level),
+                    temperature=0.9,
+                    # Thinking counts toward this cap on Gemini 3; 2048 truncated the JSON.
+                    # Runaways are bounded by the request timeout instead.
+                    max_output_tokens=4096,
+                ),
             ),
-        ),
-        "writer",
-    )
+            "writer",
+        )
+    except errors.APIError as e:
+        ms = int((time.perf_counter() - t0) * 1000)
+        raise WriterFailed(f"model error {e.code}", prompt, Usage(model=s.writer_model), ms) from e
+
     latency_ms = int((time.perf_counter() - t0) * 1000)
-    draft = r.parsed if isinstance(r.parsed, StoryDraft) else StoryDraft.model_validate_json(r.text)
     um = r.usage_metadata
     usage = Usage(
         model=r.model_version or s.writer_model,
@@ -112,4 +127,9 @@ def write(plan: StoryPlan, feedback: list[ViolationOut] | None = None) -> tuple[
         output_tokens=um.candidates_token_count or 0,
         thinking_tokens=um.thoughts_token_count or 0,
     )
+    try:
+        draft = r.parsed if isinstance(r.parsed, StoryDraft) else StoryDraft.model_validate_json(r.text or "")
+    except ValidationError as e:
+        finish = r.candidates[0].finish_reason if r.candidates else None
+        raise WriterFailed(f"malformed output (finish={finish})", prompt, usage, latency_ms) from e
     return draft, prompt, usage, latency_ms

@@ -34,7 +34,22 @@ def generate(plan: StoryPlan, log: bool = True) -> GenerationResult:
     outcome = None
 
     for n in range(1, MAX_ATTEMPTS + 1):
-        draft, prompt, usage, latency = writer.write(plan, list(banned.values()) or None)
+        try:
+            draft, prompt, usage, latency = writer.write(plan, list(banned.values()) or None)
+        except writer.WriterFailed as e:
+            # No usable draft (truncated JSON, model error): a failed attempt, not a crash.
+            attempts.append(
+                Attempt(
+                    n=n,
+                    prompt=e.prompt,
+                    title="",
+                    sentences=[],
+                    violations=[ViolationOut(word="", word_index=-1, unit=None, reason=e.reason)],
+                    latency_ms=e.latency_ms,
+                    usage=e.usage,
+                )
+            )
+            continue
         # The child reads the title too, so it is verified with the story.
         result = verifier.verify("\n".join([draft.title, *draft.sentences]))
         violations = _violations(result)
@@ -57,8 +72,9 @@ def generate(plan: StoryPlan, log: bool = True) -> GenerationResult:
             break
 
     if outcome is None:
-        kept = [s for s in draft.sentences if verifier.verify(s).ok]
-        title = draft.title if verifier.verify(draft.title).ok else plan.learner_name
+        # draft is the last usable one, or None if every attempt failed outright
+        kept = [s for s in draft.sentences if verifier.verify(s).ok] if draft else []
+        title = draft.title if draft and verifier.verify(draft.title).ok else plan.learner_name
         if len(kept) >= MIN_PRUNED_SENTENCES:
             outcome, sentences = "pruned", kept
         else:
@@ -74,7 +90,7 @@ def generate(plan: StoryPlan, log: bool = True) -> GenerationResult:
         outcome=outcome,
         title=title,
         sentences=sentences,
-        scene=draft.scene,
+        scene=draft.scene if draft else plan.theme,
         units_used=sorted(units),
         first_pass_violations=len(attempts[0].violations),
         final_violation_count=len(final.violations),
