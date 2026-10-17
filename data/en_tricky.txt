@@ -1,0 +1,74 @@
+# Tricky (heart) words: not decodable at the phase they are first needed.
+# Taught explicitly; mastery signature w:<word>.
+# Optional second column: segmentation, if the word becomes decodable later.
+a
+i
+the
+to
+no
+go
+so
+into
+he
+she
+we
+me
+be
+was
+you
+your
+they
+all
+are
+my
+by
+her       h.er
+said
+have
+like      l.i_e.k._e
+do
+some
+come
+were
+there
+here
+little
+one
+two
+four
+eight
+when      wh.e.n
+out       ou.t
+what
+oh
+their
+people
+looked    l.oo.k.ed
+called
+asked
+could
+would
+should
+of
+any
+many
+again
+who
+water
+where
+because
+friend
+school
+once
+eye
+love
+give
+live
+put
+push
+pull
+full
+house
+our
+mr
+mrs

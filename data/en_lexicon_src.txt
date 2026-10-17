@@ -1,0 +1,154 @@
+# English decodable lexicon, hand-segmented by grapheme (synthetic phonics).
+# Format: graphemes joined by "."; "+s" after a word also adds word+s.
+# Split digraphs: vowel tagged a_e/i_e/o_e/u_e/e_e, silent e written as _e.
+# Rules kept: only words whose spelling follows the main sound of each grapheme
+# at its phase. Schwa in unstressed syllables tolerated (kitten, basket).
+# Words with soft c/g, irregular vowels, or ambiguous ea/ow readings avoided.
+# Built by scripts/build_en_lexicon.py.
+
+# ---- phase 2: s a t p i n m d g o c k ck e u r h b f ff l ll ss ----------------
+a.t a.n a.m a.s i.n i.t i.s i.f o.n o.ff u.p u.s a.n.d
+s.a.t p.a.t t.a.p +s p.a.n +s m.a.n m.a.p +s c.a.t +s c.a.n +s c.a.p +s c.a.b +s
+d.a.d +s m.a.d s.a.d p.a.d +s b.a.d h.a.d r.a.n f.a.n +s t.a.n b.a.t +s h.a.t +s
+r.a.t +s m.a.t +s f.a.t s.a.p r.a.p g.a.p +s n.a.p +s r.a.g +s b.a.g +s t.a.g +s
+ r.a.m +s d.a.m +s h.a.s
+s.i.t +s p.i.t +s t.i.p +s p.i.n +s t.i.n +s s.i.p +s n.i.p +s d.i.p +s h.i.p +s
+l.i.p +s b.i.n +s f.i.n +s b.i.t +s f.i.t +s h.i.t +s k.i.t +s l.i.t d.i.d h.i.d
+r.i.d b.i.d l.i.d +s m.i.d d.i.g +s b.i.g f.i.g +s p.i.g +s r.i.g d.i.m r.i.m +s
+h.i.m h.i.s
+n.o.t p.o.t +s h.o.t d.o.t +s g.o.t l.o.t +s r.o.t c.o.t +s t.o.p +s h.o.p +s
+m.o.p +s p.o.p +s d.o.g +s l.o.g +s h.o.g +s f.o.g b.o.g +s c.o.d n.o.d +s
+r.o.d +s p.o.d +s m.o.m +s
+p.e.t +s g.e.t +s l.e.t +s m.e.t n.e.t +s s.e.t +s h.e.n +s p.e.n +s t.e.n
+d.e.n +s m.e.n b.e.d +s r.e.d f.e.d l.e.d p.e.g +s b.e.g +s l.e.g +s
+c.u.p +s p.u.p +s s.u.n +s r.u.n +s f.u.n b.u.n +s n.u.t +s h.u.t +s c.u.t +s
+b.u.t m.u.d b.u.d +s b.u.g +s h.u.g +s m.u.g +s r.u.g +s t.u.g +s s.u.m +s
+g.u.m h.u.m +s m.u.m +s r.u.b +s t.u.b +s c.u.b +s s.u.b
+b.a.ck +s s.a.ck +s p.a.ck +s r.a.ck +s k.i.ck +s p.i.ck +s s.i.ck l.i.ck +s
+t.i.ck +s r.o.ck +s s.o.ck +s l.o.ck +s d.o.ck +s p.e.ck +s n.e.ck +s d.u.ck +s
+m.u.ck t.u.ck +s l.u.ck
+c.u.ff +s p.u.ff +s h.u.ff +s b.e.ll +s f.e.ll t.e.ll +s s.e.ll +s d.o.ll +s
+h.i.ll +s f.i.ll +s p.i.ll +s m.i.ll +s d.u.ll m.e.ss l.e.ss k.i.ss m.i.ss h.i.ss
+b.o.ss t.o.ss f.u.ss
+b.u.s
+
+# ---- phase 3: j v w x y z zz qu ch sh th ng ai ee igh oa oo ar or ur ow oi ear air ure er
+j.a.m +s j.o.g +s j.u.g +s j.e.t +s j.o.b +s
+v.a.n +s v.e.t +s
+w.e.t w.i.n +s w.i.g +s w.a.g +s w.e.b +s w.i.ll w.e.ll
+b.o.x f.o.x f.i.x s.i.x m.i.x w.a.x
+y.e.s y.e.t y.u.m y.e.ll +s
+z.i.p +s z.a.p +s b.u.zz f.i.zz j.a.zz
+qu.i.t qu.i.z qu.a.ck +s qu.i.ck qu.i.l.t +s
+ch.i.p +s ch.o.p +s ch.i.n +s ch.a.t +s ch.e.s.t +s ch.i.ck +s ch.e.ck +s
+r.i.ch m.u.ch s.u.ch l.u.n.ch b.e.n.ch b.u.n.ch
+sh.i.p +s sh.o.p +s sh.e.d +s sh.u.t +s sh.e.ll +s sh.e.l.f
+f.i.sh d.i.sh w.i.sh r.u.sh c.a.sh m.a.sh f.r.e.sh b.r.u.sh s.p.l.a.sh
+th.i.n th.a.t th.e.n th.e.m th.i.s th.i.ck w.i.th b.a.th +s m.a.th m.o.th +s th.u.d
+th.i.ng +s th.a.n.k +s
+r.i.ng +s s.i.ng +s k.i.ng +s w.i.ng +s l.o.ng s.o.ng +s b.a.ng +s h.a.ng +s
+r.a.ng s.a.ng l.u.ng +s s.t.r.o.ng s.w.i.ng +s b.r.i.ng +s s.p.r.i.ng +s
+b.a.n.k +s p.i.n.k s.i.n.k +s w.i.n.k +s d.r.i.n.k +s th.i.n.k +s t.r.u.n.k +s
+r.ai.n +s w.ai.t +s m.ai.l s.ai.l +s t.ai.l +s n.ai.l +s p.ai.l +s r.ai.l +s
+b.ai.t g.ai.n m.ai.n p.ai.d s.n.ai.l +s t.r.ai.n +s p.ai.n.t +s ch.ai.n +s
+s.ee +s f.ee b.ee t.r.ee +s f.r.ee f.ee.t s.ee.d +s n.ee.d +s f.ee.d +s w.ee.d +s
+d.ee.p k.ee.p +s s.l.ee.p +s sh.ee.p j.ee.p +s p.ee.p +s w.ee.k +s p.ee.l +s
+f.ee.l +s h.ee.l +s s.ee.n t.ee.th qu.ee.n +s g.r.ee.n s.w.ee.t +s s.t.r.ee.t +s
+ch.ee.k +s sh.ee.t +s m.ee.t +s 
+h.igh s.igh +s n.igh.t +s l.igh.t +s r.igh.t m.igh.t s.igh.t t.igh.t b.r.igh.t
+f.l.igh.t +s
+b.oa.t +s c.oa.t +s g.oa.t +s r.oa.d +s l.oa.d +s t.oa.d +s s.oa.p f.oa.m
+c.oa.l g.oa.l +s t.oa.s.t r.oa.s.t c.oa.s.t f.l.oa.t +s c.r.oa.k +s
+m.oo.n s.oo.n f.oo.d r.oo.f +s r.oo.m +s z.oo +s c.oo.l p.oo.l +s t.oo.l +s
+b.oo.t +s r.oo.t +s h.oo.t +s s.p.oo.n +s b.r.oo.m +s
+b.oo.k +s l.oo.k +s c.oo.k +s h.oo.k +s t.oo.k w.oo.d g.oo.d f.oo.t w.oo.l
+s.t.oo.l +s s.t.oo.d
+c.ar +s f.ar j.ar +s b.ar +s s.t.ar +s p.ar.k +s d.ar.k b.ar.k +s c.ar.t +s
+f.ar.m +s ar.m +s c.ar.d +s h.ar.d y.ar.d +s s.t.ar.t +s ch.ar.t +s p.ar.t +s ar.t
+f.or f.or.k +s c.or.n p.or.t +s s.or.t +s h.or.n +s n.or.th f.or.t +s t.or.ch
+sh.or.t s.t.or.m +s
+f.ur t.ur.n +s ch.ur.ch c.ur.l +s s.ur.f b.ur.p +s
+c.ow +s n.ow h.ow d.ow.n t.ow.n +s ow.l +s h.ow.l +s b.r.ow.n c.r.ow.n +s c.l.ow.n +s
+c.oi.n +s j.oi.n +s s.oi.l b.oi.l +s f.oi.l p.oi.n.t +s oi.l
+ear +s h.ear +s n.ear d.ear y.ear +s g.ear c.l.ear
+air f.air h.air p.air +s ch.air +s s.t.air +s
+p.ure
+h.a.mm.er +s l.e.tt.er +s b.u.tt.er s.u.mm.er d.i.nn.er +s s.i.s.t.er +s
+f.ar.m.er +s r.i.v.er +s
+
+# ---- phase 4: adjacent consonants, doubled letters, -ed ------------------------
+s.t.o.p +s s.p.o.t +s s.n.a.p +s s.n.i.p +s s.t.e.p +s s.k.i.p +s s.l.i.p +s
+s.l.a.m f.l.a.p +s f.l.a.g +s f.l.i.p +s c.l.a.p +s c.r.a.b +s d.r.u.m +s
+d.r.i.p +s t.r.i.p +s t.r.a.p +s g.r.a.b +s g.r.i.n +s g.r.u.b f.r.o.g +s
+b.l.o.ck +s c.l.o.ck +s f.r.o.ck +s s.m.a.ck s.p.i.n +s s.w.i.m +s s.t.a.ck +s
+s.t.i.ck +s s.t.u.ck t.r.u.ck +s p.l.u.m +s p.l.a.n +s g.l.a.d b.l.o.t +s
+b.l.a.ck s.n.u.g s.l.e.d +s s.w.a.m s.l.i.d s.p.e.d
+h.a.n.d +s l.a.n.d +s s.a.n.d b.a.n.d +s p.o.n.d +s b.e.n.d +s s.e.n.d +s
+m.e.n.d +s l.e.n.d +s w.i.n.d +s t.e.n.t +s d.e.n.t +s s.e.n.t m.i.n.t
+l.a.m.p +s d.a.m.p c.a.m.p +s r.a.m.p +s j.u.m.p +s b.u.m.p +s l.u.m.p +s
+p.u.m.p +s m.i.l.k s.i.l.k h.e.l.p +s b.e.l.t +s f.e.l.t m.e.l.t +s g.i.f.t +s
+l.i.f.t +s s.o.f.t b.e.s.t n.e.s.t +s r.e.s.t +s t.e.s.t +s v.e.s.t +s w.e.s.t
+l.o.s.t c.o.s.t +s m.u.s.t d.u.s.t r.u.s.t l.i.s.t +s m.a.s.k +s t.a.s.k +s
+d.e.s.k +s a.s.k +s s.t.a.n.d +s s.p.e.n.t s.t.a.m.p +s c.r.i.s.p s.t.r.i.p +s
+j.u.s.t s.t.i.ll f.a.s.t n.e.x.t f.r.o.m l.e.f.t k.e.p.t s.l.e.p.t w.e.n.t
+d.r.a.n.k s.a.n.k s.w.e.p.t
+e.gg +s h.u.gg.ed d.i.gg.i.ng
+s.u.n.s.e.t +s p.i.c.n.i.c +s l.a.p.t.o.p +s t.e.nn.i.s b.e.d.r.oo.m +s
+c.ar.p.e.t +s g.ar.d.e.n +s s.a.n.d.p.i.t +s z.i.g.z.a.g p.o.p.c.or.n
+s.u.n.l.igh.t t.oo.th.b.r.u.sh r.o.b.i.n +s m.u.ff.i.n +s p.u.m.p.k.i.n +s
+b.a.s.k.e.t +s j.a.ck.e.t +s p.o.ck.e.t +s r.o.ck.e.t +s k.i.tt.e.n +s
+m.i.tt.e.n +s r.a.bb.i.t +s r.ai.n.b.ow +s
+p.u.pp.y h.a.pp.y f.u.nn.y s.u.nn.y b.u.nn.y m.u.dd.y y.u.mm.y s.i.ll.y j.e.ll.y
+t.e.dd.y s.l.ee.p.y th.ir.s.t.y
+s.i.ng.i.ng j.u.m.p.i.ng h.e.l.p.i.ng p.i.ck.i.ng f.i.sh.i.ng r.o.ck.i.ng
+s.l.ee.p.i.ng l.oo.k.i.ng c.oo.k.i.ng r.u.nn.i.ng s.i.tt.i.ng s.w.i.mm.i.ng
+h.o.pp.i.ng d.r.i.n.k.i.ng s.t.a.n.d.i.ng r.e.s.t.i.ng m.e.l.t.i.ng f.ee.d.i.ng
+w.ai.t.i.ng p.ai.n.t.i.ng s.ee.i.ng j.o.gg.i.ng k.i.ck.i.ng s.p.i.nn.i.ng
+j.u.m.p.ed h.e.l.p.ed p.i.ck.ed k.i.ck.ed l.i.ck.ed r.ai.n.ed w.ai.t.ed
+p.ai.n.t.ed h.o.pp.ed s.t.o.pp.ed d.r.o.pp.ed f.i.ll.ed n.ee.d.ed s.t.ar.t.ed
+b.ar.k.ed p.ar.k.ed c.oo.k.ed w.i.sh.ed r.u.sh.ed m.i.x.ed f.i.x.ed k.i.ss.ed
+m.i.ss.ed y.e.ll.ed r.e.s.t.ed l.i.f.t.ed p.a.ck.ed c.l.a.pp.ed n.o.dd.ed
+g.r.i.nn.ed l.a.n.d.ed  p.l.a.nn.ed s.n.i.ff.ed s.p.o.tt.ed
+
+# ---- phase 5: ay ou ie ea oy ir ue aw wh ph ew oe au ey split digraphs ----------
+d.ay +s p.l.ay +s s.ay m.ay w.ay +s h.ay s.t.ay +s g.r.ay t.r.ay +s s.p.r.ay
+p.ay c.l.ay s.w.ay s.u.n.d.ay b.ir.th.d.ay +s p.l.ay.ed p.l.ay.i.ng s.t.ay.ed
+a.b.ou.t sh.ou.t +s l.ou.d c.l.ou.d +s p.r.ou.d m.ou.th s.ou.th r.ou.n.d
+g.r.ou.n.d s.ou.n.d +s f.ou.n.d c.ou.n.t +s sh.ou.t.ed
+p.ie +s t.ie +s
+s.ea +s t.ea ea.t +s b.ea.ch ea.ch t.ea.ch l.ea.f s.ea.t +s b.ea.n +s d.r.ea.m +s
+c.l.ea.n +s c.r.ea.m p.ea.ch s.ea.l +s n.ea.t ea.t.i.ng r.ea.d.i.ng
+c.l.ea.n.ed d.r.ea.m.ed
+b.oy +s t.oy +s j.oy e.n.j.oy +s
+g.ir.l +s b.ir.d +s f.ir.s.t sh.ir.t +s s.k.ir.t +s th.ir.d
+b.l.ue c.l.ue +s g.l.ue t.r.ue
+s.aw p.aw +s j.aw +s d.r.aw +s s.t.r.aw c.r.aw.l +s y.aw.n +s l.aw.n +s d.aw.n
+c.r.aw.l.ed
+wh.i.ch wh.i.p wh.ee.l +s
+ph.o_e.n._e +s d.o.l.ph.i.n +s e.l.e.ph.a.n.t +s
+n.ew f.ew s.t.ew b.l.ew g.r.ew c.r.ew th.r.ew d.r.ew f.l.ew
+t.oe +s
+l.au.n.ch
+k.ey +s g.r.ey
+m.a_e.k._e +s c.a_e.k._e +s l.a_e.k._e +s g.a_e.m._e +s n.a_e.m._e +s s.a_e.m._e
+c.a_e.m._e g.a_e.t._e +s l.a_e.t._e p.l.a_e.t._e +s s.n.a_e.k._e +s sh.a_e.p._e +s
+t.a_e.p._e w.a_e.v._e +s g.r.a_e.p._e +s b.r.a_e.v._e m.a_e.d._e g.a_e.v._e
+a_e.t._e
+b.i_e.k._e +s h.i_e.d._e +s r.i_e.d._e +s s.i_e.d._e t.i_e.m._e +s f.i_e.v._e
+k.i_e.t._e +s wh.i_e.t._e s.m.i_e.l._e +s n.i_e.n._e l.i_e.n._e +s p.i_e.n._e
+s.l.i_e.d._e +s f.i_e.n._e s.m.i_e.l._e.d
+h.o_e.m._e +s b.o_e.n._e +s r.o_e.p._e +s n.o_e.s._e r.o_e.s._e h.o_e.l._e +s
+p.o_e.l._e +s s.t.o_e.n._e +s c.o_e.n._e +s n.o_e.t._e +s r.o_e.d._e w.o_e.k._e
+c.u_e.b._e +s t.u_e.b._e +s t.u_e.n._e +s c.u_e.t._e f.l.u_e.t._e +s r.u_e.l._e +s
+th.e_e.s._e
+
+# ---- phase 6: tch dge kn wr mb ------------------------------------------------
+c.a.tch m.a.tch p.a.tch  k.i.tch.e.n +s
+b.r.i.dge h.e.dge e.dge b.a.dge
+kn.o.ck +s kn.ee +s  kn.o.t +s kn.ow +s
+wr.i_e.t._e +s wr.o.ng wr.a.p +s wr.i.s.t +s
+l.a.mb +s th.u.mb +s c.r.u.mb +s
+
+# ---- numbers, colours, everyday --------------------------------------------------
+th.r.ee s.e.v.e.n
+s.k.y s.n.ow p.a.th +s
