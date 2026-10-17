@@ -6,6 +6,7 @@ export type Attempt = components['schemas']['AttemptLog']
 export type Language = Story['language']
 export type DisplayWord = components['schemas']['DisplayWord']
 export type ReadResult = components['schemas']['ReadOut']
+export type CloseResult = components['schemas']['CloseOut']
 
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -25,6 +26,12 @@ export const api = {
       body: JSON.stringify({ learner_id, language }),
     }).then(json<Story>),
   story: (id: string) => fetch(`/api/stories/${id}`).then(json<Story>),
+  closeSession: (story_id: string) =>
+    fetch('/api/session/close', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ story_id }),
+    }).then(json<CloseResult>),
   // Audio is scored in memory on the server and never stored.
   read: (storyId: string, audio: Blob, durationS: number) => {
     const form = new FormData()

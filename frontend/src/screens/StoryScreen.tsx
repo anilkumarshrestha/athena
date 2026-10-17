@@ -1,9 +1,10 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { api, type Language, type ReadResult, type Story } from '../api'
+import { api, type CloseResult, type Language, type ReadResult, type Story } from '../api'
 import { ReadingLog } from '../components/ReadingLog'
 import { RecordButton, StoryCard } from '../components/StoryCard'
 import { VerifierLog } from '../components/VerifierLog'
+import { UnitChip } from '../components/UnitChip'
 import type { Outcome } from '../components/WordToken'
 import { useRecorder } from '../hooks/useRecorder'
 
@@ -14,6 +15,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [error, setError] = useState<string | null>(null)
   const [showLog, setShowLog] = useState(false)
   const [reading, setReading] = useState<ReadResult | null>(null)
+  const [closed, setClosed] = useState<CloseResult | null>(null)
   const [checking, setChecking] = useState(false)
   const recorder = useRecorder()
   const reqId = useRef(0)
@@ -22,6 +24,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     const id = ++reqId.current
     setStory(null)
     setReading(null)
+    setClosed(null)
     setError(null)
     api
       .startSession(learnerId, lang)
@@ -55,6 +58,8 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setChecking(true)
     try {
       setReading(await api.read(story.id, blob, durationS))
+      // First reading of a story updates mastery once; later re-reads are practice only.
+      if (!closed) setClosed(await api.closeSession(story.id))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -104,6 +109,21 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
             </>
           }
         />
+      )}
+
+      {closed && closed.changes.length > 0 && (
+        <div className="mx-auto mt-6 flex max-w-story flex-wrap items-center gap-3 rounded-lg border border-line bg-card p-4">
+          {closed.changes.map((c) => (
+            <UnitChip
+              key={c.unit}
+              unit={c.unit}
+              size="lg"
+              lang={lang}
+              state={c.after as 'mastered' | 'practicing'}
+              changed={c.after === 'mastered' ? 'promoted' : 'demoted'}
+            />
+          ))}
+        </div>
       )}
 
       {story && (

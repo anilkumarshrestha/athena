@@ -92,6 +92,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/session/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Session
+         * @description Apply the latest reading of a story to the learner's mastery (PLAN §5). Once per story.
+         */
+        post: operations["close_session_api_session_close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}": {
         parameters: {
             query?: never;
@@ -159,6 +179,28 @@ export interface components {
             /** Audio */
             audio: string;
         };
+        /** ChangeOut */
+        ChangeOut: {
+            /** Unit */
+            unit: string;
+            /** Before */
+            before: string;
+            /** After */
+            after: string;
+        };
+        /** CloseOut */
+        CloseOut: {
+            /** Story Id */
+            story_id: string;
+            /** Changes */
+            changes: components["schemas"]["ChangeOut"][];
+            learner: components["schemas"]["LearnerOut"];
+        };
+        /** CloseRequest */
+        CloseRequest: {
+            /** Story Id */
+            story_id: string;
+        };
         /** DisplayWord */
         DisplayWord: {
             /** Text */
@@ -191,6 +233,10 @@ export interface components {
             /** Mastery */
             mastery: {
                 [key: string]: string[];
+            };
+            /** Units */
+            units: {
+                [key: string]: components["schemas"]["UnitOut"][];
             };
         };
         /** ReadOut */
@@ -265,6 +311,19 @@ export interface components {
             image_latency_ms: number | null;
             /** Display */
             display: components["schemas"]["DisplayWord"][][];
+        };
+        /** UnitOut */
+        UnitOut: {
+            /** Unit */
+            unit: string;
+            /** State */
+            state: string;
+            /** Streak */
+            streak: number;
+            /** Seen */
+            seen: number;
+            /** Cooldown */
+            cooldown: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -438,6 +497,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_session_api_session_close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CloseOut"];
                 };
             };
             /** @description Validation Error */
