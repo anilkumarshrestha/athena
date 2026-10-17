@@ -10,16 +10,23 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] H3 English verifier + lexicon (1,334 words, 71 tricky), tests
 - [x] H4 Generation loop: planner → writer → verifier, cumulative feedback, verified fallbacks, JSONL log
 
-## Now — H5 (tonight's gate)
-- [ ] Illustrator (Gemini image), runs in parallel with writer, style suffix from DESIGN.md §8
-- [ ] Media store (local dir dev / GCS prod), served via `/api/media/{id}`
-- [ ] Learner store (in-memory, 2 seeded demo learners)
-- [ ] FastAPI: learners, `POST /api/session/start`, `GET /api/stories/{id}`, SPA static
-- [ ] Rate limit on `/api/session/start` (public URL = open wallet)
-- [ ] Frontend: Vite + React + TS + Tailwind v4 in `frontend/`, tokens from DESIGN.md §5
-- [ ] Components: WordToken, StoryCard, VerifierLog; screens: learner pick, story
-- [ ] Dockerfile (multi-stage), Secret Manager for API key
-- [ ] First Cloud Run deploy → **GATE: verified illustrated story on public URL**
+- [x] H5 Illustrator (Gemini image, 4:3), parallel with writer, DESIGN.md §8 style
+- [x] H5 Media store (local dir dev / GCS prod), proxied via `/api/media/{id}`
+- [x] H5 In-memory learner/story store, 2 seeded learners (sita, ram)
+- [x] H5 FastAPI: learners, `POST /api/session/start`, `GET /api/stories/{id}`, SPA static
+- [x] H5 Rate limit on story generation (6/min/IP, 40/min global)
+- [x] H5 Frontend: Vite + React + TS + Tailwind v4, DESIGN.md tokens, WordToken / StoryCard / VerifierLog, learner pick + story screens
+
+## Local dev
+- API: `.venv/bin/uvicorn athena.api:app --port 8077` (port 8000 is taken on this machine)
+- Frontend: `cd frontend && npm run dev` → http://localhost:3000 (proxies /api → 8077)
+- Types: `npx openapi-typescript http://localhost:8077/openapi.json -o src/api-types.ts`
+
+## Deferred — deploy (user will trigger)
+- [ ] Dockerfile (multi-stage: node build → python)
+- [ ] Secret Manager for GEMINI_API_KEY; private GCS bucket for media
+- [ ] Cloud Run: min-instances=1, max-instances=1 (in-memory store), startup warm-up call (cold first request ~14s)
+- [ ] **GATE: verified illustrated story on public URL**
 
 ## Next
 - [ ] H6 Eval harness v1: 50 req/lang × 10 mastery sets; first-pass vs final violation, attempts, fallback %
