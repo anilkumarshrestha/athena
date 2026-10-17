@@ -1,0 +1,20 @@
+# secrets
+.env
+.env.*
+!.env.example
+*.json.key
+service-account*.json
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# node
+node_modules/
+web/dist/
+
+# eval outputs
+eval/results/*.log
+*.egg-info/
