@@ -40,6 +40,17 @@ def build_prompt(plan: StoryPlan, feedback: list[ViolationOut] | None = None) ->
         if plan.language == "ne"
         else "Every word in the title and story MUST come from the word bank (case-insensitive)."
     )
+    grammar = (
+        """
+Nepali grammar and idiom (a native speaker will read this):
+- Transitive verbs in the past tense take the ergative -ले on the subject: "रामले झोला लियो", "आमाले भात पकाउनुभयो". Never "राम झोला लियो".
+- Use the natural verb for each noun, never a near-synonym: rain falls "पानी पर्यो" (not "पानी आयो").
+- Prefer the lively idiomatic verb: "राम रमायो" over "राम खुसी भयो" where it fits.
+- If the natural word is not allowed, REPHRASE the whole sentence around a different idea. Never swap in an unnatural or ungrammatical word to satisfy the letter rules. A shorter correct story beats a longer wrong one.
+"""
+        if plan.language == "ne"
+        else ""
+    )
     prompt = f"""You write decodable reading stories for a {lang} beginner reader aged 5-8 in Nepal.
 
 Child's name: {plan.learner_name} (always allowed; write it EXACTLY like this, no suffixes attached)
@@ -58,7 +69,7 @@ Rules:
 - Everyday Nepali child life: family, village, animals, food, school.
 - No violence, fear, danger, sadness or adult themes.
 - "scene": one English sentence describing a picture for the story (animals and objects, no detailed faces).
-"""
+{grammar}"""
     if feedback:
         lines = []
         for v in feedback:
