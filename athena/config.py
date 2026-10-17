@@ -1,4 +1,5 @@
 import threading
+from pathlib import Path
 from functools import lru_cache
 
 from google import genai
@@ -6,8 +7,12 @@ from google.genai import types
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# Repo-root .env, regardless of the directory the server is started from.
+ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
     google_cloud_project: str = ""
     google_cloud_location: str = "us-central1"
