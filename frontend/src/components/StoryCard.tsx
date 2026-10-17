@@ -1,8 +1,18 @@
-import { Mic } from 'lucide-react'
+import { Mic, Square } from 'lucide-react'
 import { Fragment, type ReactNode } from 'react'
-import type { Language } from '../api'
+import type { DisplayWord, Language } from '../api'
 import { DotLoader } from './DotLoader'
-import { WordToken } from './WordToken'
+import { WordToken, type Outcome } from './WordToken'
+
+// A shown word can cover several reference words (म्याउँ-म्याउँ): show the worst.
+const SEVERITY: Outcome[] = ['pending', 'correct', 'self_corrected', 'substituted', 'omitted']
+function worst(indices: number[], outcomes?: Map<number, Outcome>): Outcome {
+  if (!outcomes) return 'pending'
+  return indices.reduce<Outcome>((acc, i) => {
+    const o = outcomes.get(i) ?? 'pending'
+    return SEVERITY.indexOf(o) > SEVERITY.indexOf(acc) ? o : acc
+  }, 'pending')
+}
 
 export function StoryCard({
   lang,
@@ -10,6 +20,8 @@ export function StoryCard({
   sentences,
   imageUrl,
   imageStatus,
+  display,
+  outcomes,
   footer,
 }: {
   lang: Language
@@ -17,8 +29,14 @@ export function StoryCard({
   sentences?: string[]
   imageUrl?: string | null
   imageStatus?: string
+  display?: DisplayWord[][]
+  outcomes?: Map<number, Outcome>
   footer?: ReactNode
 }) {
+  const lines: DisplayWord[][] | undefined =
+    (display?.length ? display : undefined) ??
+    sentences?.map((s) => s.split(/\s+/).filter(Boolean).map((text) => ({ text, indices: [] })))
+
   return (
     <article className="relative mx-auto w-full max-w-story rounded-lg border border-line bg-card">
       <span className="absolute left-4 top-4 z-10 rounded-full bg-paper-sunken px-3 py-1 text-caption text-ink-2">
@@ -34,7 +52,7 @@ export function StoryCard({
       </div>
 
       <div className="p-8">
-        {sentences ? (
+        {lines ? (
           <>
             {title && (
               <h1 className={`mb-4 text-child-title font-semibold ${lang === 'ne' ? 'font-story-ne' : 'font-story-en'}`}>
@@ -42,13 +60,13 @@ export function StoryCard({
               </h1>
             )}
             <div className="story-spacing text-story-md md:text-story-lg lg:text-story-xl">
-              {sentences.map((s, i) => (
+              {lines.map((line, i) => (
                 <p key={i} className="m-0">
-                  {s.split(/\s+/).filter(Boolean).map((w, j) => (
+                  {line.map((w, j) => (
                     // Real space text nodes: word-spacing needs them to act on.
                     <Fragment key={j}>
                       {j > 0 && ' '}
-                      <WordToken text={w} lang={lang} />
+                      <WordToken text={w.text} lang={lang} outcome={worst(w.indices, outcomes)} />
                     </Fragment>
                   ))}
                 </p>
@@ -67,16 +85,37 @@ export function StoryCard({
   )
 }
 
-export function RecordButton({ disabled, onClick }: { disabled?: boolean; onClick?: () => void }) {
+export type RecordState = 'idle' | 'recording' | 'checking'
+
+export function RecordButton({
+  state = 'idle',
+  disabled,
+  onClick,
+}: {
+  state?: RecordState
+  disabled?: boolean
+  onClick?: () => void
+}) {
+  const label = state === 'recording' ? 'Stop reading' : state === 'checking' ? 'Checking' : 'Read aloud'
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
-      aria-label="Read aloud"
+      disabled={disabled || state === 'checking'}
+      aria-label={label}
       className="flex size-24 items-center justify-center rounded-full bg-primary text-on-primary transition-colors duration-150 hover:bg-primary-hover disabled:bg-ink-4"
+      // §4: slow 1.6s ring pulse while listening
+      style={state === 'recording' ? { animation: 'ring-pulse 1.6s ease-in-out infinite' } : undefined}
     >
-      <Mic size={40} strokeWidth={1.75} />
+      {state === 'recording' ? (
+        <Square size={36} strokeWidth={1.75} fill="currentColor" />
+      ) : state === 'checking' ? (
+        <span className="[&_span]:bg-on-primary">
+          <DotLoader label="Checking" />
+        </span>
+      ) : (
+        <Mic size={40} strokeWidth={1.75} />
+      )}
     </button>
   )
 }

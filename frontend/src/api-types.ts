@@ -72,6 +72,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/session/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read Session
+         * @description Score one read-aloud. Audio stays in memory and is dropped after scoring (no retention).
+         */
+        post: operations["read_session_api_session_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}": {
         parameters: {
             query?: never;
@@ -125,10 +145,38 @@ export interface components {
             /** Model */
             model: string;
         };
+        /** Body_read_session_api_session_read_post */
+        Body_read_session_api_session_read_post: {
+            /** Story Id */
+            story_id: string;
+            /** Duration S */
+            duration_s: number;
+            /**
+             * Hints
+             * @default true
+             */
+            hints: boolean;
+            /** Audio */
+            audio: string;
+        };
+        /** DisplayWord */
+        DisplayWord: {
+            /** Text */
+            text: string;
+            /** Indices */
+            indices: number[];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** InsertionOut */
+        InsertionOut: {
+            /** Word */
+            word: string;
+            /** Before Index */
+            before_index: number;
         };
         /** LearnerOut */
         LearnerOut: {
@@ -143,6 +191,33 @@ export interface components {
             /** Mastery */
             mastery: {
                 [key: string]: string[];
+            };
+        };
+        /** ReadOut */
+        ReadOut: {
+            /** Story Id */
+            story_id: string;
+            /** Transcript */
+            transcript: string;
+            /** Engine */
+            engine: string;
+            /** Stt Ms */
+            stt_ms: number;
+            /** Words */
+            words: components["schemas"]["WordOut"][];
+            /** Insertions */
+            insertions: components["schemas"]["InsertionOut"][];
+            /** Words Correct */
+            words_correct: number;
+            /** Wcpm */
+            wcpm: number;
+            /** Unit Errors */
+            unit_errors: {
+                [key: string]: number;
+            };
+            /** Unit Correct */
+            unit_correct: {
+                [key: string]: number;
             };
         };
         /** StartRequest */
@@ -188,6 +263,8 @@ export interface components {
             image_url: string | null;
             /** Image Latency Ms */
             image_latency_ms: number | null;
+            /** Display */
+            display: components["schemas"]["DisplayWord"][][];
         };
         /** ValidationError */
         ValidationError: {
@@ -212,6 +289,19 @@ export interface components {
             index: number;
             /** Reason */
             reason: string;
+        };
+        /** WordOut */
+        WordOut: {
+            /** Index */
+            index: number;
+            /** Expected */
+            expected: string;
+            /** Heard */
+            heard: string | null;
+            /** Outcome */
+            outcome: string;
+            /** Error Units */
+            error_units: string[];
         };
     };
     responses: never;
@@ -315,6 +405,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_session_api_session_read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_read_session_api_session_read_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadOut"];
                 };
             };
             /** @description Validation Error */

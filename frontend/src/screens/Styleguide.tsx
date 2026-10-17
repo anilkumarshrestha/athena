@@ -67,6 +67,7 @@ const SAMPLE_STORY: Story = {
   theme: 'goat in the field',
   title: 'सानो बाख्रा',
   sentences: ['सीता खेतमा गई।', 'त्यहाँ एउटा सानो बाख्रा थियो।', 'बाख्राले घाँस खायो।'],
+  display: [], // empty: StoryCard falls back to splitting sentences
   outcome: 'verified',
   units_used: ['c:स', 'm:ी', 'c:त', 'c:ख', 'm:े', 'c:म', 'c:ग', 'c:ब', 'm:ा', 'k:ख्र', 'c:थ', 'm:ि', 'c:य', 'm:ो', 'c:घ', 'm:ँ'],
   attempts: [
