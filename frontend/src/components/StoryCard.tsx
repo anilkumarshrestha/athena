@@ -22,6 +22,7 @@ export function StoryCard({
   imageStatus,
   display,
   outcomes,
+  wordPractice = false,
   footer,
 }: {
   lang: Language
@@ -31,6 +32,7 @@ export function StoryCard({
   imageStatus?: string
   display?: DisplayWord[][]
   outcomes?: Map<number, Outcome>
+  wordPractice?: boolean // last-resort fallback: separate words, not a sentence
   footer?: ReactNode
 }) {
   const lines: DisplayWord[][] | undefined =
@@ -61,7 +63,7 @@ export function StoryCard({
             )}
             <div className="story-spacing text-story-md md:text-story-lg lg:text-story-xl">
               {lines.map((line, i) => (
-                <p key={i} className="m-0">
+                <p key={i} className={wordPractice ? 'm-0 flex flex-wrap gap-x-8 gap-y-2' : 'm-0'}>
                   {line.map((w, j) => (
                     // Real space text nodes: word-spacing needs them to act on.
                     <Fragment key={j}>

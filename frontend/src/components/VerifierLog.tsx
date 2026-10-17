@@ -43,7 +43,7 @@ function AttemptText({ attempt, lang }: { attempt: Attempt; lang: Language }) {
 }
 
 export function VerifierLog({ story }: { story: Story }) {
-  const fallback = story.outcome === 'pruned' || story.outcome === 'wordlist'
+  const fallback = ['pruned', 'template', 'wordlist'].includes(story.outcome)
   return (
     <section className="rounded-md border border-line bg-paper-sunken p-4 font-mono text-mono">
       <ol className="relative m-0 list-none border-l border-line p-0 pl-5">

@@ -59,14 +59,15 @@ def summarize(rows: list[tuple[str, GenerationResult]], prices: dict) -> dict:
             continue
         lat = [r.total_latency_ms for r in rs]
         costs = [cost_usd(r, prices) for r in rs]
-        outcomes = {o: sum(r.outcome == o for r in rs) for o in ("first_pass", "regenerated", "pruned", "wordlist")}
+        outcomes = {o: sum(r.outcome == o for r in rs) for o in ("first_pass", "regenerated", "pruned", "template", "wordlist")}
         out[lang] = {
             "n": len(rs),
             "first_pass_ok_rate": outcomes["first_pass"] / len(rs),
             "first_pass_mean_violations": statistics.mean(r.first_pass_violations for r in rs),
             "final_violation_count_total": sum(r.final_violation_count for r in rs),
             "mean_attempts": statistics.mean(len(r.attempts) for r in rs),
-            "fallback_rate": (outcomes["pruned"] + outcomes["wordlist"]) / len(rs),
+            "fallback_rate": (outcomes["pruned"] + outcomes["template"] + outcomes["wordlist"]) / len(rs),
+            "wordlist_rate": outcomes["wordlist"] / len(rs),
             "outcomes": outcomes,
             "latency_ms_p50": pct(lat, 0.5),
             "latency_ms_p95": pct(lat, 0.95),

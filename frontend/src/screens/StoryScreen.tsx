@@ -88,6 +88,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
           imageUrl={story?.image_url}
           imageStatus={story?.image_status}
           display={story?.display}
+          wordPractice={story?.outcome === 'wordlist'}
           outcomes={outcomes}
           footer={
             <>

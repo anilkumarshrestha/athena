@@ -1,21 +1,30 @@
 """Constrained generation: writer proposes, verifier decides, up to MAX_ATTEMPTS.
 
 Fallbacks are themselves verified, so final_violation_count is always 0:
-  pruned    keep only the sentences of the last draft that pass
-  wordlist  no sentence survives: a decodable word list for practice
+  pruned    keep the sentences of the last draft that pass (>= 2)
+  template  surviving sentences topped up with template sentences (Nepali)
+  wordlist  nothing else fits: a decodable word list for practice (last resort)
 """
 
 import json
+import random
 import time
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from pathlib import Path
 
 from athena.agents import writer
-from athena.lexicon import verifier_for
+from athena.fallback import template_story
+from athena.lexicon import decodable_words, verifier_for
 from athena.models import Attempt, GenerationResult, StoryPlan, ViolationOut
 
 MAX_ATTEMPTS = 3
 MIN_PRUNED_SENTENCES = 2
 LOG = Path(__file__).resolve().parent.parent / "logs" / "generation.jsonl"
+# The HTTP timeout only fires on a silent connection; a slow call can run past it
+# (seen: 31.6s against a 20s budget). The budget is enforced here instead: the call
+# runs on a worker and is abandoned at the deadline (its thread finishes on its own).
+_calls = ThreadPoolExecutor(max_workers=8, thread_name_prefix="writer")
 
 
 def _violations(result) -> list[ViolationOut]:
@@ -45,7 +54,13 @@ def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -
                 break  # out of time: verified fallback below
             timeout_ms = remaining_ms
         try:
-            draft, prompt, usage, latency = writer.write(plan, list(banned.values()) or None, timeout_ms)
+            fut = _calls.submit(writer.write, plan, list(banned.values()) or None, timeout_ms)
+            try:
+                draft, prompt, usage, latency = fut.result(timeout=timeout_ms / 1000 if timeout_ms else None)
+            except FutureTimeout:
+                raise writer.WriterFailed(
+                    "time budget exceeded", writer.build_prompt(plan), writer.Usage(), timeout_ms or 0
+                ) from None
         except writer.WriterFailed as e:
             # No usable draft (truncated JSON, model error): a failed attempt, not a crash.
             attempts.append(
@@ -88,7 +103,15 @@ def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -
         if len(kept) >= MIN_PRUNED_SENTENCES:
             outcome, sentences = "pruned", kept
         else:
-            outcome, sentences = "wordlist", [" ".join(plan.word_bank[:12])]
+            readable = decodable_words(plan.language, mastery)
+            t_title, extra = template_story(plan.language, verifier, readable, plan.key_words, random.Random(0))
+            extra = [x for x in extra if x not in kept]
+            if len(kept) + len(extra) >= MIN_PRUNED_SENTENCES:
+                outcome, sentences = "template", (kept + extra)[:4]
+                if title == plan.learner_name and t_title:
+                    title = t_title
+            else:
+                outcome, sentences = "wordlist", [" ".join(plan.word_bank[:12])]
         units = verifier.verify("\n".join([title, *sentences])).units_used
 
     final = verifier.verify("\n".join([title, *sentences]))

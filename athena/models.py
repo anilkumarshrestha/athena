@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Language = Literal["ne", "en"]
-Outcome = Literal["first_pass", "regenerated", "pruned", "wordlist"]
+Outcome = Literal["first_pass", "regenerated", "pruned", "template", "wordlist"]
 
 
 class StoryDraft(BaseModel):
