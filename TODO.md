@@ -40,6 +40,10 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [ ] H11 Teacher view, print pack, GitHub Action (tests + eval)
 - [ ] H12 Eval run, charts
 
+- [x] Dynamic progression: unit introduction by unlock value (2.7x readable words at 40 units), 3 difficulty levels enforced like letters, honorific-aware seed
+- [ ] Deck chart: eval/results/coverage_ne.csv + coverage_en.csv (unlock vs teaching order)
+- [ ] Eval re-run with levels (eval uses default level 2) and template fallback
+
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
 - [ ] Gemma not served on Vertex as plain API → Model Garden GPU endpoint or Flash-Lite as cheap tier (H10)
