@@ -47,7 +47,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] Personalisation: name case endings (सीताले), learner profiles (favourite animal/food, general setting) → personal themes ~60% of stories; add-learner screen #/new for the pilot
 
 - [x] Placement diagnostic: 2-min tiered card check (adult taps read / not yet), places units + level; runs after add-learner
-- [ ] Re-teach when stuck (tap word → hear it, see its aksharas, picture cue)
+- [x] Re-teach: tap word → hear (Gemini TTS, cached, story words only), parts with error unit marked, practice retry (no STT hint)
 - [x] Persist learners: state/learners.json, atomic, delete endpoint + button (Firestore still needed for Cloud Run)
 - [ ] Parent dashboard: weekly summary, struggle alerts, home activities
 
