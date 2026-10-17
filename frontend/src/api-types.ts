@@ -265,6 +265,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stories/{story_id}/words/{index}/picture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Word Picture
+         * @description Picture cue for a concrete noun in the story (cached per word). 404 for other words.
+         */
+        get: operations["word_picture_api_stories__story_id__words__index__picture_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}/read": {
         parameters: {
             query?: never;
@@ -721,6 +741,8 @@ export interface components {
             index: number;
             /** Word */
             word: string;
+            /** Has Picture */
+            has_picture: boolean;
             /** Outcome */
             outcome: string | null;
             /** Heard */
@@ -1214,6 +1236,38 @@ export interface operations {
         };
     };
     word_audio_api_stories__story_id__words__index__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    word_picture_api_stories__story_id__words__index__picture_get: {
         parameters: {
             query?: never;
             header?: never;
