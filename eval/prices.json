@@ -1,4 +1,21 @@
 {
-  "gemini-3.8-flash": {"input_per_m": null, "output_per_m": null, "source": "fill from https://ai.google.dev/pricing (USD per 1M tokens)"},
-  "gemma-4": {"input_per_m": null, "output_per_m": null, "source": "fill from https://ai.google.dev/pricing"}
+  "gemini-3.8-flash": {
+    "input_per_m": 0.75,
+    "output_per_m": 3.75,
+    "note": "output includes thinking tokens. Promo price through 2026-12-31; from 2027-01-01: 1.50 / 7.50",
+    "source": "https://ai.google.dev/gemini-api/docs/pricing (paid tier, checked 2026-10-17)"
+  },
+  "gemini-3.1-flash-image": {
+    "input_per_m": 0.50,
+    "output_per_m": 3.0,
+    "per_image_1k": 0.067,
+    "note": "image output $60 per 1M image tokens = ~$0.067 per 1K image",
+    "source": "https://ai.google.dev/gemini-api/docs/pricing (paid tier, checked 2026-10-17)"
+  },
+  "gemma-4": {
+    "input_per_m": null,
+    "output_per_m": null,
+    "note": "no paid tier on Gemini API; not served on Vertex as plain API",
+    "source": "https://ai.google.dev/gemini-api/docs/pricing"
+  }
 }
