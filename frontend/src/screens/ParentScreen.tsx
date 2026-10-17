@@ -27,9 +27,11 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
   const [lang, setLang] = useState<Language>('ne')
   const [acts, setActs] = useState<Activities | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [history, setHistory] = useState<components['schemas']['HistoryItemOut'][] | null>(null)
 
   useEffect(() => {
     api.dashboard(learnerId).then(setD).catch((e) => setError(String(e.message ?? e)))
+    api.history(learnerId).then(setHistory).catch(() => {})
   }, [learnerId])
 
   useEffect(() => {
@@ -154,20 +156,29 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
         </div>
       </section>
 
-      {/* Recent sessions: human-reviewable log */}
-      {d.recent.length > 0 && (
+      {/* Every story the child got: human-reviewable log, newest first */}
+      {history && history.length > 0 && (
         <section>
-          <h2 className="mb-3 text-h2 font-semibold">भर्खरका कथा · Recent stories</h2>
-          <ul className="m-0 list-none p-0 font-mono text-mono">
-            {d.recent.map((r, i) => (
-              <li key={i} className="flex flex-wrap gap-x-4 border-b border-line py-2 tabular-nums">
-                <span className="text-ink-3">{new Date(Number(r.at) * 1000).toLocaleDateString()}</span>
-                <span className="font-story-ne">{String(r.title)}</span>
-                <span>{Math.round(Number(r.accuracy) * 100)}%</span>
-                <span className="text-ink-3">{String(r.wcpm)} wpm</span>
-              </li>
+          <h2 className="mb-3 text-h2 font-semibold">कथाहरू · Stories</h2>
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {history.map((h) => (
+              <a key={h.story_id} href={`#/parent/${learnerId}/story/${h.story_id}`}
+                className="flex gap-3 rounded-xl border-2 border-b-4 border-line bg-card p-3 hover:bg-paper-sunken">
+                <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-paper-sunken">
+                  {h.image_url && <img src={h.image_url} alt="" className="size-full object-cover" />}
+                </div>
+                <div className="min-w-0">
+                  <div className={`truncate ${h.lang === 'ne' ? 'font-story-ne' : 'font-story-en'} text-body font-semibold`}>{h.title}</div>
+                  <div className="font-mono text-caption text-ink-3 tabular-nums">
+                    {new Date(h.at * 1000).toLocaleDateString()} · {h.lang === 'ne' ? 'ने' : 'EN'}
+                  </div>
+                  <div className="font-mono text-caption tabular-nums">
+                    {h.accuracy != null ? `${Math.round(h.accuracy * 100)}% read` : h.read ? 'read' : 'not read yet'}
+                  </div>
+                </div>
+              </a>
             ))}
-          </ul>
+          </div>
         </section>
       )}
     </main>

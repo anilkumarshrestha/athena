@@ -54,6 +54,9 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] Time controls: parent daily limit, friendly 'see you tomorrow'
 - [x] Re-teach picture cue for concrete nouns
 
+- [x] History: every story + per-word reading per learner (state/stories/*.jsonl, no audio), parent story review #/parent/<id>/story/<sid>
+- [ ] Pilot data export for eval D (per-word error profiles from state/stories)
+
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
 - [ ] Gemma not served on Vertex as plain API → Model Garden GPU endpoint or Flash-Lite as cheap tier (H10)

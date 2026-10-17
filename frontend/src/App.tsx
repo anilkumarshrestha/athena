@@ -5,6 +5,7 @@ import { DiagnosticScreen } from './screens/DiagnosticScreen'
 import { LearnerPick } from './screens/LearnerPick'
 import { MasteryScreen } from './screens/MasteryScreen'
 import { ParentScreen } from './screens/ParentScreen'
+import { StoryReview } from './screens/StoryReview'
 import { StoryScreen } from './screens/StoryScreen'
 import { Styleguide } from './screens/Styleguide'
 
@@ -15,6 +16,7 @@ type Route =
   | { name: 'check'; learnerId: string; lang: Language }
   | { name: 'mastery'; learnerId: string }
   | { name: 'parent'; learnerId: string }
+  | { name: 'review'; learnerId: string; storyId: string }
   | { name: 'story'; learnerId: string; lang: Language }
 
 // Hash routes: #/  #/new  #/check/<learner>/<ne|en>  #/styleguide  #/mastery/<learner>  #/read/<learner>/<ne|en>
@@ -25,6 +27,8 @@ function parse(hash: string): Route {
   if (ck) return { name: 'check', learnerId: ck[1], lang: ck[2] as Language }
   const mm = hash.match(/^#\/mastery\/([\w-]+)$/)
   if (mm) return { name: 'mastery', learnerId: mm[1] }
+  const rv = hash.match(/^#\/parent\/([\w-]+)\/story\/([\w-]+)$/)
+  if (rv) return { name: 'review', learnerId: rv[1], storyId: rv[2] }
   const pm = hash.match(/^#\/parent\/([\w-]+)$/)
   if (pm) return { name: 'parent', learnerId: pm[1] }
   const m = hash.match(/^#\/read\/([\w-]+)\/(ne|en)$/)
@@ -53,6 +57,8 @@ export default function App() {
         onDone={() => (location.hash = route.lang === 'ne' ? `#/check/${route.learnerId}/en` : '#/')}
       />
     )
+  if (route.name === 'review')
+    return <StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => (location.hash = `#/parent/${route.learnerId}`)} />
   if (route.name === 'parent') return <ParentScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
   if (route.name === 'mastery') return <MasteryScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
   if (route.name === 'story') {

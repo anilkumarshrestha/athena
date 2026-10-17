@@ -36,6 +36,9 @@ export const api = {
   wordHelp: (storyId: string, index: number) =>
     fetch(`/api/stories/${storyId}/words/${index}`).then(json<components['schemas']['WordHelpOut']>),
   praiseUrl: (lang: Language, tier: 'great' | 'good' | 'try') => `/api/praise/${lang}/${tier}`,
+  history: (id: string) => fetch(`/api/learners/${id}/stories`).then(json<components['schemas']['HistoryItemOut'][]>),
+  historyStory: (id: string, storyId: string) =>
+    fetch(`/api/learners/${id}/stories/${storyId}`).then(json<components['schemas']['HistoryStoryOut']>),
   dashboard: (id: string) => fetch(`/api/learners/${id}/dashboard`).then(json<components['schemas']['DashboardOut']>),
   activities: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/activities/${lang}`).then(json<components['schemas']['ActivitiesOut']>),

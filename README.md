@@ -114,6 +114,10 @@ kill <pid>
 Learners are saved to `state/learners.json` (atomic writes; survives restarts). Two demo learners
 (`sita`, `ram`) are seeded on first run. The file holds children's first names and progress: it is
 git-ignored, and a learner can be deleted from the teacher view (`DELETE /api/learners/{id}`).
+Every story a learner gets, and how they read it, is logged to `state/stories/<learner_id>.jsonl`
+(append-only: story text and verifier attempts, picture id, per-word reading results, what speech-to-text
+heard, unit changes). **No audio is ever stored.** Parents review it at `#/parent/<learner>` → Stories.
+Deleting a learner deletes their history file too.
 To reset everything, stop the API and delete `state/`.
 
 On the story screen, **"Show how this story was made"** opens the verifier log: every

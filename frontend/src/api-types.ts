@@ -225,6 +225,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learners/{learner_id}/stories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Learner Stories
+         * @description Every story this child got, newest first: the parent-reviewable log.
+         */
+        get: operations["learner_stories_api_learners__learner_id__stories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/stories/{story_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Learner Story */
+        get: operations["learner_story_api_learners__learner_id__stories__story_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}": {
         parameters: {
             query?: never;
@@ -472,6 +509,64 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HistoryItemOut */
+        HistoryItemOut: {
+            /** Story Id */
+            story_id: string;
+            /** At */
+            at: number;
+            /**
+             * Lang
+             * @enum {string}
+             */
+            lang: "ne" | "en";
+            /** Title */
+            title: string;
+            /** Image Url */
+            image_url: string | null;
+            /** Read */
+            read: boolean;
+            /** Accuracy */
+            accuracy: number | null;
+        };
+        /** HistoryStoryOut */
+        HistoryStoryOut: {
+            /** Story Id */
+            story_id: string;
+            /** At */
+            at: number;
+            /**
+             * Lang
+             * @enum {string}
+             */
+            lang: "ne" | "en";
+            /** Title */
+            title: string;
+            /** Theme */
+            theme: string;
+            /** Level */
+            level: number;
+            /** Outcome */
+            outcome: string;
+            /** Sentences */
+            sentences: string[];
+            /** Display */
+            display: components["schemas"]["DisplayWord"][][];
+            /** Image Url */
+            image_url: string | null;
+            /** Attempts */
+            attempts: {
+                [key: string]: unknown;
+            }[];
+            /** Readings */
+            readings: {
+                [key: string]: unknown;
+            }[];
+            /** Close */
+            close: {
+                [key: string]: unknown;
+            } | null;
         };
         /** InsertionOut */
         InsertionOut: {
@@ -1190,6 +1285,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ActivitiesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    learner_stories_api_learners__learner_id__stories_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryItemOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    learner_story_api_learners__learner_id__stories__story_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryStoryOut"];
                 };
             };
             /** @description Validation Error */
