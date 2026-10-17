@@ -48,7 +48,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 
 - [x] Placement diagnostic: 2-min tiered card check (adult taps read / not yet), places units + level; runs after add-learner
 - [ ] Re-teach when stuck (tap word → hear it, see its aksharas, picture cue)
-- [ ] Persist learners to disk before the pilot
+- [x] Persist learners: state/learners.json, atomic, delete endpoint + button (Firestore still needed for Cloud Run)
 - [ ] Parent dashboard: weekly summary, struggle alerts, home activities
 
 ## Tech debt / decisions pending
