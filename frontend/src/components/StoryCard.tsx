@@ -40,12 +40,12 @@ export function StoryCard({
     sentences?.map((s) => s.split(/\s+/).filter(Boolean).map((text) => ({ text, indices: [] })))
 
   return (
-    <article className="relative mx-auto w-full max-w-story rounded-lg border border-line bg-card">
-      <span className="absolute left-4 top-4 z-10 rounded-full bg-paper-sunken px-3 py-1 text-caption text-ink-2">
+    <article className="relative mx-auto w-full max-w-story rounded-xl border-2 border-sky bg-card">
+      <span className="absolute left-4 top-4 z-10 rounded-full bg-sun px-3 py-1 text-caption font-semibold text-on-sun">
         {lang === 'ne' ? 'ने' : 'EN'}
       </span>
 
-      <div className="flex aspect-4/3 items-center justify-center overflow-hidden rounded-t-lg bg-paper-sunken">
+      <div className="flex aspect-4/3 items-center justify-center overflow-hidden rounded-t-xl bg-sky-soft">
         {imageUrl ? (
           <img src={imageUrl} alt="" className="size-full object-cover" />
         ) : imageStatus === 'failed' ? null : (
@@ -105,7 +105,7 @@ export function RecordButton({
       onClick={onClick}
       disabled={disabled || state === 'checking'}
       aria-label={label}
-      className="flex size-24 items-center justify-center rounded-full bg-primary text-on-primary transition-colors duration-150 hover:bg-primary-hover disabled:bg-ink-4"
+      className="flex size-24 items-center justify-center rounded-full border-b-4 border-leaf-edge bg-leaf text-on-primary transition-colors duration-150 hover:bg-leaf-edge active:translate-y-1 active:border-b-0 disabled:border-ink-3 disabled:bg-ink-4"
       // §4: slow 1.6s ring pulse while listening
       style={state === 'recording' ? { animation: 'ring-pulse 1.6s ease-in-out infinite' } : undefined}
     >

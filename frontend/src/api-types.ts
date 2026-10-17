@@ -39,6 +39,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learners/{learner_id}/diagnostic/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Diagnostic */
+        get: operations["get_diagnostic_api_learners__learner_id__diagnostic__language__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/placement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set Placement
+         * @description Score the card check and set the learner's starting units and level for that language.
+         */
+        post: operations["set_placement_api_learners__learner_id__placement_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learners/{learner_id}": {
         parameters: {
             query?: never;
@@ -180,6 +217,13 @@ export interface components {
             /** Audio */
             audio: string;
         };
+        /** CardOut */
+        CardOut: {
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
+        };
         /** ChangeOut */
         ChangeOut: {
             /** Unit */
@@ -207,6 +251,18 @@ export interface components {
         CloseRequest: {
             /** Story Id */
             story_id: string;
+        };
+        /** DiagnosticOut */
+        DiagnosticOut: {
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "ne" | "en";
+            /** Pass Rate */
+            pass_rate: number;
+            /** Tiers */
+            tiers: components["schemas"]["TierOut"][];
         };
         /** DisplayWord */
         DisplayWord: {
@@ -288,6 +344,30 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** PlacementOut */
+        PlacementOut: {
+            /** Level */
+            level: number;
+            /** Reached Tier */
+            reached_tier: number;
+            /** Mastered */
+            mastered: number;
+            /** Practicing */
+            practicing: string[];
+            learner: components["schemas"]["LearnerOut"];
+        };
+        /** PlacementRequest */
+        PlacementRequest: {
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "ne" | "en";
+            /** Responses */
+            responses: {
+                [key: string]: boolean;
+            };
+        };
         /** ReadOut */
         ReadOut: {
             /** Story Id */
@@ -360,6 +440,17 @@ export interface components {
             image_latency_ms: number | null;
             /** Display */
             display: components["schemas"]["DisplayWord"][][];
+        };
+        /** TierOut */
+        TierOut: {
+            /** Number */
+            number: number;
+            /** Name */
+            name: string;
+            /** Always */
+            always: boolean;
+            /** Cards */
+            cards: components["schemas"]["CardOut"][];
         };
         /** UnitOut */
         UnitOut: {
@@ -482,6 +573,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearnerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_diagnostic_api_learners__learner_id__diagnostic__language__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosticOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_placement_api_learners__learner_id__placement_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlacementRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlacementOut"];
                 };
             };
             /** @description Validation Error */

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Language } from './api'
 import { AddLearner } from './screens/AddLearner'
+import { DiagnosticScreen } from './screens/DiagnosticScreen'
 import { LearnerPick } from './screens/LearnerPick'
 import { MasteryScreen } from './screens/MasteryScreen'
 import { StoryScreen } from './screens/StoryScreen'
@@ -10,13 +11,16 @@ type Route =
   | { name: 'pick' }
   | { name: 'styleguide' }
   | { name: 'new' }
+  | { name: 'check'; learnerId: string; lang: Language }
   | { name: 'mastery'; learnerId: string }
   | { name: 'story'; learnerId: string; lang: Language }
 
-// Hash routes: #/  #/new  #/styleguide  #/mastery/<learner>  #/read/<learner>/<ne|en>
+// Hash routes: #/  #/new  #/check/<learner>/<ne|en>  #/styleguide  #/mastery/<learner>  #/read/<learner>/<ne|en>
 function parse(hash: string): Route {
   if (hash === '#/styleguide') return { name: 'styleguide' }
   if (hash === '#/new') return { name: 'new' }
+  const ck = hash.match(/^#\/check\/([\w-]+)\/(ne|en)$/)
+  if (ck) return { name: 'check', learnerId: ck[1], lang: ck[2] as Language }
   const mm = hash.match(/^#\/mastery\/([\w-]+)$/)
   if (mm) return { name: 'mastery', learnerId: mm[1] }
   const m = hash.match(/^#\/read\/([\w-]+)\/(ne|en)$/)
@@ -33,7 +37,18 @@ export default function App() {
   }, [])
 
   if (route.name === 'styleguide') return <Styleguide />
-  if (route.name === 'new') return <AddLearner onDone={() => (location.hash = '#/')} onBack={() => (location.hash = '#/')} />
+  if (route.name === 'new')
+    return <AddLearner onDone={(id) => (location.hash = `#/check/${id}/ne`)} onBack={() => (location.hash = '#/')} />
+  if (route.name === 'check')
+    return (
+      <DiagnosticScreen
+        key={`${route.learnerId}/${route.lang}`}
+        learnerId={route.learnerId}
+        lang={route.lang}
+        // Nepali first, then English, then the learner list
+        onDone={() => (location.hash = route.lang === 'ne' ? `#/check/${route.learnerId}/en` : '#/')}
+      />
+    )
   if (route.name === 'mastery') return <MasteryScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
   if (route.name === 'story') {
     return (

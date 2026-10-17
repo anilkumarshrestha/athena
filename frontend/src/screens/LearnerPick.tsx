@@ -6,6 +6,15 @@ import { DotLoader } from '../components/DotLoader'
 const segmenter = new Intl.Segmenter('ne', { granularity: 'grapheme' })
 const initial = (s?: string) => (s ? segmenter.segment(s)[Symbol.iterator]().next().value?.segment : undefined)
 
+// Decorative child accents, cycled by index. Full class strings so Tailwind sees them.
+const ACCENTS = [
+  { tile: 'bg-sky-soft border-sky', avatar: 'bg-sky text-on-primary', btn: 'bg-sky border-sky-edge text-on-primary' },
+  { tile: 'bg-sun-soft border-sun', avatar: 'bg-sun text-on-sun', btn: 'bg-sun border-sun-edge text-on-sun' },
+  { tile: 'bg-leaf-soft border-leaf', avatar: 'bg-leaf text-on-primary', btn: 'bg-leaf border-leaf-edge text-on-primary' },
+  { tile: 'bg-coral-soft border-coral', avatar: 'bg-coral text-on-primary', btn: 'bg-coral border-coral-edge text-on-primary' },
+] as const
+const CHUNKY = 'min-h-16 flex-1 rounded-xl border-b-4 text-child-label font-bold transition-transform duration-150 active:translate-y-1 active:border-b-0'
+
 export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Language) => void }) {
   const [learners, setLearners] = useState<Learner[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -27,10 +36,12 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
       {!learners && !error && <DotLoader />}
 
       <div className="grid gap-6 sm:grid-cols-2">
-        {learners?.map((l) => (
-          <div key={l.id} className="rounded-lg border border-line bg-card p-6">
+        {learners?.map((l, i) => {
+          const a = ACCENTS[i % ACCENTS.length]
+          return (
+          <div key={l.id} className={`rounded-xl border-2 p-6 ${a.tile}`}>
             <div className="mb-6 flex items-center gap-4">
-              <div className="flex size-30 shrink-0 items-center justify-center rounded-lg bg-paper-sunken font-story-ne text-story-xl text-ink-2">
+              <div className={`flex size-30 shrink-0 items-center justify-center rounded-full font-story-ne text-story-xl ${a.avatar}`}>
                 {initial(l.name.ne)}
               </div>
               <div>
@@ -42,14 +53,14 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
               <button
                 type="button"
                 onClick={() => onPick(l.id, 'ne')}
-                className="min-h-16 flex-1 rounded-lg border border-line-strong bg-card font-story-ne text-child-label font-semibold transition-colors duration-150 hover:bg-primary-soft"
+                className={`${CHUNKY} font-story-ne ${a.btn}`}
               >
                 नेपाली
               </button>
               <button
                 type="button"
                 onClick={() => onPick(l.id, 'en')}
-                className="min-h-16 flex-1 rounded-lg border border-line-strong bg-card font-story-en text-child-label font-semibold transition-colors duration-150 hover:bg-primary-soft"
+                className={`${CHUNKY} font-story-en ${a.btn}`}
               >
                 English
               </button>
@@ -58,10 +69,11 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
               Teacher view: mastery
             </a>
           </div>
-        ))}
+          )
+        })}
         <a
           href="#/new"
-          className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line-strong text-ink-2 transition-colors duration-150 hover:bg-paper-sunken"
+          className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary bg-card text-primary transition-colors duration-150 hover:bg-primary-soft"
         >
           <span className="font-story-ne text-child-title font-bold">+ नयाँ साथी</span>
           <span className="text-body text-ink-3">Add a learner</span>

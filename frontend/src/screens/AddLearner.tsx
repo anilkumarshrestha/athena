@@ -33,12 +33,6 @@ const SETTINGS: [Create['setting'], string, string][] = [
   ['mountains', 'हिमाल', 'Mountains'],
   ['city', 'सहर', 'City'],
 ]
-const STARTS: [Create['start'], string, string][] = [
-  ['beginner', 'भर्खर सुरु', 'Just starting: knows a few letters'],
-  ['some', 'केही अक्षर', 'Knows many letters, reads short words'],
-  ['reads', 'पढ्न सक्छ', 'Reads simple sentences'],
-]
-
 function Choice<T extends string>({
   label,
   options,
@@ -61,8 +55,8 @@ function Choice<T extends string>({
             role="radio"
             aria-checked={value === id}
             onClick={() => onChange(id)}
-            className={`min-h-16 rounded-lg border px-5 py-2 text-left transition-colors duration-150 ${
-              value === id ? 'border-primary bg-primary-soft' : 'border-line-strong bg-card hover:bg-paper-sunken'
+            className={`min-h-16 rounded-xl border-2 px-5 py-2 text-left transition-colors duration-150 ${
+              value === id ? 'border-primary border-b-4 bg-primary-soft' : 'border-line-strong border-b-4 bg-card hover:bg-paper-sunken'
             }`}
           >
             <span className="block font-story-ne text-child-label font-semibold">{ne}</span>
@@ -74,32 +68,31 @@ function Choice<T extends string>({
   )
 }
 
-export function AddLearner({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
+export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string) => void; onBack: () => void }) {
   const [nameNe, setNameNe] = useState('')
   const [nameEn, setNameEn] = useState('')
   const [animal, setAnimal] = useState<Create['favorite_animal'] | null>(null)
   const [food, setFood] = useState<Create['favorite_food'] | null>(null)
   const [setting, setSetting] = useState<Create['setting'] | null>(null)
-  const [start, setStart] = useState<Create['start'] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const ready = nameNe.trim() && nameEn.trim() && animal && food && setting && start
+  const ready = nameNe.trim() && nameEn.trim() && animal && food && setting
 
   const submit = async () => {
     if (!ready) return
     setSaving(true)
     setError(null)
     try {
-      await api.createLearner({
+      const learner = await api.createLearner({
         name_ne: nameNe.trim(),
         name_en: nameEn.trim(),
         favorite_animal: animal,
         favorite_food: food,
         setting,
-        start,
+        start: 'beginner', // the card check right after sets the real starting point
       })
-      onDone()
+      onDone(learner.id)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -117,7 +110,7 @@ export function AddLearner({ onDone, onBack }: { onDone: () => void; onBack: () 
       </button>
       <h1 className="m-0 mb-2 font-story-ne text-child-title font-bold">नयाँ साथी</h1>
       <p className="m-0 mb-8 text-body text-ink-3">
-        For a parent or teacher. First name only; favourites make the stories feel like the child's own.
+        For a parent or teacher. First name only; favourites make the stories feel like the child's own. Next: a 2-minute card check to find where to start.
       </p>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2">
@@ -134,14 +127,13 @@ export function AddLearner({ onDone, onBack }: { onDone: () => void; onBack: () 
       <Choice label="मन पर्ने जनावर · Favourite animal" options={ANIMALS} value={animal} onChange={setAnimal} />
       <Choice label="मन पर्ने खाना · Favourite food" options={FOODS} value={food} onChange={setFood} />
       <Choice label="कहाँ बस्छ? · Where they live" options={SETTINGS} value={setting} onChange={setSetting} />
-      <Choice label="पढाइ · Reading so far" options={STARTS} value={start} onChange={setStart} />
 
       {error && <p className="mb-4 text-body text-omitted">{error}</p>}
       <button
         type="button"
         disabled={!ready || saving}
         onClick={submit}
-        className="min-h-16 rounded-lg bg-primary px-8 text-child-label font-semibold text-on-primary transition-colors duration-150 hover:bg-primary-hover disabled:bg-ink-4"
+        className="min-h-16 rounded-xl border-b-4 border-primary-hover bg-primary px-8 text-child-label font-bold text-on-primary transition-colors duration-150 hover:bg-primary-hover active:translate-y-1 active:border-b-0 disabled:border-ink-3 disabled:bg-ink-4"
       >
         {saving ? '…' : 'सुरु गरौँ · Start'}
       </button>

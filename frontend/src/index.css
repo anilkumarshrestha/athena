@@ -2,32 +2,47 @@
 
 /* DESIGN.md §5 tokens. Screens use these only: no raw hex, no arbitrary values. */
 @theme {
-  --color-paper: #FBF7F0;
-  --color-paper-sunken: #F4EEE3;
-  --color-card: #FFFDF9;
-  --color-line: #E6DDCD;
-  --color-line-strong: #C9BCA6;
-  --color-ink: #1F1B16;
-  --color-ink-2: #4A4339;
-  --color-ink-3: #6E6558;
-  --color-ink-4: #A69C8E;
+  --color-paper: #EAF6FF;
+  --color-paper-sunken: #D9EDFB;
+  --color-card: #FFFFFF;
+  --color-line: #CFE3F2;
+  --color-line-strong: #8FB4D0;
+  --color-ink: #1E2A4A;
+  --color-ink-2: #3A4A6B;
+  --color-ink-3: #55658A;
+  --color-ink-4: #9AA8C2;
 
-  --color-primary: #1E4FB5;
-  --color-primary-hover: #173F92;
-  --color-primary-soft: #E6EDFA;
-  --color-on-primary: #FFFDF9;
+  --color-primary: #1D6FE8;
+  --color-primary-hover: #1558BD;
+  --color-primary-soft: #D9E8FF;
+  --color-on-primary: #FFFFFF;
   --color-crimson: #C8102E;
 
-  --color-correct: #1F7A3E;
-  --color-correct-soft: #E2F1E6;
-  --color-substituted: #9A5B00;
-  --color-substituted-soft: #FBEED6;
-  --color-omitted: #B3360B;
-  --color-omitted-soft: #FBE5DA;
-  --color-selfcorrected: #0B6E7A;
-  --color-selfcorrected-soft: #DDF0F2;
-  --color-inserted: #6B4FA0;
-  --color-inserted-soft: #EEE8F7;
+  /* Child accents: decoration on the child surface (avatars, tiles, button edges). Meaning-free. */
+  --color-sun: #FFC800;
+  --color-sun-edge: #D19F00;
+  --color-sun-soft: #FFF3BF;
+  --color-coral: #FF5A5F;
+  --color-coral-edge: #D13B40;
+  --color-coral-soft: #FFE3E3;
+  --color-leaf: #3DBB4F;
+  --color-leaf-edge: #2A9239;
+  --color-leaf-soft: #DDF6E0;
+  --color-sky: #38A8FF;
+  --color-sky-edge: #1C86D6;
+  --color-sky-soft: #D6EEFF;
+  --color-on-sun: #4A3600;
+
+  --color-correct: #268A3B;
+  --color-correct-soft: #DDF6E0;
+  --color-substituted: #996300;
+  --color-substituted-soft: #FFF1B8;
+  --color-omitted: #C62828;
+  --color-omitted-soft: #FFE1E1;
+  --color-selfcorrected: #0A7F8F;
+  --color-selfcorrected-soft: #D6F3F7;
+  --color-inserted: #7041D0;
+  --color-inserted-soft: #ECE4FB;
 
   --font-story-ne: "Baloo 2", "IBM Plex Sans Devanagari", sans-serif;
   --font-story-en: "Andika", "IBM Plex Sans", sans-serif;
@@ -36,9 +51,10 @@
 
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 
-  --shadow-float: 0 1px 2px rgb(31 27 22 / .06), 0 8px 24px rgb(31 27 22 / .08);
+  --shadow-float: 0 1px 2px rgb(30 42 74 / .06), 0 8px 24px rgb(30 42 74 / .10);
 
   --ease-out: cubic-bezier(.2, .8, .2, 1);
 
@@ -92,8 +108,8 @@ body { margin: 0; background: var(--color-paper); }
 
 /* Record button listening pulse (§4) */
 @keyframes ring-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(30 79 181 / .35); }
-  50% { box-shadow: 0 0 0 14px rgb(30 79 181 / 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgb(61 187 79 / .45); }
+  50% { box-shadow: 0 0 0 14px rgb(61 187 79 / 0); }
 }
 @keyframes dot-fade {
   0%, 80%, 100% { opacity: .25; }

@@ -21,6 +21,14 @@ async function json<T>(res: Response): Promise<T> {
 export const api = {
   learners: () => fetch('/api/learners').then(json<Learner[]>),
   learner: (id: string) => fetch(`/api/learners/${id}`).then(json<Learner>),
+  diagnostic: (learnerId: string, lang: Language) =>
+    fetch(`/api/learners/${learnerId}/diagnostic/${lang}`).then(json<components['schemas']['DiagnosticOut']>),
+  placement: (learnerId: string, language: Language, responses: Record<string, boolean>) =>
+    fetch(`/api/learners/${learnerId}/placement`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ language, responses }),
+    }).then(json<components['schemas']['PlacementOut']>),
   createLearner: (body: components['schemas']['LearnerCreate']) =>
     fetch('/api/learners', {
       method: 'POST',
