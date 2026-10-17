@@ -601,6 +601,7 @@ class PartOut(BaseModel):
 class WordHelpOut(BaseModel):
     index: int
     word: str
+    has_picture: bool  # concrete noun: GET .../picture shows it
     outcome: str | None
     heard: str | None
     parts: list[PartOut]
@@ -630,9 +631,12 @@ def word_help(story_id: str, index: int) -> WordHelpOut:
     s, word = _story_word(story_id, index)
     result = next((w for w in s.readings[-1].words if w.index == index), None) if s.readings else None
     wrong = set(result.error_units) if result else set()
+    from athena.agents.picture import concrete_noun
+
     return WordHelpOut(
         index=index,
         word=word,
+        has_picture=concrete_noun(s.language, word) is not None,
         outcome=result.outcome if result else None,
         heard=result.heard if result else None,
         parts=[PartOut(text=p.text, units=list(p.units), tricky=bool(wrong & set(p.units))) for p in word_parts(s.language, word)],
@@ -644,6 +648,22 @@ def word_audio(story_id: str, index: int) -> Response:
     """Speak one word of a story. Only story words: never arbitrary text (no open TTS proxy)."""
     s, word = _story_word(story_id, index)
     return Response(tts.speak_word(s.language, word), media_type="audio/wav", headers={"Cache-Control": "public, max-age=86400"})
+
+
+picture_limit = RateLimit(per_ip=20, global_=100)
+
+
+@app.get("/api/stories/{story_id}/words/{index}/picture", dependencies=[Depends(picture_limit)])
+def word_picture(story_id: str, index: int) -> Response:
+    """Picture cue for a concrete noun in the story (cached per word). 404 for other words."""
+    from athena.agents.picture import concrete_noun, picture
+
+    s, word = _story_word(story_id, index)
+    noun = concrete_noun(s.language, word)
+    if not noun:
+        raise HTTPException(404, "no picture for this word")
+    data, mime = picture(s.language, noun)
+    return Response(data, media_type=mime, headers={"Cache-Control": "public, max-age=604800"})
 
 
 @app.post("/api/stories/{story_id}/words/{index}/read", response_model=RetryOut, dependencies=[Depends(read_limit)])

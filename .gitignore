@@ -31,3 +31,4 @@ presentation/
 # learner data (children's first names + progress): never commit
 state/
 media/tts/
+media/pictures/

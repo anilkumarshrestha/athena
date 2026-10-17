@@ -7,8 +7,8 @@ import { DotLoader } from './DotLoader'
 
 type WordHelp = components['schemas']['WordHelpOut']
 
-// Re-teach one word, three ways: hear it, see its parts (the tricky part marked),
-// try again. Never "wrong": a miss just offers to listen again.
+// Re-teach one word: hear it, see it (picture, concrete nouns), see its parts (the
+// tricky part marked), try again. Never "wrong": a miss just offers to listen again.
 
 const chunky =
   'flex min-h-16 items-center justify-center gap-2 rounded-xl border-2 border-b-4 px-5 text-child-label font-bold transition-colors duration-150 active:translate-y-1 active:border-b-2'
@@ -28,6 +28,7 @@ export function ReteachPanel({
 }) {
   const [help, setHelp] = useState<WordHelp | null>(null)
   const [retry, setRetry] = useState<'idle' | 'checking' | 'yes' | 'again'>('idle')
+  const [pic, setPic] = useState<'loading' | 'ready' | 'none'>('loading')
   const recorder = useRecorder()
   const audio = useRef<HTMLAudioElement | null>(null)
   const isNe = lang === 'ne'
@@ -75,6 +76,19 @@ export function ReteachPanel({
         <DotLoader />
       ) : (
         <div className="flex flex-col items-center gap-6">
+          {/* See it: a picture for concrete nouns (cached per word) */}
+          {help.has_picture && pic !== 'none' && (
+            <div className="flex size-40 items-center justify-center overflow-hidden rounded-2xl border-2 border-line bg-paper-sunken">
+              {pic === 'loading' && <DotLoader label="Drawing" />}
+              <img
+                src={api.wordPictureUrl(storyId, index)}
+                alt=""
+                onLoad={() => setPic('ready')}
+                onError={() => setPic('none')}
+                className={pic === 'ready' ? 'size-full object-cover' : 'hidden'}
+              />
+            </div>
+          )}
           <div className={`${story} text-story-xl font-semibold`}>{help.word}</div>
 
           {/* See its parts */}
