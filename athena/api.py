@@ -16,7 +16,9 @@ from athena.diagnostic import diagnostic, place
 from athena.agents import illustrator
 from athena.agents.planner import plan
 from athena.assess import stt
-from athena.assess.align import assess, tokens
+from athena.assess.align import assess, fold, tokens
+from athena.assess.parts import word_parts
+from athena import tts
 from athena.generate import generate
 from athena.mastery import Change, UnitState, allowed, apply_session, practice_targets
 from athena.progression import MAX_PRACTICING, next_level, next_units, should_introduce
@@ -468,6 +470,75 @@ def close_session(req: CloseRequest) -> CloseOut:
         changes=[ChangeOut(unit=c.unit, before=c.before, after=c.after) for c in changes],
         learner=learner_out(learner),
     )
+
+
+class PartOut(BaseModel):
+    text: str
+    units: list[str]
+    tricky: bool  # behind this child's error in the latest reading
+
+
+class WordHelpOut(BaseModel):
+    index: int
+    word: str
+    outcome: str | None
+    heard: str | None
+    parts: list[PartOut]
+
+
+class RetryOut(BaseModel):
+    correct: bool
+    heard: str
+
+
+tts_limit = RateLimit(per_ip=40, global_=200)
+
+
+def _story_word(story_id: str, index: int) -> tuple[Story, str]:
+    s = store.get_story(story_id)
+    if not s:
+        raise HTTPException(404, "story not found")
+    words = tokens(s.language, " ".join(s.result.sentences))
+    if not 0 <= index < len(words):
+        raise HTTPException(404, "no such word")
+    return s, words[index]
+
+
+@app.get("/api/stories/{story_id}/words/{index}", response_model=WordHelpOut)
+def word_help(story_id: str, index: int) -> WordHelpOut:
+    """Re-teach view of one word: its parts, with the ones behind the child's error marked."""
+    s, word = _story_word(story_id, index)
+    result = next((w for w in s.readings[-1].words if w.index == index), None) if s.readings else None
+    wrong = set(result.error_units) if result else set()
+    return WordHelpOut(
+        index=index,
+        word=word,
+        outcome=result.outcome if result else None,
+        heard=result.heard if result else None,
+        parts=[PartOut(text=p.text, units=list(p.units), tricky=bool(wrong & set(p.units))) for p in word_parts(s.language, word)],
+    )
+
+
+@app.get("/api/stories/{story_id}/words/{index}/audio", dependencies=[Depends(tts_limit)])
+def word_audio(story_id: str, index: int) -> Response:
+    """Speak one word of a story. Only story words: never arbitrary text (no open TTS proxy)."""
+    s, word = _story_word(story_id, index)
+    return Response(tts.speak_word(s.language, word), media_type="audio/wav", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.post("/api/stories/{story_id}/words/{index}/read", response_model=RetryOut, dependencies=[Depends(read_limit)])
+def word_retry(story_id: str, index: int, audio: UploadFile = File(...)) -> RetryOut:
+    """Try one word again. Practice only: mastery is not changed. No STT hint (a hint would
+    pull the transcript toward the expected word and hide a repeat mistake). Audio not kept."""
+    s, word = _story_word(story_id, index)
+    data = audio.file.read(MAX_AUDIO_BYTES + 1)
+    if not data or len(data) > MAX_AUDIO_BYTES:
+        raise HTTPException(400, "bad recording")
+    t = stt.transcribe(s.language, data, audio.content_type or "audio/webm", [word], hints=False)
+    del data
+    heard = tokens(s.language, t.text)
+    correct = any(fold(s.language, h) == fold(s.language, word) for h in heard)
+    return RetryOut(correct=correct, heard=t.text)
 
 
 @app.get("/api/stories/{story_id}", response_model=StoryOut)

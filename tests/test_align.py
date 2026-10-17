@@ -108,3 +108,20 @@ def test_english_tricky_word_error_unit():
     r = assess("en", "The cat sat.", "a cat sat", duration_s=60)
     assert r.words[0].outcome == "substituted"
     assert r.words[0].error_units == ["w:the"]
+
+
+# --- word parts for re-teaching ---------------------------------------------------
+
+from athena.assess.parts import word_parts  # noqa: E402
+
+
+def test_nepali_parts_are_aksharas():
+    parts = word_parts("ne", "घरमा")
+    assert [p.text for p in parts] == ["घ", "र", "मा"]
+    assert parts[0].units == ("c:घ",)
+
+
+def test_english_parts_are_graphemes_with_split_digraph():
+    assert [p.text for p in word_parts("en", "ship")] == ["sh", "i", "p"]
+    assert [p.text for p in word_parts("en", "cake")] == ["c", "a…e", "k"]
+    assert [p.units for p in word_parts("en", "the")] == [("w:the",)]
