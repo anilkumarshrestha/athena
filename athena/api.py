@@ -1011,7 +1011,11 @@ def noun_picture(language: Language, noun: str) -> Response:
     base = concrete_noun(language, noun)
     if base != noun:
         raise HTTPException(404, "no picture for this word")
-    data, mime = picture(language, noun)
+    try:
+        data, mime = picture(language, noun)
+    except Exception:  # noqa: BLE001 - quota/model error: the help card just shows no picture
+        log.warning("picture unavailable for %s", noun)
+        raise HTTPException(503, "picture not available right now") from None
     return Response(data, media_type=mime, headers={"Cache-Control": "public, max-age=2592000, immutable"})
 
 
