@@ -121,3 +121,17 @@ def test_daily_limit_covers_maths(maths_api, monkeypatch):
     monkeypatch.setattr(api, "_used_today", lambda l: 10)
     r = client.post("/api/maths/start", json={"learner_id": learner.id, "language": "ne"})
     assert r.status_code == 403 and r.json()["detail"] == "daily_limit"
+
+
+def test_every_fourth_problem_the_cat_answers_and_the_child_checks(maths_api):
+    client, api, learner = maths_api
+    probs = [client.post("/api/maths/start", json={"learner_id": learner.id, "language": "ne"}).json() for _ in range(4)]
+    assert [p["cat_answer"] is not None for p in probs] == [False, False, False, True]
+    p = probs[3]
+    cat_right = p["cat_answer"] == 3  # the fixed problem is 2 + 1
+    r = client.post(f"/api/maths/{p['id']}/judge", json={"cat_right": cat_right}).json()
+    assert r["judged_right"] and r["cat_was_right"] == cat_right
+    assert (r["result"] is not None) == cat_right  # agreeing with a right cat solves it
+    assert client.post(f"/api/maths/{probs[0]['id']}/judge", json={"cat_right": True}).status_code == 404
+    prog = client.get(f"/api/learners/{learner.id}/maths/ne").json()
+    assert prog["cat_checks"] == {"judged": 1, "right": 1}

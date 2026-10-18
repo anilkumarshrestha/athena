@@ -21,6 +21,15 @@ const HELPS: Record<string, string> = {
   picture: 'seeing a picture · चित्र हेर्दा',
 }
 
+const KIND: Record<string, string> = {
+  aspiration: 'breathy letters (घ/ग)',
+  retroflex_dental: 'ट/त rows',
+  vowel_sign: 'the ा sign',
+  b_d: 'b/d',
+  short_vowel: 'short vowels',
+  digraph: 'sh/ch/th',
+}
+
 const TREND = { up: '↑ improving', down: '↓ slower lately', flat: '→ steady', unknown: '— not enough readings yet' } as const
 
 export function ProfileInsights({ learnerId, lang }: { learnerId: string; lang: Language }) {
@@ -102,6 +111,14 @@ export function ProfileInsights({ learnerId, lang }: { learnerId: string; lang: 
               {p.wcpm_first != null && ` · ${p.wcpm_first} → ${p.wcpm_last} words/min`}
             </p>
             <p className="m-0 text-small text-ink-2">{TREND[p.trend as keyof typeof TREND]}</p>
+            {ins.teach_cat && (
+              <p className="m-0 mt-2 text-small">
+                <span className="font-semibold">Teach the cat · बिरालोलाई सिकाऊ: </span>
+                caught {String(ins.teach_cat.caught)} of the cat's {String(ins.teach_cat.mistakes)} reading mistakes
+                {Object.keys(ins.teach_cat.missed_kinds as object).length > 0 &&
+                  ` · let through: ${Object.keys(ins.teach_cat.missed_kinds as object).map((k) => KIND[k] ?? k).join(', ')}`}
+              </p>
+            )}
             {ins.helps_most && (
               <p className="m-0 mt-2 text-small">
                 <span className="font-semibold">Helps most: </span>

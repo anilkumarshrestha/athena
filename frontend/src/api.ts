@@ -58,6 +58,23 @@ export const api = {
       body: JSON.stringify({ answer }),
     }).then(json<components['schemas']['MathsResult']>),
   mathsAudioUrl: (id: string) => `/api/maths/${id}/audio`,
+  mathsJudge: (id: string, catRight: boolean) =>
+    fetch(`/api/maths/${id}/judge`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cat_right: catRight }),
+    }).then(json<components['schemas']['MathsJudgeOut']>),
+  teachStart: (learnerId: string, lang: Language) =>
+    fetch(`/api/learners/${learnerId}/teach/${lang}`, { method: 'POST' }).then(json<components['schemas']['TeachOut']>),
+  teachAudioUrl: (id: string) => `/api/teach/${id}/audio`,
+  teachWordAudioUrl: (id: string, index: number) => `/api/teach/${id}/words/${index}/audio`,
+  teachHints: (id: string) => fetch(`/api/teach/${id}/hints`).then(json<{ left: number[] }>),
+  teachTap: (id: string, index: number) =>
+    fetch(`/api/teach/${id}/tap`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ index }),
+    }).then(json<components['schemas']['TeachTapOut']>),
   praiseUrl: (lang: Language, tier: 'great' | 'good' | 'try') => `/api/praise/${lang}/${tier}`,
   history: (id: string) => fetch(`/api/learners/${id}/stories`).then(json<components['schemas']['HistoryItemOut'][]>),
   historyStory: (id: string, storyId: string) =>

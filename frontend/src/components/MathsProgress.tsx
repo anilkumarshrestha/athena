@@ -93,6 +93,7 @@ export function MathsProgress({
             First try: the share of problems answered right the first time.
             {m.largest_solved != null && ` Largest answer found on the first try: ${m.largest_solved}.`}
             {detail && ` All time: ${m.total} problems, ${pct(m.all_first_try)} first try.`}
+            {m.cat_checks.judged > 0 && ` Checked the cat's answer correctly ${m.cat_checks.right} of ${m.cat_checks.judged} times.`}
           </p>
 
           {m.struggling.length > 0 && (

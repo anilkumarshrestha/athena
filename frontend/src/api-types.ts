@@ -461,6 +461,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/maths/{pid}/judge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Maths Judge
+         * @description Teach the cat: the child says whether the cat's answer is right. Agreeing with a right
+         *     cat solves the problem (it is the child's own check); otherwise the child shows the answer.
+         */
+        post: operations["maths_judge_api_maths__pid__judge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/maths/{pid}/audio": {
         parameters: {
             query?: never;
@@ -495,6 +516,107 @@ export interface paths {
         get: operations["learner_maths_api_learners__learner_id__maths__language__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/teach/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Teach Start
+         * @description A story the child has read, as the cat will read it (with mistakes chosen in code).
+         */
+        post: operations["teach_start_api_learners__learner_id__teach__language__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teach/{tid}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Teach Audio
+         * @description The cat reading, mistakes included. Only this round's own text (no open TTS proxy).
+         */
+        get: operations["teach_audio_api_teach__tid__audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teach/{tid}/words/{index}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Teach Word Audio
+         * @description One word said properly (after the child catches the cat's mistake on it).
+         */
+        get: operations["teach_word_audio_api_teach__tid__words__index__audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teach/{tid}/hints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Teach Hints
+         * @description "Show me": the words still to find. Logged, so parents see the cat's mistakes the child
+         *     needed help with.
+         */
+        get: operations["teach_hints_api_teach__tid__hints_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teach/{tid}/tap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Teach Tap
+         * @description The child points at a word the cat got wrong. Code checks it; never "wrong" to the child.
+         */
+        post: operations["teach_tap_api_teach__tid__tap_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -884,6 +1006,10 @@ export interface components {
             helps_most?: {
                 [key: string]: unknown;
             } | null;
+            /** Teach Cat */
+            teach_cat?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * LearnerCreate
@@ -977,6 +1103,19 @@ export interface components {
             /** Answer */
             answer: number;
         };
+        /** MathsJudge */
+        MathsJudge: {
+            /** Cat Right */
+            cat_right: boolean;
+        };
+        /** MathsJudgeOut */
+        MathsJudgeOut: {
+            /** Judged Right */
+            judged_right: boolean;
+            /** Cat Was Right */
+            cat_was_right: boolean;
+            result: components["schemas"]["MathsResult"] | null;
+        };
         /** MathsOpOut */
         MathsOpOut: {
             /** Problems */
@@ -1009,6 +1148,8 @@ export interface components {
             choices: number[];
             /** Source */
             source: string;
+            /** Cat Answer */
+            cat_answer?: number | null;
         };
         /** MathsProblemOut */
         MathsProblemOut: {
@@ -1059,6 +1200,10 @@ export interface components {
             };
             /** Largest Solved */
             largest_solved: number | null;
+            /** Cat Checks */
+            cat_checks: {
+                [key: string]: number;
+            };
             /** Recent */
             recent: components["schemas"]["MathsProblemOut"][];
         };
@@ -1292,6 +1437,42 @@ export interface components {
             struggling: string[];
             /** Per Day */
             per_day: number[];
+        };
+        /** TeachOut */
+        TeachOut: {
+            /** Id */
+            id: string;
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "ne" | "en";
+            /** Title */
+            title: string;
+            /** Sentences */
+            sentences: string[];
+            /** Display */
+            display: components["schemas"]["DisplayWord"][][];
+            /** Mistakes */
+            mistakes: number;
+            /** Cat Picture */
+            cat_picture: string | null;
+        };
+        /** TeachTap */
+        TeachTap: {
+            /** Index */
+            index: number;
+        };
+        /** TeachTapOut */
+        TeachTapOut: {
+            /** Caught */
+            caught: boolean;
+            /** Found */
+            found: number[];
+            /** Left */
+            left: number;
+            /** Word */
+            word: string | null;
         };
         /** TierOut */
         TierOut: {
@@ -2203,6 +2384,41 @@ export interface operations {
             };
         };
     };
+    maths_judge_api_maths__pid__judge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MathsJudge"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MathsJudgeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     maths_audio_api_maths__pid__audio_get: {
         parameters: {
             query?: never;
@@ -2253,6 +2469,169 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MathsProgressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teach_start_api_learners__learner_id__teach__language__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeachOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teach_audio_api_teach__tid__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teach_word_audio_api_teach__tid__words__index__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tid: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teach_hints_api_teach__tid__hints_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teach_tap_api_teach__tid__tap_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeachTap"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeachTapOut"];
                 };
             };
             /** @description Validation Error */

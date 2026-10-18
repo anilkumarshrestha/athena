@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Moon, Sparkles, Volume2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Moon, Sparkles, Volume2, X } from 'lucide-react'
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
@@ -22,6 +22,8 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [solved, setSolved] = useState<number | null>(null)
   const [counting, setCounting] = useState(0) // pictures counted so far in "count together"
   const [levelUp, setLevelUp] = useState(false) // bigger numbers from the next problem
+  // Teach the cat: on some problems the cat answers first and the child checks it.
+  const [catSays, setCatSays] = useState<string | null>(null) // null: still asking the child
   const isNe = lang === 'ne'
   const font = isNe ? 'font-story-ne' : 'font-story-en'
 
@@ -31,6 +33,7 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setSolved(null)
     setCounting(0)
     setError(null)
+    setCatSays(null)
     api.mathsStart(learnerId, lang).then(setM).catch((e) => setError(String(e.message ?? e)))
   }, [learnerId, lang])
   useEffect(load, [load])
@@ -52,6 +55,25 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
       if (r.answer != null) countTogether(m.op === '+' ? m.a + m.b : m.a)
     }
   }
+
+  const judge = async (saysRight: boolean) => {
+    if (!m) return
+    const r = await api.mathsJudge(m.id, saysRight)
+    const total = m.op === '+' ? m.a + m.b : m.a
+    if (r.cat_was_right && saysRight) {
+      setCatSays(isNe ? 'हो! मैले ठीक भनेँ। धन्यवाद!' : 'Yes! I was right. Thank you!')
+      setSolved(m.cat_answer!)
+      setLevelUp(r.result?.level_change === 'up')
+      sfx.chime()
+    } else if (!r.cat_was_right && !saysRight) {
+      setCatSays(isNe ? 'हो, मैले गल्ती गरेँ! अब तिमी देखाऊ।' : 'Oh, I made a mistake! Now you show me.')
+      sfx.pop()
+    } else {
+      setCatSays(isNe ? 'सँगै गनेर हेरौँ।' : "Let's count together and see.")
+      countTogether(total) // checking together, never "wrong"
+    }
+  }
+  const asking = m?.cat_answer != null && catSays === null
 
   // a pictures, then (+) b more, or (−) the last b crossed out
   const pictures = m ? (m.op === '+' ? m.a + m.b : m.a) : 0
@@ -115,7 +137,35 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-3">
+          {m.cat_answer != null && (
+            <div className="mb-5 flex items-center gap-4">
+              <div className="size-16 shrink-0 overflow-hidden rounded-full border-4 border-sun bg-paper-sunken">
+                <img src="/api/pictures/ne/बिरालो" alt="" className="size-full object-cover" />
+              </div>
+              <div className={`rounded-2xl bg-sun-soft px-4 py-3 ${font} text-child-label font-semibold`}>
+                {catSays ?? (
+                  <>
+                    {isNe ? 'मेरो उत्तर' : 'My answer'}: <span className="font-mono text-stat">{num(m.cat_answer, lang)}</span>.{' '}
+                    {isNe ? 'ठीक हो?' : 'Am I right?'}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+          {asking && (
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => judge(true)}
+                className={`flex min-h-20 items-center justify-center gap-2 rounded-2xl border-2 border-b-4 border-line bg-card ${font} text-child-label font-bold active:translate-y-1`}>
+                <Check size={32} /> {isNe ? 'ठीक छ' : 'Right'}
+              </button>
+              <button type="button" onClick={() => judge(false)}
+                className={`flex min-h-20 items-center justify-center gap-2 rounded-2xl border-2 border-b-4 border-line bg-card ${font} text-child-label font-bold active:translate-y-1`}>
+                <X size={32} /> {isNe ? 'ठीक छैन' : 'Not right'}
+              </button>
+            </div>
+          )}
+
+          <div className={`grid grid-cols-4 gap-3 ${asking ? 'hidden' : ''}`}>
             {m.choices.map((n) => {
               const right = solved === n
               const missed = tried.includes(n)

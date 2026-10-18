@@ -53,8 +53,10 @@ def fold_maths(events: list[dict]) -> list[dict]:
                 "id": pid, "at": e["at"], "lang": e["lang"], "sentences": e.get("sentences", []),
                 "a": a, "b": b, "op": op, "answer": a + b if op == "+" else a - b,
                 "source": e.get("source", ""), "level": e.get("level"), "answers": [], "solved": False,
-                "last_at": e["at"],
+                "last_at": e["at"], "cat_answer": e.get("cat_answer"), "judged_right": None,
             }
+        elif e.get("type") == "maths_judge" and pid in records:
+            records[pid]["judged_right"] = bool(e.get("judged_right"))
         elif e.get("type") == "maths_answer" and pid in records:
             r = records[pid]
             r["answers"].append(e["answer"])
@@ -113,6 +115,8 @@ def summarize_maths(records: list[dict], lang: str, now: float, level: int = 1, 
         "by_op": by_op,
         "struggling": struggling,
         "mistakes": mistakes,
+        "cat_checks": {"judged": sum(1 for r in rs if r["judged_right"] is not None),
+                       "right": sum(1 for r in rs if r["judged_right"])},
         "largest_solved": max((r["answer"] for r in rs if r["first_try"]), default=None),
         "recent": [
             {k: r[k] for k in ("id", "at", "sentences", "a", "b", "op", "answer", "answers", "solved", "first_try")}

@@ -78,7 +78,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 ## Brief gaps (checked against the full brief, 18 Oct)
 - [x] 1. Log re-teach use (hear / parts / picture / retry + did the retry work); open re-teach with the style that worked for this child; show in parent log ("Helps most" in profile, per-story practice log)
 - [x] 2. Automatic re-teach: long pause on a word (live follow-along) or same unit missed twice -> gentle re-teach card
-- [ ] 3. "Teach the cat" (child-sized Feynman / protégé effect): cat reads a known story with 1-2 code-chosen mistakes from the child's own confusions (घ->ग, ट->त, ि<->ी); child taps the wrong word. Maths: cat answers with the child's own mistake kind; child says right / not right and shows the answer
+- [x] 3. "Teach the cat" (child-sized Feynman / protégé effect): cat reads a known story with 1-2 code-chosen mistakes from the child's own confusions (घ->ग, ट->त, ि<->ी); child taps the wrong word. Maths: cat answers with the child's own mistake kind; child says right / not right and shows the answer
 - [ ] 4. "Why this story" for parents: plain bilingual line per story (units practised, interest used, outcome, safety), built in code
 - [ ] 5. Response time in adaptation: slow-but-right maths does not count toward level up; long hesitations keep a word's units practising
 - [ ] 6. Spoken guidance for pre-readers: speaker on language/maths buttons and choice tiles; spoken first-time prompts (fixed phrases, cached)

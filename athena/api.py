@@ -948,11 +948,13 @@ class InsightsOut(BaseModel):
     patterns: list[PatternOut]
     pace: PaceOut
     helps_most: dict | None = None  # {"style", "worked", "tries"}: re-teach way that works best
+    teach_cat: dict | None = None  # {"rounds", "mistakes", "caught", "missed_kinds"}: teach the cat
 
 
 def _insights(learner: Learner, language: Language) -> InsightsOut:
     from athena.insights import error_patterns, pace, skill_groups
     from athena.reteach import best_style
+    from athena.teach import teach_summary
 
     readings = [r for st in store.history.stories(learner.id) if st["lang"] == language for r in st["readings"]]
     return InsightsOut(
@@ -961,6 +963,7 @@ def _insights(learner: Learner, language: Language) -> InsightsOut:
         patterns=[PatternOut(**{**p.__dict__, "examples": [list(e) for e in p.examples]}) for p in error_patterns(language, readings)],
         pace=PaceOut(**pace(language, learner.sessions, time.time()).__dict__),
         helps_most=best_style(_reteach_events(learner.id, language)),
+        teach_cat=teach_summary(store.history.events(learner.id), language),
     )
 
 
@@ -1101,6 +1104,7 @@ class MathsOut(BaseModel):
     picture_url: str | None  # what is counted, shown as a groups of pictures
     choices: list[int]  # answer tiles (the answer is among them; the server keeps which)
     source: str
+    cat_answer: int | None = None  # teach the cat: the cat answers first, the child checks it
 
 
 class MathsAnswer(BaseModel):
@@ -1112,6 +1116,16 @@ class MathsResult(BaseModel):
     tries: int
     answer: int | None  # revealed when found, or after 2 tries ("let's count together")
     level_change: Literal["up", "down"] | None = None  # maths level moved after this problem
+
+
+class MathsJudge(BaseModel):
+    cat_right: bool  # the child's verdict on the cat's answer
+
+
+class MathsJudgeOut(BaseModel):
+    judged_right: bool  # the child's verdict matches the truth
+    cat_was_right: bool
+    result: MathsResult | None  # when the cat was right and the child agreed: solved
 
 
 _maths: dict[str, dict] = {}  # open problems; rebuilt from history after a restart
@@ -1147,7 +1161,8 @@ def _maths_get(pid: str) -> dict | None:
     if not r:
         return None
     prob = Problem(r["lang"], r["a"], r["b"], r["op"], noun="", sentences=r["sentences"], source=r["source"])
-    m = {"learner": learner_id, "problem": prob, "tries": len(r["answers"]), "solved": r["solved"], "at": r["at"]}
+    m = {"learner": learner_id, "problem": prob, "tries": len(r["answers"]), "solved": r["solved"], "at": r["at"],
+         "cat": r.get("cat_answer")}
     with _maths_lock:
         _maths[pid] = m
     return m
@@ -1179,6 +1194,15 @@ def maths_start(req: MathsStart) -> MathsOut:
 
     pid = f"{learner.id}-{_uuid.uuid4().hex[:12]}"
     rng = _random.Random()
+    from athena.maths_progress import summarize_maths
+    from athena.teach import CAT_EVERY, cat_answer
+
+    done = store.history.maths(learner.id)
+    n_lang = sum(1 for r in done if r["lang"] == req.language)
+    cat = None
+    if n_lang % CAT_EVERY == CAT_EVERY - 1:  # every 4th problem the cat answers first
+        mistakes = summarize_maths(done, req.language, time.time())["mistakes"]
+        cat = cat_answer(prob.a, prob.b, prob.op, mistakes, n_lang // CAT_EVERY, rng)
     choices = {prob.answer}
     while len(choices) < 4:
         choices.add(max(0, prob.answer + rng.choice([-2, -1, 1, 2, 3])))
@@ -1186,25 +1210,44 @@ def maths_start(req: MathsStart) -> MathsOut:
     with _maths_lock:
         for old in [k for k, v in _maths.items() if now - v["at"] > MATHS_KEEP_S]:
             del _maths[old]
-        _maths[pid] = {"learner": learner.id, "problem": prob, "tries": 0, "solved": False, "at": now}
+        _maths[pid] = {"learner": learner.id, "problem": prob, "tries": 0, "solved": False, "at": now, "cat": cat}
     store.history.append(learner.id, {"type": "maths", "story_id": pid, "at": now, "lang": req.language,
                                       "sentences": prob.sentences, "a": prob.a, "b": prob.b, "op": prob.op,
-                                      "source": prob.source, "level": level})
+                                      "source": prob.source, "level": level, "cat_answer": cat})
     noun = picture_noun(req.language, prob.noun)
     return MathsOut(
         id=pid, language=req.language, sentences=prob.sentences, display=display_words(req.language, prob.sentences),
         a=prob.a, b=prob.b, op=prob.op, picture_url=f"/api/pictures/ne/{noun}" if noun else None,
-        choices=sorted(choices), source=prob.source,
+        choices=sorted(choices), source=prob.source, cat_answer=cat,
     )
 
 
 @app.post("/api/maths/{pid}/answer", response_model=MathsResult)
 def maths_answer(pid: str, req: MathsAnswer) -> MathsResult:
-    from athena.maths_progress import next_maths_level
-
     m = _maths_get(pid)
     if not m:
         raise HTTPException(404, "problem not found")
+    return _maths_record(pid, m, req.answer)
+
+
+@app.post("/api/maths/{pid}/judge", response_model=MathsJudgeOut)
+def maths_judge(pid: str, req: MathsJudge) -> MathsJudgeOut:
+    """Teach the cat: the child says whether the cat's answer is right. Agreeing with a right
+    cat solves the problem (it is the child's own check); otherwise the child shows the answer."""
+    m = _maths_get(pid)
+    if not m or m.get("cat") is None:
+        raise HTTPException(404, "no cat answer for this problem")
+    truth = m["cat"] == m["problem"].answer
+    store.history.append(m["learner"], {"type": "maths_judge", "story_id": pid, "at": time.time(),
+                                        "cat_answer": m["cat"], "said_right": req.cat_right, "judged_right": req.cat_right == truth})
+    result = _maths_record(pid, m, m["cat"]) if truth and req.cat_right and not m["solved"] else None
+    return MathsJudgeOut(judged_right=req.cat_right == truth, cat_was_right=truth, result=result)
+
+
+def _maths_record(pid: str, m: dict, answer: int) -> MathsResult:
+    from athena.maths_progress import next_maths_level
+
+    req = MathsAnswer(answer=answer)
     m["tries"] += 1
     correct = req.answer == m["problem"].answer  # code decides
     if correct:
@@ -1275,6 +1318,7 @@ class MathsProgressOut(BaseModel):
     struggling: list[str]  # ops with a low first-try rate
     mistakes: dict[str, int]  # off_by_one, wrong_operation
     largest_solved: int | None
+    cat_checks: dict[str, int]  # teach the cat: {"judged", "right"}
     recent: list[MathsProblemOut]
 
 
@@ -1288,6 +1332,143 @@ def learner_maths(learner_id: str, language: Language) -> MathsProgressOut:
         raise HTTPException(404, "learner not found")
     return MathsProgressOut(**summarize_maths(store.history.maths(learner_id), language, time.time(),
                                               level=_maths_level(learner, language)))
+
+
+# --- teach the cat: the child catches the tutor's mistakes (athena/teach.py) ------------
+
+class TeachOut(BaseModel):
+    id: str
+    language: Language
+    title: str
+    sentences: list[str]  # the story as written: what the child sees
+    display: list[list[DisplayWord]]
+    mistakes: int  # how many to find
+    cat_picture: str | None
+
+
+class TeachTap(BaseModel):
+    index: int = Field(ge=0, le=500)
+
+
+class TeachTapOut(BaseModel):
+    caught: bool
+    found: list[int]  # word indices caught so far
+    left: int
+    word: str | None  # the right word, when caught (to hear it said properly)
+
+
+_teach: dict[str, dict] = {}
+teach_limit = RateLimit(per_ip=10, global_=60)
+
+
+def _teach_get(tid: str) -> dict | None:
+    """An open round: from memory, else rebuilt from history (restart / scale to zero)."""
+    if t := _teach.get(tid):
+        return t
+    learner_id = tid.rsplit("-", 1)[0]
+    if "-" not in tid or not store.get_learner(learner_id):
+        return None
+    events = store.history.events(learner_id)
+    start = next((e for e in events if e.get("type") == "teach" and e.get("story_id") == tid), None)
+    if not start:
+        return None
+    found = sorted({e["index"] for e in events if e.get("type") == "teach_tap" and e.get("story_id") == tid and e.get("caught")})
+    t = {**start, "learner": learner_id, "found": found, "at": start["at"]}
+    _teach[tid] = t
+    return t
+
+
+@app.post("/api/learners/{learner_id}/teach/{language}", response_model=TeachOut, dependencies=[Depends(teach_limit)])
+def teach_start(learner_id: str, language: Language) -> TeachOut:
+    """A story the child has read, as the cat will read it (with mistakes chosen in code)."""
+    import random as _random
+    import uuid as _uuid
+
+    from athena.insights import error_patterns
+    from athena.teach import MAX_SENTENCES, cat_sentences, plan_mistakes
+
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    limit = learner.settings.get("daily_minutes", 0)
+    if limit and _used_today(learner) >= limit:
+        raise HTTPException(403, "daily_limit")
+    stories = [r for r in store.history.stories(learner.id) if r["lang"] == language and r["readings"] and r.get("sentences")]
+    if not stories:
+        raise HTTPException(404, "read a story first")
+    rng = _random.Random()
+    story = rng.choice(stories[:5])  # one of the last few read
+    sentences = story["sentences"][:MAX_SENTENCES]
+    words = tokens(language, " ".join(sentences))
+    display = display_words(language, sentences)
+    name = learner.name[language]
+    skip = {name, name.lower()} | {w for w in words if w.startswith(name)}
+    readings = [r for st in stories for r in st["readings"]]
+    prefer = [p.kind for p in error_patterns(language, readings)]
+    practising = {u.split(":", 1)[1] for u in practice_targets(learner.units[language])}
+    mistakes = plan_mistakes(language, words, skip, prefer, practising, rng)
+    if not mistakes:
+        raise HTTPException(404, "no word to change in this story")
+    cat = cat_sentences(language, sentences, [[d.indices for d in line] for line in display], words, mistakes)
+    tid = f"{learner.id}-{_uuid.uuid4().hex[:12]}"
+    event = {"type": "teach", "story_id": tid, "at": time.time(), "lang": language, "from_story": story["story_id"],
+             "title": story.get("title", ""), "sentences": sentences, "cat_sentences": cat, "mistakes": mistakes}
+    store.history.append(learner.id, event)
+    _teach[tid] = {**event, "learner": learner.id, "found": []}
+    from athena.agents.picture import concrete_noun
+
+    return TeachOut(id=tid, language=language, title=story.get("title", ""), sentences=sentences, display=display,
+                    mistakes=len(mistakes),
+                    cat_picture=f"/api/pictures/ne/{n}" if (n := concrete_noun("ne", "बिरालो")) else None)
+
+
+@app.get("/api/teach/{tid}/audio", dependencies=[Depends(narrate_limit)])
+def teach_audio(tid: str) -> Response:
+    """The cat reading, mistakes included. Only this round's own text (no open TTS proxy)."""
+    t = _teach_get(tid)
+    if not t:
+        raise HTTPException(404, "not found")
+    return Response(tts.speak_word(t["lang"], " ".join(t["cat_sentences"])), media_type="audio/wav",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/api/teach/{tid}/words/{index}/audio", dependencies=[Depends(narrate_limit)])
+def teach_word_audio(tid: str, index: int) -> Response:
+    """One word said properly (after the child catches the cat's mistake on it)."""
+    t = _teach_get(tid)
+    words = tokens(t["lang"], " ".join(t["sentences"])) if t else []
+    if not t or not 0 <= index < len(words):
+        raise HTTPException(404, "not found")
+    return Response(tts.speak_word(t["lang"], words[index]), media_type="audio/wav",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/api/teach/{tid}/hints")
+def teach_hints(tid: str) -> dict:
+    """"Show me": the words still to find. Logged, so parents see the cat's mistakes the child
+    needed help with."""
+    t = _teach_get(tid)
+    if not t:
+        raise HTTPException(404, "not found")
+    left = [m["index"] for m in t["mistakes"] if m["index"] not in t["found"]]
+    store.history.append(t["learner"], {"type": "teach_hint", "story_id": tid, "at": time.time(), "left": left})
+    return {"left": left}
+
+
+@app.post("/api/teach/{tid}/tap", response_model=TeachTapOut)
+def teach_tap(tid: str, req: TeachTap) -> TeachTapOut:
+    """The child points at a word the cat got wrong. Code checks it; never "wrong" to the child."""
+    t = _teach_get(tid)
+    if not t:
+        raise HTTPException(404, "not found")
+    m = next((m for m in t["mistakes"] if m["index"] == req.index), None)
+    caught = m is not None
+    if caught and req.index not in t["found"]:
+        t["found"] = sorted({*t["found"], req.index})
+    store.history.append(t["learner"], {"type": "teach_tap", "story_id": tid, "at": time.time(), "index": req.index,
+                                        "caught": caught, "kind": m["kind"] if m else None})
+    return TeachTapOut(caught=caught, found=t["found"], left=len(t["mistakes"]) - len(t["found"]),
+                       word=m["word"] if m else None)
 
 
 class PartOut(BaseModel):

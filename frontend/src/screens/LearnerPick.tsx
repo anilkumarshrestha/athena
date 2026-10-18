@@ -92,6 +92,18 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
                 </a>
               ))}
             </div>
+            <div className="mt-3 flex gap-3">
+              {(['ne', 'en'] as const).map((ml) => (
+                <a
+                  key={ml}
+                  href={`#/teach/${l.id}/${ml}`}
+                  className={`flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-b-4 border-sun-edge bg-sun-soft ${ml === 'ne' ? 'font-story-ne' : 'font-story-en'} text-small font-bold text-ink transition-transform duration-150 active:translate-y-1`}
+                >
+                  <img src="/api/pictures/ne/बिरालो" alt="" className="size-8 rounded-full object-cover" />
+                  {ml === 'ne' ? 'बिरालोलाई सिकाऊ' : 'Teach the cat'}
+                </a>
+              ))}
+            </div>
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
               <a href={`#/parent/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
                 Parent view

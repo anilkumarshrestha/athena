@@ -9,6 +9,7 @@ import { ParentScreen } from './screens/ParentScreen'
 import { StoryReview } from './screens/StoryReview'
 import { StoryScreen } from './screens/StoryScreen'
 import { Styleguide } from './screens/Styleguide'
+import { TeachScreen } from './screens/TeachScreen'
 
 type Route =
   | { name: 'pick' }
@@ -20,6 +21,7 @@ type Route =
   | { name: 'review'; learnerId: string; storyId: string }
   | { name: 'story'; learnerId: string; lang: Language }
   | { name: 'maths'; learnerId: string; lang: Language }
+  | { name: 'teach'; learnerId: string; lang: Language }
 
 // Hash routes: #/  #/new  #/check/<learner>/<ne|en>  #/styleguide  #/mastery/<learner>  #/read/<learner>/<ne|en>
 function parse(hash: string): Route {
@@ -35,6 +37,8 @@ function parse(hash: string): Route {
   if (pm) return { name: 'parent', learnerId: pm[1] }
   const mt = hash.match(/^#\/maths\/([\w-]+)\/(ne|en)$/)
   if (mt) return { name: 'maths', learnerId: mt[1], lang: mt[2] as Language }
+  const tc = hash.match(/^#\/teach\/([\w-]+)\/(ne|en)$/)
+  if (tc) return { name: 'teach', learnerId: tc[1], lang: tc[2] as Language }
   const m = hash.match(/^#\/read\/([\w-]+)\/(ne|en)$/)
   return m ? { name: 'story', learnerId: m[1], lang: m[2] as Language } : { name: 'pick' }
 }
@@ -65,6 +69,8 @@ export default function App() {
     return <StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => (location.hash = `#/parent/${route.learnerId}`)} />
   if (route.name === 'parent') return <ParentScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
   if (route.name === 'mastery') return <MasteryScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
+  if (route.name === 'teach')
+    return <TeachScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => (location.hash = '#/')} />
   if (route.name === 'maths')
     return <MathsScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => (location.hash = '#/')} />
   if (route.name === 'story') {
