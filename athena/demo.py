@@ -29,6 +29,8 @@ PLANS = {
              "slip": {"ne": "c:ड", "en": "g:d"}, "wcpm": (14, 24), "acc": (0.72, 0.92)},
     "Ram": {"level": {"ne": 2, "en": 2}, "maths": {"ne": 2, "en": 2}, "kind": "aspiration",
             "slip": {"ne": "m:ै", "en": "g:ay"}, "wcpm": (30, 44), "acc": (0.82, 0.96)},
+    "Leo": {"level": {"ne": 1, "en": 2}, "maths": {"ne": 1, "en": 2}, "kind": "short_vowel",
+            "slip": {"ne": "c:क", "en": "g:igh"}, "wcpm": (26, 40), "acc": (0.8, 0.95)},
 }
 EN_SENTENCES = [
     "Sita sat.", "Pat a pan.", "Tap the tin.", "The cat sat on a mat.", "A dog had a nap.", "Ram got a red hat.",
@@ -89,7 +91,9 @@ def sample_week(learner, now: float | None = None) -> tuple[list[dict], list[dic
     sessions: list[dict] = []
     events: list[dict] = []
     accs: dict[str, list[float]] = {"ne": [], "en": []}
-    langs = ["ne", "en", "ne", "ne", "en", "ne"]
+    learns = learner.profile.get("languages", "both")
+    langs = ["en"] * 6 if learns == "en" else ["ne"] * 6 if learns == "ne" else ["ne", "en", "ne", "ne", "en", "ne"]
+    primary = langs[0]  # the language whose letter slips twice (the struggle alert)
     stories = {lang: _stories(lang, learner, rng, langs.count(lang)) for lang in ("ne", "en")}
     used = {"ne": 0, "en": 0}
     lo, hi = plan["acc"]
@@ -106,7 +110,7 @@ def sample_week(learner, now: float | None = None) -> tuple[list[dict], list[dic
                        "theme": "a day with the child's pet", "level": plan["level"][lang], "outcome": "first_pass",
                        "units_used": [], "target_units": [plan["slip"][lang]], "attempts": [{"n": 1, "ms": 2100, "violations": []}],
                        "safety": {"safe": True, "stage": "model", "reason": "", "ms": 400, "replaced": False}})
-        n_mistakes = 2 if k < 3 and lang == "ne" else 1  # fewer mistakes as the week goes on
+        n_mistakes = 2 if k < 3 and lang == primary else 1  # fewer mistakes as the week goes on
         heard = _transcript(lang, sents, plan["kind"], n_mistakes, rng)
         n_words = len(tokens(lang, " ".join(sents)))
         wcpm = round(w_lo + (w_hi - w_lo) * k / (len(langs) - 1) + rng.uniform(-1.5, 1.5), 1)
@@ -118,12 +122,17 @@ def sample_week(learner, now: float | None = None) -> tuple[list[dict], list[dic
                        "insertions": [], "paused": []})
         slip = plan["slip"][lang]
         changes: list[list[str]] = []
-        ne_n = langs[:k + 1].count("ne")  # this is the ne_n-th Nepali session
-        if lang == "ne" and ne_n in (2, 3):  # the same letter slips twice: a struggle alert for the parent
+        nth = langs[:k + 1].count(primary)  # this is the nth session in the main language
+        if lang == primary and nth in (2, 3):  # the same letter slips twice: a struggle alert for the parent
             changes.append([slip, "mastered", "practicing"])
-        if lang == "en" and k == 4:  # an English sound learned this week
-            changes.append([slip, "practicing", "mastered"])
-        new_unit = sorted(u for u, st in learner.units[lang].items() if st.state == "practicing" and u != slip)[:1]
+        if k == 4:  # a unit learned this week (the slipping one, if it is the other language)
+            done = slip if lang != primary else next(iter(sorted(
+                u for u, st in learner.units[lang].items() if st.state == "practicing" and u != slip)), None)
+            if done:
+                changes.append([done, "practicing", "mastered"])
+        learned = {c[0] for ss in sessions for c in ss["changes"]} | {c[0] for c in changes}
+        new_unit = sorted(u for u, st in learner.units[lang].items() if st.state == "unseen" and u not in learned)[:1] or \
+            sorted(u for u, st in learner.units[lang].items() if st.state == "practicing" and u != slip and u not in learned)[:1]
         if k == 5 and new_unit:
             changes.append([new_unit[0], "unseen", "practicing"])
         events.append({"type": "close", "story_id": sid, "at": at + 90, "accuracy": round(acc, 2),
@@ -143,8 +152,8 @@ def sample_week(learner, now: float | None = None) -> tuple[list[dict], list[dic
         pid = f"demo-m{d}{rng.randrange(10**6):06d}"
         at = now - (5 - d) * DAY - 3 * 3600
         right = a_ + b_
-        events.append({"type": "maths", "story_id": pid, "at": at, "lang": "ne", "sentences": [f"{a_} + {b_} = ?"],
-                       "a": a_, "b": b_, "op": "+", "source": "template", "level": plan["maths"]["ne"], "cat_answer": None})
+        events.append({"type": "maths", "story_id": pid, "at": at, "lang": primary, "sentences": [f"{a_} + {b_} = ?"],
+                       "a": a_, "b": b_, "op": "+", "source": "template", "level": plan["maths"][primary], "cat_answer": None})
         taps = [right + 1, right] if d == 1 else [right]
         for t, x in enumerate(taps, 1):
             events.append({"type": "maths_answer", "story_id": pid, "at": at + 15 * t, "answer": x,

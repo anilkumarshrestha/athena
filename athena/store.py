@@ -251,27 +251,34 @@ class MemoryStore:
                 s.image_status, s.image_id, s.image_latency_ms = status, image_id, latency_ms
 
 
-DEMO_IDS = ("sita", "ram")
+DEMO_IDS = ("sita", "ram", "leo")
+
+# Demo children (templates, family DEMO): each new family gets its own copies with a sample
+# week (athena/demo.py). Leo learns English only, for visitors who do not read Nepali.
+# preset = mastered units; then a few units the learner is practising.
+_DEMOS = [
+    ("sita", {"ne": "सीता", "en": "Sita"}, None, "ne_basic", ["c:ड", "m:ै"], "en_satpin_sh", ["g:m", "g:d"],
+     {"ne": 1, "en": 1}, {"favorite_animal": "goat", "favorite_food": "dal_bhat", "setting": "hills", "gender": "girl"}),
+    ("ram", {"ne": "राम", "en": "Ram"}, None, "ne_mid", ["k:क्ष", "k:न्छ"], "en_p3", ["g:ay", "g:ou"],
+     {"ne": 2, "en": 2}, {"favorite_animal": "yak", "favorite_food": "momo", "setting": "mountains", "gender": "boy"}),
+    ("leo", {"ne": "लियो", "en": "Leo"}, "fox", "ne_early", [], "en_p3", ["g:igh", "g:oa"],
+     {"ne": 1, "en": 2}, {"favorite_animal": "dog", "favorite_food": "egg", "setting": "city", "gender": "boy",
+                          "languages": "en", "buddy": "dog", "activity": "football"}),
+]
 
 
 def _seed(store: MemoryStore) -> None:
-    for lid, names, avatar, ne, ne_p, en, en_p in [
-        # preset = mastered units; then a few units the learner is practising
-        ("sita", {"ne": "सीता", "en": "Sita"}, "goat", "ne_basic", ["c:ड", "m:ै"], "en_satpin_sh", ["g:m", "g:d"]),
-        ("ram", {"ne": "राम", "en": "Ram"}, "yak", "ne_mid", ["k:क्ष", "k:न्छ"], "en_p3", ["g:ay", "g:ou"]),
-    ]:
+    """Add any demo child the store does not have yet (new databases, and Leo on old ones)."""
+    for lid, names, avatar, ne, ne_p, en, en_p, level, profile in _DEMOS:
+        if lid in store.learners:
+            continue
         units = {}
         for lang, preset_name, practicing in (("ne", ne, ne_p), ("en", en, en_p)):
             u = {sig: UnitState("mastered", streak=3, seen=3) for sig in preset(preset_name)[1]}
             u.update({sig: UnitState("practicing", streak=0, seen=1) for sig in practicing})
             units[lang] = u
-        level = {"sita": {"ne": 1, "en": 1}, "ram": {"ne": 2, "en": 2}}[lid]
-        profile = {
-            "sita": {"favorite_animal": "goat", "favorite_food": "dal_bhat", "setting": "hills", "gender": "girl"},
-            "ram": {"favorite_animal": "yak", "favorite_food": "momo", "setting": "mountains", "gender": "boy"},
-        }[lid]
-        store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units, level=level, profile=profile,
-                                  family=families.DEMO))
+        store.put_learner(Learner(id=lid, name=names, avatar=avatar or "", units=units, level=dict(level),
+                                  profile=dict(profile), family=families.DEMO))
 
 
 def new_learner(name_ne: str, name_en: str, profile: dict[str, str], start: str) -> Learner:
@@ -302,14 +309,13 @@ def _open_store() -> MemoryStore:
         from athena.firestore_store import open_firestore_store
 
         st = open_firestore_store(s.firestore_prefix)
-        if not st.learners:
-            _seed(st)  # empty database: demo learners
+        _seed(st)  # empty database: demo learners; older ones: any missing demo child
         st.adopt_unassigned()
         return st
     state = Path(s.state_dir)
     st = MemoryStore(state / "learners.json", History(state / "stories"))
-    if not st.load():
-        _seed(st)  # first run: demo learners, written to disk
+    st.load()
+    _seed(st)  # first run: demo learners; later: any missing demo child
     st.adopt_unassigned()
     return st
 

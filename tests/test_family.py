@@ -15,7 +15,7 @@ def test_each_browser_gets_its_own_children():
     a, b = client(), client()
     la = a.get("/api/learners").json()
     lb = b.get("/api/learners").json()
-    assert {x["name"]["en"] for x in la} == {"Sita", "Ram"}  # own copies of the demo children
+    assert {x["name"]["en"] for x in la} == {"Sita", "Ram", "Leo"}  # own copies of the demo children
     assert all(x["profile"].get("demo_copy") for x in la)  # labelled as sample data
     sita = next(x for x in la if x["name"]["en"] == "Sita")
     week = a.get(f"/api/learners/{sita['id']}/dashboard").json()["week"]["ne"]
@@ -85,3 +85,11 @@ def test_google_sign_in_keeps_progress_across_devices(monkeypatch):
     b.post("/api/auth/signout")
     assert not {x["id"] for x in b.get("/api/learners").json()} & a_kids
     assert {x["id"] for x in a.get("/api/learners").json()} == a_kids
+
+
+def test_leo_is_an_english_only_demo_child():
+    a = client()
+    leo = next(x for x in a.get("/api/learners").json() if x["name"]["en"] == "Leo")
+    assert leo["profile"]["languages"] == "en" and leo["avatar"] == "fox"
+    week = a.get(f"/api/learners/{leo['id']}/dashboard").json()["week"]["en"]
+    assert week["stories"] >= 5 and week["struggling"]  # an English sample week with a struggle alert
