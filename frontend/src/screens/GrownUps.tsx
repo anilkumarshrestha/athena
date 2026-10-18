@@ -5,6 +5,8 @@ import { DotLoader } from '../components/DotLoader'
 import { FamilyCode } from '../components/FamilyCode'
 import { LevelStars, knownCount } from '../components/LevelStars'
 import { accentOf, learns } from '../learner'
+import { bi } from '../ui'
+import { UiLangSwitch } from '../components/UiLangSwitch'
 
 // For grown-ups (/grownups, behind the grown-up question): every child's parent view and
 // teacher view in one place, plus the account (Google sign-in) and the family code. Kept off
@@ -18,10 +20,13 @@ export function GrownUps({ onBack }: { onBack: () => void }) {
 
   return (
     <main className="mx-auto max-w-[960px] px-4 py-8 font-ui md:px-8">
-      <button type="button" onClick={onBack} className="mb-6 flex items-center gap-2 text-body text-ink-2 hover:text-ink">
-        <ArrowLeft size={20} strokeWidth={1.75} /> Who's reading?
-      </button>
-      <h1 className="m-0 mb-1 text-display font-semibold">ठूला मान्छेका लागि · For grown-ups</h1>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <button type="button" onClick={onBack} className="flex items-center gap-2 text-body text-ink-2 hover:text-ink">
+          <ArrowLeft size={20} strokeWidth={1.75} /> Who's reading?
+        </button>
+        <UiLangSwitch />
+      </div>
+      <h1 className="m-0 mb-1 text-display font-semibold">{bi("ठूला मान्छेका लागि", "For grown-ups")}</h1>
       <p className="m-0 mb-6 text-body text-ink-3">How each child is doing, what to practise at home, and your account.</p>
 
       {!learners ? <DotLoader /> : (

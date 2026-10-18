@@ -5,6 +5,7 @@ import { api } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { GoogleButton } from '../components/GoogleButton'
 import { go } from '../nav'
+import { setUiLang } from '../ui'
 
 type Family = components['schemas']['FamilyOut']
 type UiLang = 'en' | 'ne'
@@ -106,11 +107,7 @@ export function Landing({ step }: { step: LandingStep }) {
 
   const choose = (l: UiLang) => {
     setLang(l)
-    try {
-      localStorage.setItem(KEY, l)
-    } catch {
-      /* not remembered: fine */
-    }
+    setUiLang(l) // the whole app's labels follow (athena/ui.ts)
   }
 
   const start = async () => {

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from './DotLoader'
+import { bi } from '../ui'
 
 type Progress = components['schemas']['MathsProgressOut']
 type Problem = components['schemas']['MathsProblemOut']
@@ -71,7 +72,7 @@ export function MathsProgress({
 
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-h2 font-semibold">गणित · Maths</h2>
+      <h2 className="mb-3 text-h2 font-semibold">{bi("गणित", "Maths")}</h2>
       {!m ? (
         <DotLoader />
       ) : m.total === 0 ? (
@@ -79,8 +80,8 @@ export function MathsProgress({
       ) : (
         <>
           <div className="mb-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-            <Stat label="यो हप्ता · This week" value={String(m.week.problems)} />
-            <Stat label="पहिलो पटकमै · First try" value={pct(m.week.first_try)} />
+            <Stat label={bi("यो हप्ता", "This week")} value={String(m.week.problems)} />
+            <Stat label={bi("पहिलो पटकमै", "First try")} value={pct(m.week.first_try)} />
             <Stat label={`${OP['+'].ne} · ${OP['+'].en}`} value={pct(m.by_op['+']?.first_try)} />
             <Stat label={`${OP['-'].ne} · ${OP['-'].en}`} value={m.by_op['-']?.problems ? pct(m.by_op['-'].first_try) : '—'} />
           </div>

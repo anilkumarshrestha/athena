@@ -3,6 +3,7 @@ import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { unitGlyph } from '../units'
 import { DotLoader } from './DotLoader'
+import { bi } from '../ui'
 
 type Insights = components['schemas']['InsightsOut']
 
@@ -49,7 +50,7 @@ export function ProfileInsights({ learnerId, lang }: { learnerId: string; lang: 
 
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-h2 font-semibold">प्रोफाइल · Profile</h2>
+      <h2 className="mb-3 text-h2 font-semibold">{bi("प्रोफाइल", "Profile")}</h2>
 
       <div className="mb-4 rounded-xl border-2 border-line bg-card p-4">
         {note === null ? (
@@ -66,7 +67,7 @@ export function ProfileInsights({ learnerId, lang }: { learnerId: string; lang: 
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-xl border-2 border-line bg-card p-4">
-          <h3 className="m-0 mb-3 text-h3 font-semibold">बलियो र कमजोर पक्ष · Strengths and gaps</h3>
+          <h3 className="m-0 mb-3 text-h3 font-semibold">{bi("बलियो र कमजोर पक्ष", "Strengths and gaps")}</h3>
           <ul className="m-0 flex list-none flex-col gap-2 p-0">
             {ins.groups.map((g) => (
               <li key={g.name} className="grid grid-cols-[6.5rem_1fr_auto] items-center gap-3">
@@ -85,7 +86,7 @@ export function ProfileInsights({ learnerId, lang }: { learnerId: string; lang: 
 
         <div className="flex flex-col gap-4">
           <div className="rounded-xl border-2 border-line bg-card p-4">
-            <h3 className="m-0 mb-2 text-h3 font-semibold">गल्तीका ढाँचा · Mistake patterns</h3>
+            <h3 className="m-0 mb-2 text-h3 font-semibold">{bi("गल्तीका ढाँचा", "Mistake patterns")}</h3>
             {ins.patterns.length === 0 ? (
               <p className="m-0 text-small text-ink-3">No repeated pattern yet. Patterns appear after the same kind of mistake happens twice.</p>
             ) : (
@@ -106,7 +107,7 @@ export function ProfileInsights({ learnerId, lang }: { learnerId: string; lang: 
           </div>
 
           <div className="rounded-xl border-2 border-line bg-card p-4">
-            <h3 className="m-0 mb-2 text-h3 font-semibold">गति · Pace (14 days)</h3>
+            <h3 className="m-0 mb-2 text-h3 font-semibold">{bi("गति", "Pace (14 days)")}</h3>
             <p className="m-0 font-mono text-small tabular-nums">
               {p.sessions_14d} sessions · {p.mastered_14d} letters mastered
               {p.wcpm_first != null && ` · ${p.wcpm_first} → ${p.wcpm_last} words/min`}

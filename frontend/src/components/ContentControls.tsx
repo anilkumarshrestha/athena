@@ -2,6 +2,7 @@ import { Check, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { components } from '../api-types'
 import { api } from '../api'
+import { bi } from '../ui'
 
 type Controls = components['schemas']['ControlsIn']
 type ThemeOption = components['schemas']['ThemeOptionOut']
@@ -39,7 +40,7 @@ export function ContentControls({ learnerId, initial }: { learnerId: string; ini
 
   return (
     <section className="mb-8 rounded-xl border-2 border-line bg-card p-4">
-      <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><ShieldCheck size={20} /> सामग्री · Content</h2>
+      <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><ShieldCheck size={20} /> {bi("सामग्री", "Content")}</h2>
       <p className="m-0 mb-3 text-small text-ink-3">Every story is already checked for child safety. These choose what is offered.</p>
       <div className="mb-4 grid gap-2 md:grid-cols-3">
         {SWITCHES.map((sw) => {
@@ -56,7 +57,7 @@ export function ContentControls({ learnerId, initial }: { learnerId: string; ini
           )
         })}
       </div>
-      <h3 className="m-0 mb-2 text-h3 font-semibold">यी विषयमा कथा नबनाऊ · Themes to avoid</h3>
+      <h3 className="m-0 mb-2 text-h3 font-semibold">{bi("यी विषयमा कथा नबनाऊ", "Themes to avoid")}</h3>
       <div className="flex flex-wrap gap-2">
         {themes.map((t) => {
           const off = avoid.includes(t.theme)

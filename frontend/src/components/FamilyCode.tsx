@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { components } from '../api-types'
 import { api } from '../api'
 import { GoogleButton } from './GoogleButton'
+import { bi } from '../ui'
 
 type Family = components['schemas']['FamilyOut']
 
@@ -20,7 +21,7 @@ export function FamilyCode() {
   return (
     <section className="mb-8 grid gap-3 md:grid-cols-2">
       <div className="rounded-xl border-2 border-line bg-card p-4">
-        <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><UserRound size={20} /> खाता · Account</h2>
+        <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><UserRound size={20} /> {bi("खाता", "Account")}</h2>
         {f.email ? (
           <>
             <p className="m-0 mb-2 text-body">Signed in as <span className="font-semibold">{f.email}</span>. Progress is kept with this Google account.</p>
@@ -40,7 +41,7 @@ export function FamilyCode() {
         )}
       </div>
       <div className="rounded-xl border-2 border-line bg-card p-4">
-        <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><KeyRound size={20} /> परिवार कोड · Family code</h2>
+        <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><KeyRound size={20} /> {bi("परिवार कोड", "Family code")}</h2>
         <p className="m-0 mb-2 font-mono text-stat tabular-nums">{f.code}</p>
         <p className="m-0 text-small text-ink-3">
           Opens these children on another phone or computer ("Have a family code?" on the first screen). Keep it private, like a password.
@@ -58,7 +59,7 @@ export function JoinFamily() {
   if (!open)
     return (
       <button type="button" onClick={() => setOpen(true)} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
-        परिवार कोड छ? · Have a family code?
+        {bi("परिवार कोड छ?", "Have a family code?")}
       </button>
     )
   return (

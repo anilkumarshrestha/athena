@@ -6,6 +6,8 @@ import { JoinFamily } from '../components/FamilyCode'
 import { LevelStars } from '../components/LevelStars'
 import { accentOf, goalOf, learns } from '../learner'
 import { setSoundOn, sfx, soundOn } from '../sound'
+import { UiLangSwitch } from '../components/UiLangSwitch'
+import { uiLang } from '../ui'
 
 // "Who's reading today?" (/app): one big tile per child, found by their picture without
 // reading. A tap opens that child's own home (/child/<id>). Grown-up things (parent and
@@ -27,7 +29,8 @@ export function LearnerPick() {
           <path d="M8 25 16 6l8 19M11.5 18h9" fill="none" className="stroke-crimson" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span className="text-child-title font-semibold">Athena</span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <UiLangSwitch />
           <button
             type="button"
             aria-pressed={sound}
@@ -48,7 +51,7 @@ export function LearnerPick() {
       </header>
 
       <h1 className="m-0 mb-6 font-story-ne text-child-title font-bold">
-        आज को पढ्छ? <span className="font-story-en text-child-label font-semibold text-ink-3">· Who's reading today?</span>
+        {uiLang() === 'en' ? <span className="font-story-en">Who's reading today?</span> : <>आज को पढ्छ? <span className="font-story-en text-child-label font-semibold text-ink-3">· Who's reading today?</span></>}
       </h1>
 
       {error && <p className="text-omitted">{error}</p>}
@@ -64,8 +67,18 @@ export function LearnerPick() {
               <div className={`size-28 overflow-hidden rounded-full border-4 bg-card ${a.ring}`}>
                 <img src={l.avatar_url} alt="" className="size-full object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
               </div>
-              <span className="font-story-ne text-child-title font-bold leading-tight">{l.name.ne}</span>
-              <span className="-mt-2 font-story-en text-body text-ink-2">{l.name.en}</span>
+              {/* the name the visitor reads first: English in the English interface or for an English-only child */}
+              {uiLang() === 'en' || l.profile.languages === 'en' ? (
+                <>
+                  <span className="font-story-en text-child-title font-bold leading-tight">{l.name.en}</span>
+                  <span className="-mt-2 font-story-ne text-body text-ink-2">{l.name.ne}</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-story-ne text-child-title font-bold leading-tight">{l.name.ne}</span>
+                  <span className="-mt-2 font-story-en text-body text-ink-2">{l.name.en}</span>
+                </>
+              )}
               <span className="flex flex-wrap justify-center gap-1">
                 {(['ne', 'en'] as const).filter((x) => learns(l, x)).map((x) => (
                   <span key={x} className="inline-flex items-center gap-1 rounded-full bg-card px-2 py-0.5 text-caption font-semibold text-ink-2">
@@ -87,8 +100,14 @@ export function LearnerPick() {
         })}
         <a href="/new"
           className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-primary bg-card text-primary transition-colors duration-150 hover:bg-primary-soft">
-          <span className="font-story-ne text-child-title font-bold">+ नयाँ साथी</span>
-          <span className="text-body text-ink-3">Add a learner</span>
+          {uiLang() === 'en' ? (
+            <span className="font-story-en text-child-title font-bold">+ Add a learner</span>
+          ) : (
+            <>
+              <span className="font-story-ne text-child-title font-bold">+ नयाँ साथी</span>
+              <span className="text-body text-ink-3">Add a learner</span>
+            </>
+          )}
         </a>
       </div>
       <div className="mt-10 flex justify-center">

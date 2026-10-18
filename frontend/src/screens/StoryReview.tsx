@@ -7,6 +7,7 @@ import { DotLoader } from '../components/DotLoader'
 import { StoryCard } from '../components/StoryCard'
 import type { Outcome } from '../components/WordToken'
 import { unitGlyph } from '../units'
+import { bi } from '../ui'
 
 type Detail = components['schemas']['HistoryStoryOut']
 
@@ -47,7 +48,7 @@ export function StoryReview({ learnerId, storyId, onBack }: { learnerId: string;
 
       {d.why.en.length > 0 && (
         <section className="mb-6 rounded-xl border-2 border-line bg-card p-4 font-ui">
-          <h2 className="m-0 mb-2 text-h3 font-semibold">किन यो कथा? · Why this story</h2>
+          <h2 className="m-0 mb-2 text-h3 font-semibold">{bi("किन यो कथा?", "Why this story")}</h2>
           <ul className="m-0 grid list-none gap-2 p-0">
             {d.why.en.map((line, i) => (
               <li key={i}>

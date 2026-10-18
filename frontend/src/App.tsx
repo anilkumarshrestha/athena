@@ -15,6 +15,7 @@ import { Landing, type LandingStep } from './screens/Landing'
 import { Styleguide } from './screens/Styleguide'
 import { TeachScreen } from './screens/TeachScreen'
 import { back, go, interceptLinks } from './nav'
+import { onUiLang, uiLang } from './ui'
 
 type Route =
   | { name: 'pick' }
@@ -65,6 +66,8 @@ if (location.hash.startsWith('#/')) history.replaceState(null, '', location.hash
 
 export default function App() {
   const [route, setRoute] = useState<Route>(() => parse(location.pathname))
+  const [, setUi] = useState(uiLang) // a language change re-renders every screen's labels
+  useEffect(() => onUiLang(setUi), [])
 
   useEffect(() => {
     const onNav = () => {

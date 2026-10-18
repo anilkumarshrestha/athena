@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import type { components } from '../api-types'
 import { api } from '../api'
 import { sfx } from '../sound'
+import { bi } from '../ui'
 
 type Create = components['schemas']['LearnerCreate']
 
@@ -211,7 +212,7 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string, lan
 
       {step.key === 'hello' && (
         <button type="button" onClick={next} className="flex min-h-16 w-full items-center justify-center gap-2 rounded-xl border-b-4 border-primary-hover bg-primary text-child-label font-bold text-on-primary active:translate-y-1">
-          सुरु गरौँ · Start <ArrowRight size={26} />
+          {bi("सुरु गरौँ", "Start")} <ArrowRight size={26} />
         </button>
       )}
 
@@ -229,7 +230,7 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string, lan
           </div>
           <button type="button" disabled={!nameOk} onClick={next}
             className="flex min-h-16 w-full items-center justify-center gap-2 rounded-xl border-b-4 border-primary-hover bg-primary text-child-label font-bold text-on-primary active:translate-y-1 disabled:border-ink-3 disabled:bg-ink-4">
-            अगाडि · Next <ArrowRight size={26} />
+            {bi("अगाडि", "Next")} <ArrowRight size={26} />
           </button>
           <p className="m-0 mt-2 text-small text-ink-3">First name only. Nepali in Devanagari, English in letters A–Z.</p>
         </>
@@ -259,7 +260,7 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string, lan
       {tiles && chosen && (
         <div className="mt-4 flex justify-end">
           <button type="button" onClick={next} className="flex min-h-14 items-center gap-2 rounded-xl px-4 text-child-label font-semibold text-primary">
-            अगाडि · Next <ArrowRight size={24} />
+            {bi("अगाडि", "Next")} <ArrowRight size={24} />
           </button>
         </div>
       )}
@@ -286,7 +287,7 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string, lan
           {error && <p className="mb-4 text-body text-omitted">{error}</p>}
           <button type="button" disabled={saving || !nameOk} onClick={finish}
             className="flex min-h-16 w-full items-center justify-center gap-2 rounded-xl border-b-4 border-primary-hover bg-primary text-child-label font-bold text-on-primary active:translate-y-1 disabled:bg-ink-4">
-            {saving ? '…' : 'अक्षर खेल सुरु गरौँ · Start the letter game'} <ArrowRight size={26} />
+            {saving ? '…' : bi('अक्षर खेल सुरु गरौँ', 'Start the letter game')} <ArrowRight size={26} />
           </button>
         </>
       )}

@@ -9,6 +9,7 @@ import { MathsProgress } from '../components/MathsProgress'
 import { ProfileInsights } from '../components/ProfileInsights'
 import { UnitChip } from '../components/UnitChip'
 import { unitGlyph } from '../units'
+import { bi } from '../ui'
 
 type Dashboard = components['schemas']['DashboardOut']
 type Activities = components['schemas']['ActivitiesOut']
@@ -64,7 +65,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
           Sample data: a made-up week so you can see what this view shows. Your own children start empty.
         </p>
       )}
-      <p className="m-0 mb-3 text-body text-ink-3">अभिभावकका लागि · For parents: this week, what's hard, and how to help at home.</p>
+      <p className="m-0 mb-3 text-body text-ink-3">{bi("अभिभावकका लागि", "For parents: this week, what's hard, and how to help at home.")}</p>
       <ul className="m-0 mb-6 flex list-none flex-wrap gap-2 p-0 text-small">
         {(['ne', 'en'] as const).map((l) => (
           <li key={l} className="flex items-center gap-2 rounded-lg border border-line bg-card px-3 py-2">
@@ -94,12 +95,12 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
       <ProfileInsights learnerId={learnerId} lang={lang} />
 
       {/* This week */}
-      <h2 className="mb-3 text-h2 font-semibold">यो हप्ता · This week</h2>
+      <h2 className="mb-3 text-h2 font-semibold">{bi("यो हप्ता", "This week")}</h2>
       <div className="mb-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="कथा · Stories" value={String(w.stories)} />
-        <Stat label="पढेका शब्द · Words read" value={String(w.words_read)} />
-        <Stat label="शुद्धता · Accuracy" value={w.mean_accuracy == null ? '—' : `${Math.round(w.mean_accuracy * 100)}%`} />
-        <Stat label="शब्द/मिनेट · Words/min" value={w.mean_wcpm == null ? '—' : String(w.mean_wcpm)} />
+        <Stat label={bi("कथा", "Stories")} value={String(w.stories)} />
+        <Stat label={bi("पढेका शब्द", "Words read")} value={String(w.words_read)} />
+        <Stat label={bi("शुद्धता", "Accuracy")} value={w.mean_accuracy == null ? '—' : `${Math.round(w.mean_accuracy * 100)}%`} />
+        <Stat label={bi("शब्द/मिनेट", "Words/min")} value={w.mean_wcpm == null ? '—' : String(w.mean_wcpm)} />
       </div>
       <div className="mb-8 flex h-12 items-end gap-1" aria-label="Stories per day, last 7 days">
         {w.per_day.map((n, i) => (
@@ -109,7 +110,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
 
       {(w.mastered.length > 0 || w.introduced.length > 0) && (
         <section className="mb-8">
-          <h2 className="mb-3 text-h2 font-semibold">सिकेका अक्षर · Learned</h2>
+          <h2 className="mb-3 text-h2 font-semibold">{bi("सिकेका अक्षर", "Learned")}</h2>
           <div className="flex flex-wrap gap-2">
             {w.mastered.map((u) => <UnitChip key={u} unit={u} state="mastered" lang={lang} changed="promoted" />)}
             {w.introduced.map((u) => <UnitChip key={u} unit={u} state="practicing" lang={lang} />)}
@@ -135,7 +136,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
       <MathsProgress learnerId={learnerId} lang={lang} name={name} />
 
       {/* Home activities */}
-      <h2 className="mb-1 text-h2 font-semibold">घरमा अभ्यास · At home</h2>
+      <h2 className="mb-1 text-h2 font-semibold">{bi("घरमा अभ्यास", "At home")}</h2>
       <p className="m-0 mb-3 text-small text-ink-3">
         Practising now: {(acts?.practicing ?? d.practicing[lang]).map(glyph).join(' ') || '—'}
       </p>
@@ -173,7 +174,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
 
       {/* Time control */}
       <section className="mb-8 rounded-xl border-2 border-line bg-card p-4">
-        <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><Clock size={20} /> दैनिक समय · Daily time</h2>
+        <h2 className="m-0 mb-1 flex items-center gap-2 text-h2 font-semibold"><Clock size={20} /> {bi("दैनिक समय", "Daily time")}</h2>
         <p className="m-0 mb-3 text-small text-ink-3">
           Used today: {d.used_today} min. When the limit is reached, {name.en} sees "see you tomorrow".
         </p>
@@ -191,7 +192,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
       {/* Every story the child got: human-reviewable log, newest first */}
       {history && history.length > 0 && (
         <section>
-          <h2 className="mb-3 text-h2 font-semibold">कथाहरू · Stories</h2>
+          <h2 className="mb-3 text-h2 font-semibold">{bi("कथाहरू", "Stories")}</h2>
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             {history.map((h) => (
               <a key={h.story_id} href={`/parent/${learnerId}/story/${h.story_id}`}

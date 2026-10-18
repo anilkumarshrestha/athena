@@ -1,5 +1,6 @@
 import { Lock } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
+import { bi } from '../ui'
 
 // Grown-up question (like Duolingo ABC's parent gate): four numbers spelled out in English
 // capitals ("ONE, THREE, FOUR, FOUR"), typed as digits (1344). A child learning to read (4-10) can
@@ -52,7 +53,7 @@ export function ParentGate({ children, onBack }: { children: ReactNode; onBack: 
     <main className="mx-auto box-content max-w-story px-4 py-12 font-ui md:px-8">
       <section className="flex flex-col items-center gap-4 rounded-2xl border-2 border-b-4 border-line bg-card p-8 text-center">
         <Lock size={40} className="text-ink-2" />
-        <h1 className="m-0 text-h2 font-semibold">ठूला मान्छेका लागि · For grown-ups</h1>
+        <h1 className="m-0 text-h2 font-semibold">{bi("ठूला मान्छेका लागि", "For grown-ups")}</h1>
         <p className="m-0 text-body text-ink-2">To continue, type these numbers as digits:</p>
         <p className="m-0 text-h2 font-bold tracking-wide">{code.map((d) => WORDS[d]).join(', ')}</p>
         <form onSubmit={(e) => (e.preventDefault(), check())} className="flex gap-2">

@@ -4,6 +4,7 @@ import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { unitGlyph } from '../units'
 import { DotLoader } from './DotLoader'
+import { bi } from '../ui'
 
 type Graph = components['schemas']['SkillGraphOut']
 type Need = { unit: string; known: boolean }
@@ -48,7 +49,7 @@ export function SkillGraph({ learnerId, lang }: { learnerId: string; lang: Langu
 
   return (
     <section>
-      <h2 className="mb-1 text-h2 font-semibold">सीपको नक्सा · Skill graph</h2>
+      <h2 className="mb-1 text-h2 font-semibold">{bi("सीपको नक्सा", "Skill graph")}</h2>
       <p className="m-0 mb-4 text-small text-ink-3">
         A unit is introduced only when what it builds on is known: a conjunct needs both its letters, a long vowel sign its
         short one, a breathy letter its plain partner, an English sound like sh its letters.
@@ -66,7 +67,7 @@ export function SkillGraph({ learnerId, lang }: { learnerId: string; lang: Langu
         </div>
       </div>
 
-      <h3 className="mb-2 mt-6 text-h3 font-semibold">गणितको क्रम · Maths path</h3>
+      <h3 className="mb-2 mt-6 text-h3 font-semibold">{bi("गणितको क्रम", "Maths path")}</h3>
       <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0">
         {(g.maths as MathsSkill[]).map((m, i) => {
           const st = STATUS[m.status] ?? STATUS.locked

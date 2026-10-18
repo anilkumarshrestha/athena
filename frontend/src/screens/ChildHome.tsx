@@ -5,6 +5,7 @@ import { DotLoader } from '../components/DotLoader'
 import { LevelStars, knownCount, neNum } from '../components/LevelStars'
 import { accentOf, buddyEn, buddyNe, gainedStar, goalOf, learns } from '../learner'
 import { sfx } from '../sound'
+import { bi, uiLang } from '../ui'
 
 // One child's home (/child/<id>): only their things. Big picture tiles for each activity in
 // the languages they learn, with their stars; today's goal; a star gained since last time is
@@ -54,7 +55,9 @@ export function ChildHome({ learnerId, onBack }: { learnerId: string; onBack: ()
           <img src={l.avatar_url} alt="" className="size-full object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="font-story-ne text-child-title font-bold leading-tight">{l.name.ne}</div>
+          <div className={`${uiLang() === 'en' || l.profile.languages === 'en' ? 'font-story-en' : 'font-story-ne'} text-child-title font-bold leading-tight`}>
+            {uiLang() === 'en' || l.profile.languages === 'en' ? l.name.en : l.name.ne}
+          </div>
           <div className="flex items-center gap-2" aria-label="Today's reading goal">
             <div className="h-3 flex-1 overflow-hidden rounded-full bg-line">
               <div className="h-full rounded-full bg-leaf" style={{ width: `${Math.min(100, (l.used_today / goal) * 100)}%` }} />
@@ -68,7 +71,7 @@ export function ChildHome({ learnerId, onBack }: { learnerId: string; onBack: ()
 
       {newStar && (
         <p className="m-0 mb-4 flex items-center justify-center gap-2 rounded-2xl bg-sun-soft px-4 py-3 text-child-label font-bold">
-          <LevelStars level={1} size={20} /> नयाँ तारा! · New star!
+          <LevelStars level={1} size={20} /> {bi("नयाँ तारा!", "New star!")}
         </p>
       )}
 
