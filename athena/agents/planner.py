@@ -108,6 +108,7 @@ def plan(
     level: int = 2,
     personal: list[Theme] | None = None,
     setting: str | None = None,
+    child_gender: str = "unspecified",
 ) -> StoryPlan:
     """personal: themes from the child's favourites, preferred when readable.
     setting: where the child lives, e.g. "a hill village in Nepal" (story + picture)."""
@@ -146,6 +147,7 @@ def plan(
         avoid_words=avoid_words,
         target_units=list(target_units),
         level=level,
+        child_gender=child_gender,
         word_bank=words,
         mastery=sorted(mastery),
     )

@@ -42,6 +42,10 @@ def build_prompt(plan: StoryPlan, feedback: list[ViolationOut] | None = None) ->
         if plan.language == "ne"
         else "Every word in the title and story MUST come from the word bank (case-insensitive)."
     )
+    gender_rule = {
+        "boy": f"- {plan.learner_name} is a BOY: masculine past verbs for him: \"{plan.learner_name} बजार गयो\", \"{plan.learner_name} खुसी भयो\", \"{plan.learner_name}ले भात खायो\". Never गइन्/भइन्/खाइन् for him.\n",
+        "girl": f"- {plan.learner_name} is a GIRL: feminine past verbs for her: \"{plan.learner_name} बजार गइन्\", \"{plan.learner_name} खुसी भइन्\", \"{plan.learner_name}ले भात खाइन्\". Never गयो/भयो/खायो for her.\n",
+    }.get(plan.child_gender, f"- {plan.learner_name}'s gender is not given: avoid gendered past-tense verbs for {plan.learner_name}; use present tense (\"{plan.learner_name} खुसी छ\", \"{plan.learner_name} बजार जान्छ\").\n")
     grammar = (
         """
 Nepali grammar and idiom (a native speaker will read this):
@@ -54,6 +58,8 @@ Nepali grammar and idiom (a native speaker will read this):
         if plan.language == "ne"
         else ""
     )
+    if plan.language == "ne":
+        grammar = grammar.replace("- RESPECT:", gender_rule + "- RESPECT:", 1)
     lim = LEVELS[plan.level]
     key_line = ""
     if plan.key_words:

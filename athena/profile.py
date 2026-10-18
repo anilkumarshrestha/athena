@@ -13,6 +13,7 @@ AnimalId = Literal["goat", "cat", "dog", "hen", "cow", "buffalo", "bird", "yak"]
 FoodId = Literal["dal_bhat", "momo", "roti", "mango", "banana", "milk", "corn", "egg"]
 SettingId = Literal["hills", "terai", "mountains", "city"]
 StartId = Literal["beginner", "some", "reads"]
+GenderId = Literal["boy", "girl", "unspecified"]  # Nepali past-tense verbs agree with gender
 
 # id -> (English for the image/theme, Nepali words most natural first, English story words)
 ANIMALS: dict[str, tuple[str, list[str], list[str]]] = {

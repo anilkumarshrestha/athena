@@ -27,6 +27,12 @@ const FOODS: [Create['favorite_food'], string, string][] = [
   ['corn', 'मकै', 'Corn'],
   ['egg', 'अण्डा', 'Egg'],
 ]
+// Nepali past-tense verbs agree with gender (राम गयो, सीता गइन्): the stories need it.
+const GENDERS: [NonNullable<Create['gender']>, string, string][] = [
+  ['boy', 'छोरा', 'Boy'],
+  ['girl', 'छोरी', 'Girl'],
+  ['unspecified', 'नभन्ने', 'Prefer not to say'],
+]
 const SETTINGS: [Create['setting'], string, string][] = [
   ['hills', 'पहाड', 'Hills'],
   ['terai', 'तराई', 'Terai'],
@@ -74,10 +80,11 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string) => 
   const [animal, setAnimal] = useState<Create['favorite_animal'] | null>(null)
   const [food, setFood] = useState<Create['favorite_food'] | null>(null)
   const [setting, setSetting] = useState<Create['setting'] | null>(null)
+  const [gender, setGender] = useState<NonNullable<Create['gender']> | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const ready = nameNe.trim() && nameEn.trim() && animal && food && setting
+  const ready = nameNe.trim() && nameEn.trim() && animal && food && setting && gender
 
   const submit = async () => {
     if (!ready) return
@@ -90,6 +97,7 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string) => 
         favorite_animal: animal,
         favorite_food: food,
         setting,
+        gender: gender ?? 'unspecified',
         start: 'beginner', // the card check right after sets the real starting point
       })
       onDone(learner.id)
@@ -124,6 +132,7 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string) => 
         </label>
       </div>
 
+      <Choice label="छोरा वा छोरी · Boy or girl (for Nepali grammar)" options={GENDERS} value={gender} onChange={setGender} />
       <Choice label="मन पर्ने जनावर · Favourite animal" options={ANIMALS} value={animal} onChange={setAnimal} />
       <Choice label="मन पर्ने खाना · Favourite food" options={FOODS} value={food} onChange={setFood} />
       <Choice label="कहाँ बस्छ? · Where they live" options={SETTINGS} value={setting} onChange={setSetting} />

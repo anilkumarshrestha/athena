@@ -801,6 +801,12 @@ export interface components {
              */
             favorite_food: "dal_bhat" | "momo" | "roti" | "mango" | "banana" | "milk" | "corn" | "egg";
             /**
+             * Gender
+             * @default unspecified
+             * @enum {string}
+             */
+            gender: "boy" | "girl" | "unspecified";
+            /**
              * Setting
              * @enum {string}
              */

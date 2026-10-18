@@ -32,7 +32,7 @@ from athena.mastery import Change, UnitState, allowed, apply_session, practice_t
 from athena.progression import MAX_PRACTICING, next_level, next_units, should_introduce
 from athena.models import Language
 from athena.ratelimit import RateLimit
-from athena.profile import SETTINGS, AnimalId, FoodId, SettingId, StartId, personal_themes
+from athena.profile import SETTINGS, AnimalId, FoodId, GenderId, SettingId, StartId, personal_themes
 from athena.store import Learner, Story, new_learner, store
 from athena.verifier.nepali import DecomposeError, decompose, normalize
 
@@ -75,6 +75,7 @@ class LearnerCreate(BaseModel):
     name_en: str = Field(min_length=1, max_length=20, pattern=r"^[A-Za-z][A-Za-z ]*$")
     favorite_animal: AnimalId
     favorite_food: FoodId
+    gender: GenderId = "unspecified"
     setting: SettingId
     start: StartId
 
@@ -360,7 +361,12 @@ def set_placement(learner_id: str, req: PlacementRequest) -> PlacementOut:
 
 @app.post("/api/learners", response_model=LearnerOut, status_code=201, dependencies=[Depends(create_limit)])
 def create_learner(req: LearnerCreate) -> LearnerOut:
-    profile = {"favorite_animal": req.favorite_animal, "favorite_food": req.favorite_food, "setting": req.setting}
+    profile = {
+        "favorite_animal": req.favorite_animal,
+        "favorite_food": req.favorite_food,
+        "setting": req.setting,
+        "gender": req.gender,
+    }
     learner = new_learner(req.name_ne, req.name_en.strip(), profile, req.start)
     store.put_learner(learner)
     return learner_out(learner)
@@ -423,6 +429,7 @@ def _compose(learner: Learner, language: Language, theme: str | None = None):
         level=learner.level[language],
         personal=personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food")),
         setting=SETTINGS.get(learner.profile.get("setting", "")),
+        child_gender=learner.profile.get("gender", "unspecified"),
     )
     # Image starts now from the theme; text is generated + verified meanwhile.
     image_future = _pool.submit(illustrator.illustrate, p.theme)

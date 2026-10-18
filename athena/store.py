@@ -152,8 +152,8 @@ def _seed(store: MemoryStore) -> None:
             units[lang] = u
         level = {"sita": {"ne": 1, "en": 1}, "ram": {"ne": 2, "en": 2}}[lid]
         profile = {
-            "sita": {"favorite_animal": "goat", "favorite_food": "dal_bhat", "setting": "hills"},
-            "ram": {"favorite_animal": "yak", "favorite_food": "momo", "setting": "mountains"},
+            "sita": {"favorite_animal": "goat", "favorite_food": "dal_bhat", "setting": "hills", "gender": "girl"},
+            "ram": {"favorite_animal": "yak", "favorite_food": "momo", "setting": "mountains", "gender": "boy"},
         }[lid]
         store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units, level=level, profile=profile))
 

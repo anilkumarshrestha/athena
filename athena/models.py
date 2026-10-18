@@ -48,6 +48,7 @@ class StoryPlan(BaseModel):
     avoid_words: list[str] = []  # natural words for them the child cannot read yet
     target_units: list[str]
     level: int = 2  # story shape band, athena.progression.LEVELS
+    child_gender: str = "unspecified"  # boy | girl | unspecified: verb agreement in Nepali
     word_bank: list[str]
     mastery: list[str]
 

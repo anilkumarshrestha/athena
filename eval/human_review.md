@@ -10,6 +10,7 @@ Cause column: **constraint** = the correct word was blocked by the learner's mas
 | 2 | 2026-10-17 | sita / `ne_basic` | ❌ fail (nonsense) | word-list fallback shown as a sentence; see below |
 | 3 | 2026-10-17 | (rule) | — | honorific verbs for elders; see below |
 | 4 | 2026-10-17 | kiran / card check | ❌ fail (nonsense) | "story" from 2 readable words; see below |
+| 5 | 2026-10-18 | ram / `ne_mid` | ❌ fail (grammar) | feminine verb for a boy; see below |
 
 ## 1 — ram / ne_mid
 
@@ -77,3 +78,17 @@ Practising units were picked by unlock value, which favours one-letter words for
 example word to hear, adult marks each, same mastery rule, so the child grows into stories);
 (2) until 30 readable words, new units follow a **starter order** (क ा म न र छ ि ल स ो …) that opens
 real words fastest; placement uses it too. Regression test in tests/test_diagnostic.py.
+
+## 5 — ram / gender agreement
+
+```
+राम बुबासँग धेरै खुसी भइन्।     (should be: … खुसी भयो)
+```
+
+**Cause:** Nepali past-tense verbs agree with gender (राम गयो / सीता गइन्); the writer had to guess the
+child's gender from the name and guessed wrong.
+
+**Actions:** optional boy / girl / prefer-not-to-say on the add-learner form (fixed choice); the writer
+gets an explicit rule with examples (boy: गयो, भयो, खायो; girl: गइन्, भइन्, खाइन्); unspecified ->
+present tense for the child ("राम खुसी छ"). Demo learners set (Sita girl, Ram boy). Live check: 3 Ram
+stories, all masculine (लियो, गयो, धोयो, बोलायो, दियो).
