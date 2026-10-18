@@ -51,3 +51,15 @@ def test_reteach_events_fold_and_choose_the_way_that_works(tmp_path):
     assert best_style(events) == {"style": "picture", "worked": 3, "tries": 3}
     assert style_order([], has_picture=True) == ["hear", "parts", "picture"]  # no evidence: default
     assert best_style([]) is None
+
+
+def test_auto_reteach_picks_repeat_then_pause():
+    from athena.reteach import auto_target
+
+    w = lambda i, outcome, units=(): {"index": i, "outcome": outcome, "error_units": list(units)}  # noqa: E731
+    words = [w(0, "correct"), w(1, "substituted", ["c:घ"]), w(2, "omitted"), w(3, "substituted", ["c:घ", "m:ा"])]
+    assert auto_target(words, set()) == {"index": 1, "reason": "repeat"}  # घ behind two misses
+    words = [w(0, "correct"), w(1, "substituted", ["c:घ"]), w(2, "omitted")]
+    assert auto_target(words, {2}) == {"index": 2, "reason": "pause"}
+    assert auto_target(words, {0}) is None  # paused but read it right: no interruption
+    assert auto_target([w(0, "correct")], set()) is None

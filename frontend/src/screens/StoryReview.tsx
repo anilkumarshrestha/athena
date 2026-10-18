@@ -79,8 +79,11 @@ export function StoryReview({ learnerId, storyId, onBack }: { learnerId: string;
           <div className="mt-2">
             <div className="text-ink-2">practice with the help card:</div>
             <ul className="m-0 list-none p-0">
-              {(d.reteach as { word: string; styles: string[]; correct: boolean }[]).map((r, i) => (
+              {(d.reteach as { word: string; styles: string[]; correct: boolean; trigger?: string }[]).map((r, i) => (
                 <li key={i} className="text-ink-2">
+                  {r.trigger && r.trigger !== 'tap' && (
+                    <span className="text-ink-3">[opened by Athena: {r.trigger === 'repeat' ? 'same letter missed twice' : 'long pause, then a miss'}] </span>
+                  )}
                   <span className={d.lang === 'ne' ? 'font-story-ne' : 'font-story-en'}>{r.word}</span>
                   {': '}
                   {r.styles.length ? r.styles.map((x) => WAYS[x] ?? x).join(' → ') : 'tried straight away'}

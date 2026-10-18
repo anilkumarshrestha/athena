@@ -77,10 +77,11 @@ export const api = {
       body: JSON.stringify({ daily_minutes }),
     }).then(json<Learner>),
   wordAudioUrl: (storyId: string, index: number) => `/api/stories/${storyId}/words/${index}/audio`,
-  retryWord: (storyId: string, index: number, audio: Blob, styles: string[] = []) => {
+  retryWord: (storyId: string, index: number, audio: Blob, styles: string[] = [], trigger = 'tap') => {
     const form = new FormData()
     form.append('audio', audio, audio.type.includes('mp4') ? 'word.mp4' : 'word.webm')
     form.append('styles', styles.join(','))
+    form.append('trigger', trigger)
     return fetch(`/api/stories/${storyId}/words/${index}/read`, { method: 'POST', body: form }).then(
       json<components['schemas']['RetryOut']>,
     )
@@ -107,10 +108,11 @@ export const api = {
       body: JSON.stringify({ story_id }),
     }).then(json<CloseResult>),
   // Audio is scored in memory on the server and never stored.
-  read: (storyId: string, audio: Blob, durationS: number) => {
+  read: (storyId: string, audio: Blob, durationS: number, paused: number[] = []) => {
     const form = new FormData()
     form.append('story_id', storyId)
     form.append('duration_s', String(Math.max(0.5, durationS)))
+    form.append('paused', paused.join(','))
     form.append('audio', audio, audio.type.includes('mp4') ? 'read.mp4' : 'read.webm')
     return fetch('/api/session/read', { method: 'POST', body: form }).then(json<ReadResult>)
   },

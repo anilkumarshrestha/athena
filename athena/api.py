@@ -174,6 +174,7 @@ class ReadOut(BaseModel):
     wcpm: float
     unit_errors: dict[str, int]
     unit_correct: dict[str, int]
+    reteach: dict | None = None  # {"index", "reason": "repeat" | "pause"}: open the help card for this word
 
 
 class StartRequest(BaseModel):
@@ -564,9 +565,13 @@ def read_session(
     story_id: str = Form(...),
     duration_s: float = Form(..., gt=0, le=300),
     hints: bool = Form(True),
+    paused: str = Form(""),
     audio: UploadFile = File(...),
 ) -> ReadOut:
-    """Score one read-aloud. Audio stays in memory and is dropped after scoring (no retention)."""
+    """Score one read-aloud. Audio stays in memory and is dropped after scoring (no retention).
+    paused: word indices the live guide stayed on for 4 s or more ("3,7"), from the browser."""
+    from athena.reteach import auto_target
+
     s = store.get_story(story_id)
     if not s:
         raise HTTPException(404, "story not found")
@@ -586,6 +591,7 @@ def read_session(
     del data  # no audio retention beyond this request
     a = assess(s.language, reference, t.text, duration_s, allowed_words=names)
     s.readings.append(a)
+    stopped = {int(x) for x in paused.split(",") if x.strip().isdigit() and int(x) < len(a.words)}
     store.history.append(
         s.learner_id,
         {
@@ -598,6 +604,7 @@ def read_session(
             "words_correct": a.words_correct,
             "words": [w.__dict__ for w in a.words],
             "insertions": [i.__dict__ for i in a.insertions],
+            "paused": sorted(stopped),
         },
     )
 
@@ -612,6 +619,7 @@ def read_session(
         wcpm=a.wcpm,
         unit_errors=a.unit_errors,
         unit_correct=a.unit_correct,
+        reteach=auto_target([w.__dict__ for w in a.words], stopped),
     )
 
 
@@ -1371,7 +1379,9 @@ def noun_picture(language: Language, noun: str) -> Response:
 
 
 @app.post("/api/stories/{story_id}/words/{index}/read", response_model=RetryOut, dependencies=[Depends(read_limit)])
-def word_retry(story_id: str, index: int, audio: UploadFile = File(...), styles: str = Form("")) -> RetryOut:
+def word_retry(
+    story_id: str, index: int, audio: UploadFile = File(...), styles: str = Form(""), trigger: str = Form("tap")
+) -> RetryOut:
     """Try one word again. Practice only: mastery is not changed. No STT hint (a hint would
     pull the transcript toward the expected word and hide a repeat mistake). Audio not kept.
     styles: the re-teach ways used before this try, in order ("hear,parts"): logged so the
@@ -1388,7 +1398,8 @@ def word_retry(story_id: str, index: int, audio: UploadFile = File(...), styles:
     heard = tokens(s.language, t.text)
     correct = any(fold(s.language, h) == fold(s.language, word) for h in heard)
     store.history.append(s.learner_id, {"type": "reteach", "story_id": s.id, "at": time.time(), "index": index,
-                                        "word": word, "styles": used, "correct": correct})
+                                        "word": word, "styles": used, "correct": correct,
+                                        "trigger": trigger if trigger in ("tap", "repeat", "pause") else "tap"})
     return RetryOut(correct=correct, heard=t.text)
 
 

@@ -22,12 +22,14 @@ export function ReteachPanel({
   lang,
   onClose,
   onSuccess,
+  trigger = 'tap',
 }: {
   storyId: string
   index: number
   lang: Language
   onClose: () => void
   onSuccess: (index: number) => void
+  trigger?: 'tap' | 'repeat' | 'pause' // repeat/pause: Athena opened the card after the reading
 }) {
   const [help, setHelp] = useState<WordHelp | null>(null)
   const [retry, setRetry] = useState<'idle' | 'checking' | 'yes' | 'again'>('idle')
@@ -81,7 +83,7 @@ export function ReteachPanel({
     const { blob } = await recorder.stop()
     setRetry('checking')
     try {
-      const r = await api.retryWord(storyId, index, blob, used.current)
+      const r = await api.retryWord(storyId, index, blob, used.current, trigger)
       used.current = [] // the next try is credited to whatever is used after this one
       setRetry(r.correct ? 'yes' : 'again')
       if (r.correct) sfx.chime() // a miss stays silent
@@ -103,6 +105,11 @@ export function ReteachPanel({
         <DotLoader />
       ) : (
         <div className="flex flex-col items-center gap-4">
+          {trigger !== 'tap' && (
+            <p className={`m-0 ${isNe ? 'font-story-ne' : 'font-story-en'} text-child-label font-semibold text-ink-2`}>
+              {isNe ? 'यो शब्द सँगै हेरौँ।' : "Let's look at this word together."}
+            </p>
+          )}
           {/* See it: a picture for concrete nouns (cached per word) */}
           {open.includes('picture') && help.picture_url && pic !== 'none' && (
             <div className="flex size-28 items-center justify-center overflow-hidden rounded-2xl border-2 border-line bg-paper-sunken">

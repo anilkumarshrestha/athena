@@ -17,6 +17,9 @@ import { sfx } from '../sound'
 
 const POLL_MS = 1500
 
+const PAUSE_MS = 4000 // athena/reteach.py PAUSE_S
+const AUTO_RETEACH_MS = 2800 // after the chime and the spoken praise
+
 const PRAISE = {
   ne: { great: 'धेरै राम्रो पढ्यौ!', good: 'राम्रो पढ्यौ! अझ अभ्यास गरौँ।', try: 'राम्रो प्रयास! सँगै फेरि पढौँ।' },
   en: { great: 'Great reading!', good: "Good reading! Let's practise a little more.", try: "Good try! Let's read it together again." },
@@ -29,6 +32,10 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [reading, setReading] = useState<ReadResult | null>(null)
   const [closed, setClosed] = useState<CloseResult | null>(null)
   const [helpWord, setHelpWord] = useState<number | null>(null)
+  const [helpTrigger, setHelpTrigger] = useState<'tap' | 'repeat' | 'pause'>('tap')
+  const paused = useRef<Set<number>>(new Set()) // words the live guide stayed on for PAUSE_MS
+  const autoShown = useRef(false) // the help card opens by itself at most once per story
+  const autoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [praise, setPraise] = useState<'great' | 'good' | 'try' | null>(null)
   const [fixed, setFixed] = useState<Set<number>>(new Set()) // words got right on a retry
   const [checking, setChecking] = useState(false)
@@ -49,6 +56,8 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setPraise(null)
     setFixed(new Set())
     setError(null)
+    autoShown.current = false
+    clearTimeout(autoTimer.current)
     api
       .startSession(learnerId, lang, theme)
       .then((s) => id === reqId.current && setStory(s))
@@ -64,6 +73,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setHelpWord(null)
     setPraise(null)
     setError(null)
+    clearTimeout(autoTimer.current)
     api
       .choices(learnerId, lang)
       .then((c) => id === reqId.current && (c.length ? setChoices(c) : load()))
@@ -91,11 +101,22 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     [reading, fixed],
   )
 
+  // A long stop on one word while reading aloud: noted, never interrupted (the mic is open).
+  useEffect(() => {
+    if (recorder.state !== 'recording' || live.next == null) return
+    const i = live.next
+    const t = setTimeout(() => paused.current.add(i), PAUSE_MS)
+    return () => clearTimeout(t)
+  }, [live.next, recorder.state])
+
   const onRecord = async () => {
     if (!story) return
     if (recorder.state !== 'recording') {
       narration.stop() // never read aloud into the microphone
       setReading(null)
+      setHelpWord(null)
+      clearTimeout(autoTimer.current) // never open the card while the mic is on
+      paused.current = new Set()
       sfx.click()
       await new Promise((r) => setTimeout(r, 120)) // let the click finish before the mic opens
       return recorder.start((stream) => live.start(stream)) // same mic for recording + live guide
@@ -105,8 +126,18 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     sfx.click() // mic is closed now: safe to play
     setChecking(true)
     try {
-      const r = await api.read(story.id, blob, durationS)
+      const r = await api.read(story.id, blob, durationS, [...paused.current])
       setReading(r)
+      // Confusion spotted in code (same letter missed twice, or a long stop then a miss):
+      // after the praise, open the help card on that word, gently, once per story.
+      const target = r.reteach as { index: number; reason: 'repeat' | 'pause' } | null | undefined
+      if (target && !autoShown.current) {
+        autoShown.current = true
+        autoTimer.current = setTimeout(() => {
+          setHelpTrigger(target.reason)
+          setHelpWord(target.index)
+        }, AUTO_RETEACH_MS)
+      }
       // Warm spoken praise, matched to how it went; never a score for the child.
       const acc = r.words.length ? r.words_correct / r.words.length : 0
       const tier = acc >= 0.9 ? 'great' : acc >= 0.6 ? 'good' : 'try'
@@ -175,6 +206,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
             story
               ? (i) => {
                   if (recorder.state !== 'recording') sfx.pop() // never into the microphone
+                  setHelpTrigger('tap')
                   setHelpWord((cur) => (cur === i ? null : i))
                 }
               : undefined
@@ -191,6 +223,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
                 lang={lang}
                 onClose={() => setHelpWord(null)}
                 onSuccess={(i) => setFixed((f) => new Set(f).add(i))}
+                trigger={helpTrigger}
               />
             )
           }

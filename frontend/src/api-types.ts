@@ -146,6 +146,7 @@ export interface paths {
         /**
          * Read Session
          * @description Score one read-aloud. Audio stays in memory and is dropped after scoring (no retention).
+         *     paused: word indices the live guide stayed on for 4 s or more ("3,7"), from the browser.
          */
         post: operations["read_session_api_session_read_post"];
         delete?: never;
@@ -665,6 +666,11 @@ export interface components {
              * @default true
              */
             hints: boolean;
+            /**
+             * Paused
+             * @default
+             */
+            paused: string;
             /** Audio */
             audio: string;
         };
@@ -677,6 +683,11 @@ export interface components {
              * @default
              */
             styles: string;
+            /**
+             * Trigger
+             * @default tap
+             */
+            trigger: string;
         };
         /** CardOut */
         CardOut: {
@@ -1188,6 +1199,10 @@ export interface components {
             unit_correct: {
                 [key: string]: number;
             };
+            /** Reteach */
+            reteach?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** RetryOut */
         RetryOut: {

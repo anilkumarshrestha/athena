@@ -3,7 +3,8 @@
 The re-teach card shows one way at a time (hear it, see its parts, see a picture) and offers
 "another way". Each retry is logged:
 
-  {"type": "reteach", "story_id", "at", "index", "word", "styles": ["hear", "parts"], "correct": true}
+  {"type": "reteach", "story_id", "at", "index", "word", "styles": ["hear", "parts"], "correct": true,
+   "trigger": "tap" | "repeat" | "pause"}   (repeat/pause: the card opened itself, see auto_target)
 
 "styles" are the ways the child used before this retry, in order. The LAST one gets the
 credit (or the blame): it is what the child saw just before reading the word again.
@@ -48,3 +49,31 @@ def best_style(events: list[dict]) -> dict | None:
         return None
     s, st = max(known, key=lambda x: (x[1]["worked"] / x[1]["tries"], x[1]["tries"]))
     return {"style": s, "worked": st["worked"], "tries": st["tries"]}
+
+
+# --- automatic re-teach: when to open the card without a tap ------------------------------
+
+WRONG = ("substituted", "omitted")
+PAUSE_S = 4  # the live guide stayed on one word this long (measured in the browser)
+
+
+def auto_target(words: list[dict], paused: set[int]) -> dict | None:
+    """After a reading, the one word worth re-teaching right away, or None.
+
+    1. "repeat": the same letter/sign was behind mistakes in two or more words. The first
+       such word is re-taught: one confusion explains several misses.
+    2. "pause":  the child stopped on a word for PAUSE_S or more and then misread it.
+    A long pause on a word read right is not interrupted: the child worked it out.
+    """
+    wrong = [w for w in words if w["outcome"] in WRONG]
+    seen: dict[str, int] = {}
+    for w in wrong:
+        for u in w.get("error_units", []):
+            seen[u] = seen.get(u, 0) + 1
+    for w in wrong:
+        if any(seen.get(u, 0) >= 2 for u in w.get("error_units", [])):
+            return {"index": w["index"], "reason": "repeat"}
+    for w in wrong:
+        if w["index"] in paused:
+            return {"index": w["index"], "reason": "pause"}
+    return None
