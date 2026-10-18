@@ -142,3 +142,14 @@ def test_long_recording_split_at_quiet_points():
     assert len(chunks) == 3 and all(x <= SYNC_LIMIT_S for x in lens)
     assert abs(lens[0] - 47) < 0.2  # cut inside the silence, not mid-word
     assert sum(len(c) for c in chunks) == len(s) * 2  # nothing lost
+
+
+def test_hesitant_right_words_give_no_mastery_credit():
+    from athena.assess.align import assess, discount_hesitant
+
+    a = assess("ne", "घर घर", "घर घर", 4.0)
+    before = dict(a.unit_correct)
+    discount_hesitant("ne", a, {1})  # stopped long on the second घर
+    assert {u: before[u] - 1 for u in before} == {u: a.unit_correct.get(u, 0) for u in before}
+    discount_hesitant("ne", a, {0})  # and on the first: no credit left for घ this session
+    assert "c:घ" not in a.unit_correct and a.words_correct == 2  # still read right: not an error

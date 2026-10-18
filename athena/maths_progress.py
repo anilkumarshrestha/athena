@@ -21,11 +21,23 @@ MAX_LEVEL = 3
 PROBLEM_CAP_S = 180  # a problem left open counts for at most this toward daily time
 
 
-def next_maths_level(level: int, recent: list[bool]) -> int:
-    """recent: first-try results at the current level, oldest first. Reset on a change."""
-    if len(recent) >= DOWN_RUN and not any(recent[-DOWN_RUN:]):
+SLOW_S = {1: 40, 2: 50, 3: 60}  # first try right but after this long (reading included): "slow"
+
+
+def first_try_result(correct: bool, secs: float, level: int) -> bool | None:
+    """True: right and fluent. False: a miss. None: right but slow, so neutral: it neither
+    moves the level up nor counts as a miss (response time, not just answers)."""
+    if not correct:
+        return False
+    return True if secs <= SLOW_S.get(level, 60) else None
+
+
+def next_maths_level(level: int, recent: list[bool | None]) -> int:
+    """recent: first-try results at the current level, oldest first. Reset on a change.
+    Up: 4 of the last 5 right AND fluent. Down: 3 misses in a row (slow-right is not a miss)."""
+    if len(recent) >= DOWN_RUN and all(x is False for x in recent[-DOWN_RUN:]):
         return max(1, level - 1)
-    if len(recent) >= UP_WINDOW and sum(recent[-UP_WINDOW:]) >= UP_NEEDED:
+    if len(recent) >= UP_WINDOW and sum(x is True for x in recent[-UP_WINDOW:]) >= UP_NEEDED:
         return min(MAX_LEVEL, level + 1)
     return level
 
@@ -53,13 +65,15 @@ def fold_maths(events: list[dict]) -> list[dict]:
                 "id": pid, "at": e["at"], "lang": e["lang"], "sentences": e.get("sentences", []),
                 "a": a, "b": b, "op": op, "answer": a + b if op == "+" else a - b,
                 "source": e.get("source", ""), "level": e.get("level"), "answers": [], "solved": False,
-                "last_at": e["at"], "cat_answer": e.get("cat_answer"), "judged_right": None,
+                "last_at": e["at"], "cat_answer": e.get("cat_answer"), "judged_right": None, "secs": None,
             }
         elif e.get("type") == "maths_judge" and pid in records:
             records[pid]["judged_right"] = bool(e.get("judged_right"))
         elif e.get("type") == "maths_answer" and pid in records:
             r = records[pid]
             r["answers"].append(e["answer"])
+            if len(r["answers"]) == 1:
+                r["secs"] = e.get("secs")
             r["last_at"] = e.get("at", r["last_at"])
             r["solved"] = r["solved"] or bool(e.get("correct"))
     for r in records.values():
@@ -119,7 +133,7 @@ def summarize_maths(records: list[dict], lang: str, now: float, level: int = 1, 
                        "right": sum(1 for r in rs if r["judged_right"])},
         "largest_solved": max((r["answer"] for r in rs if r["first_try"]), default=None),
         "recent": [
-            {k: r[k] for k in ("id", "at", "sentences", "a", "b", "op", "answer", "answers", "solved", "first_try")}
+            {k: r[k] for k in ("id", "at", "sentences", "a", "b", "op", "answer", "answers", "solved", "first_try", "secs")}
             for r in rs[:recent]
         ],
     }

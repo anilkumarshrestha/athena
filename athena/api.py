@@ -23,7 +23,7 @@ from athena.diagnostic import diagnostic, place
 from athena.agents import illustrator
 from athena.agents.planner import plan
 from athena.assess import stt
-from athena.assess.align import assess, fold, tokens
+from athena.assess.align import assess, discount_hesitant, fold, tokens
 from athena.assess.parts import word_parts
 from athena import tts
 from athena.generate import generate
@@ -594,6 +594,7 @@ def read_session(
     a = assess(s.language, reference, t.text, duration_s, allowed_words=names)
     s.readings.append(a)
     stopped = {int(x) for x in paused.split(",") if x.strip().isdigit() and int(x) < len(a.words)}
+    discount_hesitant(s.language, a, stopped, names)  # slow-but-right: no mastery credit (neutral)
     store.history.append(
         s.learner_id,
         {
@@ -1259,14 +1260,19 @@ def _maths_record(pid: str, m: dict, answer: int) -> MathsResult:
     correct = req.answer == m["problem"].answer  # code decides
     if correct:
         m["solved"] = True
-    store.history.append(m["learner"], {"type": "maths_answer", "story_id": pid, "at": time.time(),
-                                        "answer": req.answer, "correct": correct, "try": m["tries"]})
+    now = time.time()
+    secs = round(now - m["at"], 1)  # from showing the problem (reading it included)
+    store.history.append(m["learner"], {"type": "maths_answer", "story_id": pid, "at": now,
+                                        "answer": req.answer, "correct": correct, "try": m["tries"], "secs": secs})
     change = None
     learner = store.get_learner(m["learner"])
     if learner and m["tries"] == 1:  # the level follows first tries only
+        from athena.maths_progress import first_try_result
+
         lang = m["problem"].language
         state = learner.maths.setdefault(lang, {"level": 1, "recent": []})
-        state["recent"] = (state["recent"] + [correct])[-10:]
+        # right but slow -> None: neither a step up nor a miss (athena/maths_progress.py)
+        state["recent"] = (state["recent"] + [first_try_result(correct, secs, state["level"])])[-10:]
         new = next_maths_level(state["level"], state["recent"])
         if new != state["level"]:
             change = "up" if new > state["level"] else "down"
@@ -1313,6 +1319,7 @@ class MathsProblemOut(BaseModel):
     answers: list[int]  # what the child tapped, in order
     solved: bool
     first_try: bool
+    secs: float | None = None  # time to the first tap
 
 
 class MathsProgressOut(BaseModel):

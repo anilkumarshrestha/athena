@@ -1177,6 +1177,8 @@ export interface components {
             solved: boolean;
             /** First Try */
             first_try: boolean;
+            /** Secs */
+            secs?: number | null;
         };
         /** MathsProgressOut */
         MathsProgressOut: {

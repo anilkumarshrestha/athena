@@ -221,3 +221,16 @@ def assess(
         unit_errors=dict(unit_errors),
         unit_correct=dict(unit_correct),
     )
+
+
+def discount_hesitant(lang: str, a: Assessment, paused: set[int], allowed_words: frozenset[str] = frozenset()) -> None:
+    """Words read right only after a long stop (the live guide sat on them, PAUSE_S) give
+    their units no mastery credit this session: neutral, not an error. A unit whose only
+    right reads were hesitant keeps its streak where it was, so it stays in practice."""
+    for w in a.words:
+        if w.index in paused and w.outcome in ("correct", "self_corrected") and w.expected not in allowed_words:
+            for u in _scored(lang, units_of(lang, w.expected) or []):
+                if a.unit_correct.get(u, 0) > 1:
+                    a.unit_correct[u] -= 1
+                else:
+                    a.unit_correct.pop(u, None)

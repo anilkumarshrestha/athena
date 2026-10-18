@@ -135,3 +135,15 @@ def test_every_fourth_problem_the_cat_answers_and_the_child_checks(maths_api):
     assert client.post(f"/api/maths/{probs[0]['id']}/judge", json={"cat_right": True}).status_code == 404
     prog = client.get(f"/api/learners/{learner.id}/maths/ne").json()
     assert prog["cat_checks"] == {"judged": 1, "right": 1}
+
+
+def test_slow_right_answers_are_neutral_for_the_level():
+    from athena.maths_progress import first_try_result
+
+    assert first_try_result(True, 12, 1) is True
+    assert first_try_result(True, 75, 1) is None  # right, but slow
+    assert first_try_result(False, 5, 1) is False
+    slow = [True, None, True, None, True]
+    assert next_maths_level(1, slow) == 1  # only 3 fluent of 5: not yet
+    assert next_maths_level(1, slow + [True, True]) == 2  # last 5: T N T T T = 4 fluent
+    assert next_maths_level(2, [None, None, None]) == 2  # slow is not a miss

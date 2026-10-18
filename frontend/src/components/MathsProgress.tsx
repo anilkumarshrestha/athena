@@ -89,7 +89,8 @@ export function MathsProgress({
             <span className="font-story-ne">{LEVEL[m.level as 1 | 2 | 3]?.ne}</span>
           </p>
           <p className="m-0 mb-4 text-small text-ink-3">
-            The level rises after 4 of 5 right on the first try, and steps back after 3 misses in a row.
+            The level rises after 4 of 5 right on the first try without a long wait, and steps back after 3 misses
+            in a row. A right answer that took long counts as neither.
             First try: the share of problems answered right the first time.
             {m.largest_solved != null && ` Largest answer found on the first try: ${m.largest_solved}.`}
             {detail && ` All time: ${m.total} problems, ${pct(m.all_first_try)} first try.`}
@@ -126,6 +127,7 @@ export function MathsProgress({
                     <th className="p-3 font-medium">Problem</th>
                     <th className="p-3 font-medium">Sum</th>
                     <th className="p-3 font-medium">Taps</th>
+                    <th className="p-3 font-medium">Time</th>
                     <th className="p-3 font-medium">Outcome</th>
                   </tr>
                 </thead>
@@ -135,6 +137,7 @@ export function MathsProgress({
                       <td className={`p-3 ${story} text-body`}>{p.sentences.join(' ')}</td>
                       <td className="whitespace-nowrap p-3 font-mono tabular-nums">{p.a} {p.op} {p.b} = {p.answer}</td>
                       <td className="whitespace-nowrap p-3 font-mono tabular-nums">{p.answers.join(' → ') || '—'}</td>
+                      <td className="whitespace-nowrap p-3 font-mono tabular-nums">{p.secs != null ? `${Math.round(p.secs)} s` : '—'}</td>
                       <td className="whitespace-nowrap p-3"><Outcome p={p} /></td>
                     </tr>
                   ))}
