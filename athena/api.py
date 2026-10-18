@@ -325,7 +325,11 @@ def diagnostic_sound(language: Language, text: str) -> Response:
     allowed_texts = set(_NE_T1 + _NE_T2) if language == "ne" else set(_EN_SET1 + _EN_SET2)
     if text not in allowed_texts:
         raise HTTPException(404, "not a diagnostic letter")
-    return Response(tts.speak_word(language, text), media_type="audio/wav", headers={"Cache-Control": "public, max-age=604800"})
+    return Response(
+        tts.speak_word(language, tts.letter_phrase(language, text)),
+        media_type="audio/wav",
+        headers={"Cache-Control": "no-cache"},  # phrasing may improve; the server caches the audio
+    )
 
 
 @app.post("/api/learners/{learner_id}/placement", response_model=PlacementOut)

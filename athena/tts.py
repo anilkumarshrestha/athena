@@ -17,6 +17,8 @@ from athena.config import genai_client
 from athena.retry import with_retry
 
 TTS_MODEL = "gemini-3.8-flash-tts"
+# Telling the model the language fixes guessed pronunciations (ह read as "he").
+LANG_CODE = {"ne": "ne-NP", "en": "en-US"}
 CACHE = Path(__file__).resolve().parent.parent / "media" / "tts"
 
 
@@ -31,7 +33,7 @@ def _wav(pcm: bytes, rate: int = 24000) -> bytes:
 
 
 def speak_word(language: str, word: str) -> bytes:
-    key = hashlib.sha256(f"{language}:{word}".encode()).hexdigest()[:24]
+    key = hashlib.sha256(f"v2:{language}:{word}".encode()).hexdigest()[:24]  # v2: with language code
     path = CACHE / f"{key}.wav"
     if path.exists():
         return path.read_bytes()
@@ -39,7 +41,10 @@ def speak_word(language: str, word: str) -> bytes:
         lambda: genai_client().models.generate_content(
             model=TTS_MODEL,
             contents=word,
-            config=types.GenerateContentConfig(response_modalities=["AUDIO"]),
+            config=types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(language_code=LANG_CODE.get(language, "en-US")),
+            ),
         ),
         "tts",
     )
@@ -52,3 +57,25 @@ def speak_word(language: str, word: str) -> bytes:
     CACHE.mkdir(parents=True, exist_ok=True)
     path.write_bytes(data)
     return data
+
+
+def letter_phrase(language: str, letter: str) -> str:
+    """How a teacher says a letter so it cannot be misheard.
+    Nepali: "ह, हातको ह" (the letter anchored in a familiar word, as in class: "क, कमलको क").
+    English: just the anchor word ("sun"); the child taps the letter it starts with. A TTS
+    reads a lone "s" as the letter name "ess", not the phonics sound."""
+    from athena.letters import example_word
+
+    sig = ("c:" if language == "ne" else "g:") + letter
+    word = example_word(language, sig)
+    if language == "ne":
+        return f"{letter}, {word}को {letter}" if word and word != letter else letter
+    # Phonics anchors: the word must START with the letter's short sound (not "cat" for a).
+    return EN_ANCHORS.get(letter) or word or letter
+
+
+EN_ANCHORS = {
+    "s": "sun", "a": "apple", "t": "tent", "p": "pig", "i": "insect", "n": "net",
+    "m": "map", "d": "dog", "g": "goat", "o": "octopus", "c": "cat", "k": "kite",
+    "e": "egg", "u": "umbrella", "r": "rain", "h": "hat", "b": "bed", "f": "fish", "l": "leg",
+}
