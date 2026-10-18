@@ -39,8 +39,8 @@ const T = {
     childTitle: 'Your child',
     signedAs: 'Signed in as',
     childText: 'Add your child: about a minute together, then a short letter game finds where to start. Or skip and try Athena with two demo children first.',
-    add: 'Add your child',
-    skip: 'Skip, try the demo children',
+    add: 'Add learner (child)',
+    skip: 'Skip, try demo',
   },
   ne: {
     title: 'तपाईंको बच्चाका लागि कथा लेख्ने पढाइ-साथी।',
@@ -63,7 +63,7 @@ const T = {
     signedAs: 'साइन इन:',
     childText: 'बच्चा थप्नुहोस्: सँगै करिब एक मिनेट, त्यसपछि छोटो अक्षर-खेलले सुरु गर्ने ठाउँ पत्ता लगाउँछ। वा पहिले दुई नमुना बच्चासँग Athena चलाएर हेर्नुहोस्।',
     add: 'बच्चा थप्नुहोस्',
-    skip: 'पछि, नमुना बच्चासँग हेर्नुहोस्',
+    skip: 'पछि, नमुना हेर्नुहोस्',
   },
 } as const
 
