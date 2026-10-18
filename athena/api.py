@@ -4,7 +4,9 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+import asyncio
+
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -858,6 +860,74 @@ def word_retry(story_id: str, index: int, audio: UploadFile = File(...)) -> Retr
     heard = tokens(s.language, t.text)
     correct = any(fold(s.language, h) == fold(s.language, word) for h in heard)
     return RetryOut(correct=correct, heard=t.text)
+
+
+live_limit = RateLimit(per_ip=12, global_=60)
+
+
+@app.websocket("/api/stories/{story_id}/live")
+async def live_follow(ws: WebSocket, story_id: str) -> None:
+    """Live follow-along while the child reads: the browser streams 16 kHz PCM, we stream it
+    to speech-to-text and send back which story words were heard and which is next.
+    A visual guide only; the reading is still scored from the full recording. Audio is not kept."""
+    from athena.assess.live import LiveTracker
+    from athena.assess.stream import StreamSession
+
+    s = store.get_story(story_id)
+    if not s:
+        await ws.close(code=4404)
+        return
+    try:
+        live_limit(ws)  # same per-IP / global caps as other model endpoints
+    except HTTPException:
+        await ws.close(code=4429)
+        return
+    await ws.accept()
+    tracker = LiveTracker(s.language, " ".join(s.result.sentences))
+    loop = asyncio.get_running_loop()
+    out: asyncio.Queue = asyncio.Queue()
+    session = StreamSession(
+        s.language,
+        on_text=lambda text: loop.call_soon_threadsafe(out.put_nowait, ("text", text)),
+        on_done=lambda err: loop.call_soon_threadsafe(out.put_nowait, ("done", err)),
+    )
+    session.start()
+
+    async def send_updates() -> None:
+        last = None
+        while True:
+            kind, value = await out.get()
+            if kind == "done":
+                await ws.send_json({"done": True, "error": value})
+                return
+            heard, nxt = tracker.update(value)
+            if (heard, nxt) != last:
+                last = (heard, nxt)
+                await ws.send_json({"heard": heard, "next": nxt, "text": value})
+
+    sender = asyncio.create_task(send_updates())
+    try:
+        while True:
+            msg = await ws.receive()
+            if msg.get("type") == "websocket.disconnect":
+                break
+            if msg.get("bytes"):
+                if not session.feed(msg["bytes"]):
+                    break  # audio cap reached
+            elif msg.get("text") == "stop":
+                break
+    except WebSocketDisconnect:
+        pass
+    finally:
+        session.close()
+        try:
+            await asyncio.wait_for(sender, timeout=5)
+        except (asyncio.TimeoutError, Exception):  # noqa: BLE001
+            sender.cancel()
+        try:
+            await ws.close()
+        except Exception:  # noqa: BLE001 - already closed
+            pass
 
 
 @app.get("/api/stories/{story_id}", response_model=StoryOut)

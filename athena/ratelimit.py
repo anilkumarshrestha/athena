@@ -4,7 +4,8 @@ import threading
 import time
 from collections import defaultdict, deque
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
+from starlette.requests import HTTPConnection
 
 
 class RateLimit:
@@ -15,12 +16,12 @@ class RateLimit:
         self._lock = threading.Lock()
 
     @staticmethod
-    def client_ip(request: Request) -> str:
+    def client_ip(request: HTTPConnection) -> str:
         # Cloud Run sets X-Forwarded-For; first hop is the client.
         fwd = request.headers.get("x-forwarded-for", "")
         return fwd.split(",")[0].strip() or (request.client.host if request.client else "unknown")
 
-    def __call__(self, request: Request) -> None:
+    def __call__(self, request: HTTPConnection) -> None:  # HTTP requests and WebSockets
         now = time.monotonic()
         ip = self.client_ip(request)
         with self._lock:
