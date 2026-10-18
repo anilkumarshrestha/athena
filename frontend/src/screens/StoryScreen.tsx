@@ -14,7 +14,7 @@ import type { Outcome } from '../components/WordToken'
 import { useLiveFollow } from '../hooks/useLiveFollow'
 import { useNarration } from '../hooks/useNarration'
 import { useRecorder } from '../hooks/useRecorder'
-import { jingle, sfx } from '../sound'
+import { jingle, sfx, soundOn } from '../sound'
 
 const POLL_MS = 1500
 
@@ -45,6 +45,17 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const recorder = useRecorder()
   const live = useLiveFollow(story?.id || undefined)
   const narration = useNarration(story?.id || undefined)
+
+  // "Read to me" with music: a soft Lyria bed under the narration, only while it plays
+  // (narration stops when the microphone opens, so the music does too).
+  useEffect(() => {
+    if (!narration.playing || !soundOn()) return
+    const bed = new Audio('/music/readalong.mp3')
+    bed.loop = true
+    bed.volume = 0.15
+    bed.play().catch(() => {})
+    return () => bed.pause()
+  }, [narration.playing])
   const reqId = useRef(0)
 
   const [choices, setChoices] = useState<components['schemas']['ChoiceOut'][] | null>(null)
