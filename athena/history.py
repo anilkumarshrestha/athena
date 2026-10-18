@@ -5,6 +5,7 @@
     {"type": "image",   "story_id", "image_id"}
     {"type": "reading", "story_id", "at", "transcript", "engine", "wcpm", "words_correct", "words", "insertions"}
     {"type": "close",   "story_id", "at", "accuracy", "level_before", "level_after", "changes"}
+    {"type": "reteach", "story_id", "at", "index", "word", "styles", "correct"}   see athena/reteach.py
     {"type": "maths", ...} / {"type": "maths_answer", ...}   see athena/maths_progress.py
 
 Append-only: a crash can lose at most the last line, never earlier history. No audio is
@@ -77,7 +78,7 @@ def fold(events: list[dict]) -> list[dict]:
     for e in events:
         sid = e.get("story_id")
         if e.get("type") == "story":
-            records[sid] = {**e, "image_id": None, "readings": [], "close": None}
+            records[sid] = {**e, "image_id": None, "readings": [], "close": None, "reteach": []}
         elif sid in records:
             r = records[sid]
             if e["type"] == "image":
@@ -86,4 +87,6 @@ def fold(events: list[dict]) -> list[dict]:
                 r["readings"].append(e)
             elif e["type"] == "close":
                 r["close"] = e
+            elif e["type"] == "reteach":
+                r["reteach"].append(e)
     return sorted(records.values(), key=lambda r: r["at"], reverse=True)

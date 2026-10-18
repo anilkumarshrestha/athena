@@ -575,6 +575,8 @@ export interface paths {
          * Word Retry
          * @description Try one word again. Practice only: mastery is not changed. No STT hint (a hint would
          *     pull the transcript toward the expected word and hide a repeat mistake). Audio not kept.
+         *     styles: the re-teach ways used before this try, in order ("hear,parts"): logged so the
+         *     card learns which way works for this child.
          */
         post: operations["word_retry_api_stories__story_id__words__index__read_post"];
         delete?: never;
@@ -670,6 +672,11 @@ export interface components {
         Body_word_retry_api_stories__story_id__words__index__read_post: {
             /** Audio */
             audio: string;
+            /**
+             * Styles
+             * @default
+             */
+            styles: string;
         };
         /** CardOut */
         CardOut: {
@@ -838,6 +845,10 @@ export interface components {
             close: {
                 [key: string]: unknown;
             } | null;
+            /** Reteach */
+            reteach: {
+                [key: string]: unknown;
+            }[];
         };
         /** InsertionOut */
         InsertionOut: {
@@ -858,6 +869,10 @@ export interface components {
             /** Patterns */
             patterns: components["schemas"]["PatternOut"][];
             pace: components["schemas"]["PaceOut"];
+            /** Helps Most */
+            helps_most?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * LearnerCreate
@@ -1327,6 +1342,8 @@ export interface components {
             heard: string | null;
             /** Parts */
             parts: components["schemas"]["PartOut"][];
+            /** Styles */
+            styles: string[];
         };
         /** WordOut */
         WordOut: {

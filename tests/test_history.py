@@ -32,3 +32,22 @@ def test_delete_and_bad_ids(tmp_path):
     assert h.stories("a1") == []
     h.append("../escape", {"type": "story", "story_id": "x", "at": 1.0})  # ignored, no file outside
     assert not (tmp_path.parent / "escape.jsonl").exists()
+
+
+def test_reteach_events_fold_and_choose_the_way_that_works(tmp_path):
+    from athena.reteach import best_style, style_order
+
+    h = History(tmp_path)
+    h.append("a1", {"type": "story", "story_id": "s1", "at": 1.0, "lang": "ne"})
+    # parts never helps this child; the picture does
+    for i, (styles, ok) in enumerate([(["hear", "parts"], False), (["parts"], False), (["hear", "picture"], True),
+                                      (["picture"], True), (["parts", "picture"], True)]):
+        h.append("a1", {"type": "reteach", "story_id": "s1", "at": 2.0 + i, "index": i, "word": "खसी", "styles": styles, "correct": ok})
+    events = h.story("a1", "s1")["reteach"]
+    assert len(events) == 5
+    assert style_order(events, has_picture=True)[0] == "picture"
+    assert style_order(events, has_picture=True)[-1] == "parts"
+    assert "picture" not in style_order(events, has_picture=False)
+    assert best_style(events) == {"style": "picture", "worked": 3, "tries": 3}
+    assert style_order([], has_picture=True) == ["hear", "parts", "picture"]  # no evidence: default
+    assert best_style([]) is None

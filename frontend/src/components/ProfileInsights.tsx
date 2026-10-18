@@ -15,6 +15,12 @@ const STATUS = {
   not_started: { ne: 'सुरु भएको छैन', en: 'not started', bar: 'bg-line-strong' },
 } as const
 
+const HELPS: Record<string, string> = {
+  hear: 'hearing the word · शब्द सुन्दा',
+  parts: 'seeing its parts · टुक्रा हेर्दा',
+  picture: 'seeing a picture · चित्र हेर्दा',
+}
+
 const TREND = { up: '↑ improving', down: '↓ slower lately', flat: '→ steady', unknown: '— not enough readings yet' } as const
 
 export function ProfileInsights({ learnerId, lang }: { learnerId: string; lang: Language }) {
@@ -96,6 +102,15 @@ export function ProfileInsights({ learnerId, lang }: { learnerId: string; lang: 
               {p.wcpm_first != null && ` · ${p.wcpm_first} → ${p.wcpm_last} words/min`}
             </p>
             <p className="m-0 text-small text-ink-2">{TREND[p.trend as keyof typeof TREND]}</p>
+            {ins.helps_most && (
+              <p className="m-0 mt-2 text-small">
+                <span className="font-semibold">Helps most: </span>
+                {HELPS[String(ins.helps_most.style)] ?? String(ins.helps_most.style)}
+                <span className="font-mono tabular-nums text-ink-3">
+                  {' '}({String(ins.helps_most.worked)} of {String(ins.helps_most.tries)} words read right after it)
+                </span>
+              </p>
+            )}
           </div>
         </div>
       </div>

@@ -811,6 +811,7 @@ class HistoryStoryOut(BaseModel):
     attempts: list[dict]
     readings: list[dict]  # each: transcript, wcpm, words (per-word outcomes), insertions
     close: dict | None
+    reteach: list[dict]  # each retry from the re-teach card: word, ways used, read right or not
 
 
 @app.get("/api/learners/{learner_id}/stories", response_model=list[HistoryItemOut])
@@ -851,6 +852,7 @@ def learner_story(learner_id: str, story_id: str) -> HistoryStoryOut:
         attempts=r.get("attempts", []),
         readings=r["readings"],
         close=r.get("close"),
+        reteach=r.get("reteach", []),
     )
 
 
@@ -937,10 +939,12 @@ class InsightsOut(BaseModel):
     groups: list[GroupOut]
     patterns: list[PatternOut]
     pace: PaceOut
+    helps_most: dict | None = None  # {"style", "worked", "tries"}: re-teach way that works best
 
 
 def _insights(learner: Learner, language: Language) -> InsightsOut:
     from athena.insights import error_patterns, pace, skill_groups
+    from athena.reteach import best_style
 
     readings = [r for st in store.history.stories(learner.id) if st["lang"] == language for r in st["readings"]]
     return InsightsOut(
@@ -948,6 +952,7 @@ def _insights(learner: Learner, language: Language) -> InsightsOut:
         groups=[GroupOut(**g.__dict__) for g in skill_groups(language, learner.units[language])],
         patterns=[PatternOut(**{**p.__dict__, "examples": [list(e) for e in p.examples]}) for p in error_patterns(language, readings)],
         pace=PaceOut(**pace(language, learner.sessions, time.time()).__dict__),
+        helps_most=best_style(_reteach_events(learner.id, language)),
     )
 
 
@@ -1290,6 +1295,7 @@ class WordHelpOut(BaseModel):
     outcome: str | None
     heard: str | None
     parts: list[PartOut]
+    styles: list[str]  # ways to re-teach, best first for this child (athena/reteach.py)
 
 
 class RetryOut(BaseModel):
@@ -1318,14 +1324,22 @@ def word_help(story_id: str, index: int) -> WordHelpOut:
     wrong = set(result.error_units) if result else set()
     from athena.agents.picture import concrete_noun
 
+    from athena.reteach import style_order
+
+    noun = concrete_noun(s.language, word)
     return WordHelpOut(
         index=index,
         word=word,
-        picture_url=f"/api/pictures/{s.language}/{noun}" if (noun := concrete_noun(s.language, word)) else None,
+        picture_url=f"/api/pictures/{s.language}/{noun}" if noun else None,
         outcome=result.outcome if result else None,
         heard=result.heard if result else None,
         parts=[PartOut(text=p.text, units=list(p.units), tricky=bool(wrong & set(p.units))) for p in word_parts(s.language, word)],
+        styles=style_order(_reteach_events(s.learner_id, s.language), has_picture=bool(noun)),
     )
+
+
+def _reteach_events(learner_id: str, language: str) -> list[dict]:
+    return [e for st in store.history.stories(learner_id) if st["lang"] == language for e in st.get("reteach", [])]
 
 
 @app.get("/api/stories/{story_id}/words/{index}/audio", dependencies=[Depends(tts_limit)])
@@ -1357,10 +1371,15 @@ def noun_picture(language: Language, noun: str) -> Response:
 
 
 @app.post("/api/stories/{story_id}/words/{index}/read", response_model=RetryOut, dependencies=[Depends(read_limit)])
-def word_retry(story_id: str, index: int, audio: UploadFile = File(...)) -> RetryOut:
+def word_retry(story_id: str, index: int, audio: UploadFile = File(...), styles: str = Form("")) -> RetryOut:
     """Try one word again. Practice only: mastery is not changed. No STT hint (a hint would
-    pull the transcript toward the expected word and hide a repeat mistake). Audio not kept."""
+    pull the transcript toward the expected word and hide a repeat mistake). Audio not kept.
+    styles: the re-teach ways used before this try, in order ("hear,parts"): logged so the
+    card learns which way works for this child."""
+    from athena.reteach import STYLES
+
     s, word = _story_word(story_id, index)
+    used = [x for x in styles.split(",") if x in STYLES][:10]
     data = audio.file.read(MAX_AUDIO_BYTES + 1)
     if not data or len(data) > MAX_AUDIO_BYTES:
         raise HTTPException(400, "bad recording")
@@ -1368,6 +1387,8 @@ def word_retry(story_id: str, index: int, audio: UploadFile = File(...)) -> Retr
     del data
     heard = tokens(s.language, t.text)
     correct = any(fold(s.language, h) == fold(s.language, word) for h in heard)
+    store.history.append(s.learner_id, {"type": "reteach", "story_id": s.id, "at": time.time(), "index": index,
+                                        "word": word, "styles": used, "correct": correct})
     return RetryOut(correct=correct, heard=t.text)
 
 

@@ -75,6 +75,18 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [ ] You: review ~10 Nepali maths problems (templates + model) in eval/results/maths-*.jsonl
 - [ ] Deploy (evening): Dockerfile w/ ffmpeg, otel/api-core pin conflict, WebSocket timeout, Secret Manager
 
+## Brief gaps (checked against the full brief, 18 Oct)
+- [x] 1. Log re-teach use (hear / parts / picture / retry + did the retry work); open re-teach with the style that worked for this child; show in parent log ("Helps most" in profile, per-story practice log)
+- [ ] 2. Automatic re-teach: long pause on a word (live follow-along) or same unit missed twice -> gentle re-teach card
+- [ ] 3. "Teach the cat" (child-sized Feynman / protégé effect): cat reads a known story with 1-2 code-chosen mistakes from the child's own confusions (घ->ग, ट->त, ि<->ी); child taps the wrong word. Maths: cat answers with the child's own mistake kind; child says right / not right and shows the answer
+- [ ] 4. "Why this story" for parents: plain bilingual line per story (units practised, interest used, outcome, safety), built in code
+- [ ] 5. Response time in adaptation: slow-but-right maths does not count toward level up; long hesitations keep a word's units practising
+- [ ] 6. Spoken guidance for pre-readers: speaker on language/maths buttons and choice tiles; spoken first-time prompts (fixed phrases, cached)
+- [ ] 7. Content controls: maths on/off, pictures on/off, themes to avoid (fixed list); planner + learner card respect them
+- [ ] 8. Story-based re-teach: letter mnemonic ("ख, खसीको ख"); maths step-by-step ("start with 3, count 2 more: 4, 5")
+- [ ] 9. Interests in maths: prefer favourite animal/food when readable
+- [ ] 10. Explicit skill graph: prerequisites (matra needs a consonant, conjunct needs both letters; maths +5 -> +10 -> -10 -> 20), shown in teacher view
+
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
 - [ ] Gemma not served on Vertex as plain API → Model Garden GPU endpoint or Flash-Lite as cheap tier (H10)
@@ -92,3 +104,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [ ] Budget alert ($50) in GCP Billing
 - [ ] Confirm exact submission deadline (time on 18 Oct)
 - [ ] Pilot: 3–5 children, consent, Sunday midday
+
+
+- [ ] Finmann technique
+- [ ] 

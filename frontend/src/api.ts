@@ -77,9 +77,10 @@ export const api = {
       body: JSON.stringify({ daily_minutes }),
     }).then(json<Learner>),
   wordAudioUrl: (storyId: string, index: number) => `/api/stories/${storyId}/words/${index}/audio`,
-  retryWord: (storyId: string, index: number, audio: Blob) => {
+  retryWord: (storyId: string, index: number, audio: Blob, styles: string[] = []) => {
     const form = new FormData()
     form.append('audio', audio, audio.type.includes('mp4') ? 'word.mp4' : 'word.webm')
+    form.append('styles', styles.join(','))
     return fetch(`/api/stories/${storyId}/words/${index}/read`, { method: 'POST', body: form }).then(
       json<components['schemas']['RetryOut']>,
     )

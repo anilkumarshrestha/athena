@@ -1,4 +1,4 @@
-import { Mic, Square, Volume2, X } from 'lucide-react'
+import { Mic, Shuffle, Square, Volume2, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
@@ -8,8 +8,10 @@ import { DotLoader } from './DotLoader'
 
 type WordHelp = components['schemas']['WordHelpOut']
 
-// Re-teach one word: hear it, see it (picture, concrete nouns), see its parts (the
-// tricky part marked), try again. Never "wrong": a miss just offers to listen again.
+// Re-teach one word, one way at a time: hear it, see its parts (the tricky part marked),
+// see a picture (concrete nouns). The way that has worked best for this child comes first
+// (athena/reteach.py); "another way" shows the next. Every retry logs the ways used, so the
+// card keeps learning the child. Never "wrong": a miss just offers another way.
 
 const chunky =
   'flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 border-b-4 px-4 text-child-label font-bold transition-colors duration-150 active:translate-y-1 active:border-b-2'
@@ -30,21 +32,46 @@ export function ReteachPanel({
   const [help, setHelp] = useState<WordHelp | null>(null)
   const [retry, setRetry] = useState<'idle' | 'checking' | 'yes' | 'again'>('idle')
   const [pic, setPic] = useState<'loading' | 'ready' | 'none'>('loading')
+  const [shown, setShown] = useState(1) // how many ways are open, in the child's best order
+  const used = useRef<string[]>([]) // ways used before the next retry, in order (logged)
   const recorder = useRecorder()
   const audio = useRef<HTMLAudioElement | null>(null)
   const isNe = lang === 'ne'
 
+  const markUsed = (style: string) => {
+    if (used.current[used.current.length - 1] !== style) used.current.push(style)
+  }
+
   const hear = useCallback(() => {
+    if (used.current[used.current.length - 1] !== 'hear') used.current.push('hear')
     audio.current?.pause()
     audio.current = new Audio(api.wordAudioUrl(storyId, index))
     audio.current.play().catch(() => {})
   }, [storyId, index])
 
   useEffect(() => {
-    api.wordHelp(storyId, index).then(setHelp).catch(() => {})
-    hear() // hearing it is the first help
+    used.current = []
+    setShown(1)
+    api
+      .wordHelp(storyId, index)
+      .then((h) => {
+        setHelp(h)
+        const first = h.styles[0] ?? 'hear'
+        if (first === 'hear') hear() // hearing it is this child's best first help
+        else markUsed(first)
+      })
+      .catch(() => {})
     return () => audio.current?.pause()
   }, [storyId, index, hear])
+
+  const open = help ? help.styles.slice(0, shown) : []
+  const another = () => {
+    if (!help || shown >= help.styles.length) return
+    const next = help.styles[shown]
+    setShown(shown + 1)
+    if (next === 'hear') hear()
+    else markUsed(next)
+  }
 
   const onRecord = async () => {
     if (recorder.state !== 'recording') {
@@ -54,7 +81,8 @@ export function ReteachPanel({
     const { blob } = await recorder.stop()
     setRetry('checking')
     try {
-      const r = await api.retryWord(storyId, index, blob)
+      const r = await api.retryWord(storyId, index, blob, used.current)
+      used.current = [] // the next try is credited to whatever is used after this one
       setRetry(r.correct ? 'yes' : 'again')
       if (r.correct) sfx.chime() // a miss stays silent
       if (r.correct) onSuccess(index)
@@ -76,7 +104,7 @@ export function ReteachPanel({
       ) : (
         <div className="flex flex-col items-center gap-4">
           {/* See it: a picture for concrete nouns (cached per word) */}
-          {help.picture_url && pic !== 'none' && (
+          {open.includes('picture') && help.picture_url && pic !== 'none' && (
             <div className="flex size-28 items-center justify-center overflow-hidden rounded-2xl border-2 border-line bg-paper-sunken">
               {pic === 'loading' && <DotLoader label="Drawing" />}
               <img
@@ -91,6 +119,7 @@ export function ReteachPanel({
           <div className={`${story} text-story-lg font-semibold`}>{help.word}</div>
 
           {/* See its parts */}
+          {open.includes('parts') && (
           <div className="flex flex-wrap justify-center gap-2">
             {help.parts.map((p, i) => (
               <span
@@ -103,8 +132,9 @@ export function ReteachPanel({
               </span>
             ))}
           </div>
+          )}
 
-          <div className="flex w-full justify-center gap-2">
+          <div className="flex w-full flex-wrap justify-center gap-2">
             <button type="button" onClick={hear} className={`${chunky} border-line-strong bg-card text-ink-2 hover:bg-paper-sunken`}>
               <Volume2 size={26} strokeWidth={2} />
               {isNe ? 'सुन' : 'Hear'}
@@ -125,9 +155,16 @@ export function ReteachPanel({
             {retry === 'checking' && <DotLoader label="Checking" />}
             {retry === 'yes' && <span className="text-selfcorrected">✓ {isNe ? 'राम्रो!' : 'Well done!'}</span>}
             {retry === 'again' && (
-              <span className="text-ink-2">{isNe ? 'फेरि सुनौँ, अनि पढौँ।' : "Let's listen once more."}</span>
+              <span className="text-ink-2">{isNe ? 'अर्को तरिकाले हेरौँ।' : "Let's try another way."}</span>
             )}
           </div>
+
+          {shown < help.styles.length && (
+            <button type="button" onClick={another} className={`${chunky} border-sky-edge bg-sky-soft text-ink`}>
+              <Shuffle size={24} strokeWidth={2} />
+              {isNe ? 'अर्को तरिका' : 'Another way'}
+            </button>
+          )}
         </div>
       )}
     </div>

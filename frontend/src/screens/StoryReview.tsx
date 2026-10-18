@@ -11,6 +11,8 @@ type Detail = components['schemas']['HistoryStoryOut']
 
 // Parent review of one past story: the story as the child saw it, each word coloured
 // by how they read it, what speech-to-text heard, and what the verifier did. No audio.
+const WAYS: Record<string, string> = { hear: 'heard it', parts: 'saw its parts', picture: 'saw a picture' }
+
 export function StoryReview({ learnerId, storyId, onBack }: { learnerId: string; storyId: string; onBack: () => void }) {
   const [d, setD] = useState<Detail | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -72,6 +74,22 @@ export function StoryReview({ learnerId, storyId, onBack }: { learnerId: string;
           </>
         ) : (
           <div className="text-ink-3">Not read aloud yet.</div>
+        )}
+        {d.reteach.length > 0 && (
+          <div className="mt-2">
+            <div className="text-ink-2">practice with the help card:</div>
+            <ul className="m-0 list-none p-0">
+              {(d.reteach as { word: string; styles: string[]; correct: boolean }[]).map((r, i) => (
+                <li key={i} className="text-ink-2">
+                  <span className={d.lang === 'ne' ? 'font-story-ne' : 'font-story-en'}>{r.word}</span>
+                  {': '}
+                  {r.styles.length ? r.styles.map((x) => WAYS[x] ?? x).join(' → ') : 'tried straight away'}
+                  {' → '}
+                  {r.correct ? '✓ read it' : '○ not yet'}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
         <div className="mt-2 text-ink-3">
           story checked by the verifier: {retries} {retries === 1 ? 'draft' : 'drafts'}, outcome {d.outcome}, 0 unreadable words shown
