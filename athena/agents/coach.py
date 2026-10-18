@@ -87,3 +87,52 @@ def _clear_old(now: float | None = None) -> None:
     today = date.fromtimestamp(now or time.time()).isoformat()
     for k in [k for k in _cache if k[2] != today]:
         _cache.pop(k, None)
+
+
+# --- parent summary: the model phrases facts computed in code ---------------------------
+
+class Summary(BaseModel):
+    ne: str = Field(description="2-3 short sentences in natural Nepali for a parent, polite तपाईं forms")
+    en: str = Field(description="the same in plain English")
+
+
+_summary_cache: dict[tuple[str, str, int], dict] = {}
+
+
+def summary(learner_id: str, language: str, name: str, facts: dict, version: int) -> dict:
+    """facts: groups, patterns, pace from athena/insights.py. Cached until a new session."""
+    key = (learner_id, language, version)
+    if key in _summary_cache:
+        return _summary_cache[key]
+    import json as _json
+
+    prompt = f"""Write a short, warm progress note for the parent of {name}, a child learning to read
+{"Nepali" if language == "ne" else "English"}. Use ONLY these facts; do not add numbers, letters or claims
+that are not in them. Mention one strength, one thing to practise, and one encouraging line.
+If there is little data yet, say so kindly.
+Nepali: address the parent politely (तपाईं, -नुहोस्), but refer to the child with PLAIN verbs and pronouns,
+as Nepali parents do: "{name}ले स्वर राम्रोसँग सिकेको छ", "उसलाई ... अभ्यास गराउनुहोस्". Never उहाँ or
+-नुभएको for the child.
+
+Facts (computed by the app):
+{_json.dumps(facts, ensure_ascii=False)}"""
+    try:
+        r = with_retry(
+            lambda: genai_client().models.generate_content(
+                model=settings().writer_model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=Summary,
+                    thinking_config=types.ThinkingConfig(thinking_level="low"),
+                    temperature=0.4,
+                    max_output_tokens=2048,
+                ),
+            ),
+            "summary",
+        )
+        out = (r.parsed if isinstance(r.parsed, Summary) else Summary.model_validate_json(r.text or "")).model_dump()
+    except Exception:  # noqa: BLE001 - the numbers on the page still stand on their own
+        out = {"ne": "", "en": ""}
+    _summary_cache[key] = out
+    return out

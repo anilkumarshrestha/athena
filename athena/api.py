@@ -847,6 +847,78 @@ def letter_audio(language: Language, unit: str) -> Response:
     return Response(tts.speak_word(language, word), media_type="audio/wav", headers={"Cache-Control": "public, max-age=604800"})
 
 
+class GroupOut(BaseModel):
+    name: str
+    total: int
+    mastered: int
+    practicing: list[str]
+    status: str
+
+
+class PatternOut(BaseModel):
+    kind: str
+    count: int
+    examples: list[list[str]]
+    label_en: str
+    label_ne: str
+
+
+class PaceOut(BaseModel):
+    sessions_14d: int
+    mastered_14d: int
+    wcpm_first: float | None
+    wcpm_last: float | None
+    trend: str
+
+
+class InsightsOut(BaseModel):
+    language: Language
+    groups: list[GroupOut]
+    patterns: list[PatternOut]
+    pace: PaceOut
+
+
+def _insights(learner: Learner, language: Language) -> InsightsOut:
+    from athena.insights import error_patterns, pace, skill_groups
+
+    readings = [r for st in store.history.stories(learner.id) if st["lang"] == language for r in st["readings"]]
+    return InsightsOut(
+        language=language,
+        groups=[GroupOut(**g.__dict__) for g in skill_groups(language, learner.units[language])],
+        patterns=[PatternOut(**{**p.__dict__, "examples": [list(e) for e in p.examples]}) for p in error_patterns(language, readings)],
+        pace=PaceOut(**pace(language, learner.sessions, time.time()).__dict__),
+    )
+
+
+@app.get("/api/learners/{learner_id}/insights/{language}", response_model=InsightsOut)
+def learner_insights(learner_id: str, language: Language) -> InsightsOut:
+    """Strengths and gaps by skill group, error patterns, pace: computed in code."""
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    return _insights(learner, language)
+
+
+@app.get("/api/learners/{learner_id}/summary/{language}", dependencies=[Depends(coach_limit)])
+def learner_summary(learner_id: str, language: Language) -> dict:
+    """A short parent note (ne + en). The model phrases the computed facts; it adds nothing."""
+    from athena.agents import coach
+
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    ins = _insights(learner, language)
+    facts = {
+        "strong": [g.name for g in ins.groups if g.status == "strong"],
+        "learning": [{"group": g.name, "practising": g.practicing} for g in ins.groups if g.status == "learning"],
+        "not_started": [g.name for g in ins.groups if g.status == "not_started"],
+        "mistake_patterns": [{"what": p.label_en, "times": p.count} for p in ins.patterns],
+        "last_14_days": ins.pace.model_dump(),
+    }
+    version = len([x for x in learner.sessions if x["lang"] == language])
+    return coach.summary(learner.id, language, learner.name[language], facts, version)
+
+
 class PartOut(BaseModel):
     text: str
     units: list[str]

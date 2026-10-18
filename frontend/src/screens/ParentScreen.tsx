@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
+import { ProfileInsights } from '../components/ProfileInsights'
 import { UnitChip } from '../components/UnitChip'
 import { unitGlyph } from '../units'
 
@@ -64,6 +65,8 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
           </button>
         ))}
       </div>
+
+      <ProfileInsights learnerId={learnerId} lang={lang} />
 
       {/* This week */}
       <h2 className="mb-3 text-h2 font-semibold">यो हप्ता · This week</h2>

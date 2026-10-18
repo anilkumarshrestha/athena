@@ -304,6 +304,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learners/{learner_id}/insights/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Learner Insights
+         * @description Strengths and gaps by skill group, error patterns, pace: computed in code.
+         */
+        get: operations["learner_insights_api_learners__learner_id__insights__language__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/summary/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Learner Summary
+         * @description A short parent note (ne + en). The model phrases the computed facts; it adds nothing.
+         */
+        get: operations["learner_summary_api_learners__learner_id__summary__language__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}": {
         parameters: {
             query?: never;
@@ -549,6 +589,19 @@ export interface components {
             /** Indices */
             indices: number[];
         };
+        /** GroupOut */
+        GroupOut: {
+            /** Name */
+            name: string;
+            /** Total */
+            total: number;
+            /** Mastered */
+            mastered: number;
+            /** Practicing */
+            practicing: string[];
+            /** Status */
+            status: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -618,6 +671,19 @@ export interface components {
             word: string;
             /** Before Index */
             before_index: number;
+        };
+        /** InsightsOut */
+        InsightsOut: {
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "ne" | "en";
+            /** Groups */
+            groups: components["schemas"]["GroupOut"][];
+            /** Patterns */
+            patterns: components["schemas"]["PatternOut"][];
+            pace: components["schemas"]["PaceOut"];
         };
         /**
          * LearnerCreate
@@ -696,6 +762,19 @@ export interface components {
                 [key: string]: boolean;
             };
         };
+        /** PaceOut */
+        PaceOut: {
+            /** Sessions 14D */
+            sessions_14d: number;
+            /** Mastered 14D */
+            mastered_14d: number;
+            /** Wcpm First */
+            wcpm_first: number | null;
+            /** Wcpm Last */
+            wcpm_last: number | null;
+            /** Trend */
+            trend: string;
+        };
         /** PartOut */
         PartOut: {
             /** Text */
@@ -704,6 +783,19 @@ export interface components {
             units: string[];
             /** Tricky */
             tricky: boolean;
+        };
+        /** PatternOut */
+        PatternOut: {
+            /** Kind */
+            kind: string;
+            /** Count */
+            count: number;
+            /** Examples */
+            examples: string[][];
+            /** Label En */
+            label_en: string;
+            /** Label Ne */
+            label_ne: string;
         };
         /** PlacementOut */
         PlacementOut: {
@@ -1478,6 +1570,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    learner_insights_api_learners__learner_id__insights__language__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsightsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    learner_summary_api_learners__learner_id__summary__language__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
