@@ -124,10 +124,11 @@ export function Landing() {
         <path d="M8 25 16 6l8 19M11.5 18h9" fill="none" className="stroke-crimson" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <span className="text-child-title font-semibold">Athena</span>
-      <div role="group" aria-label="Language" className="ml-auto flex rounded-lg border border-line-strong bg-card p-1">
+      {/* pill inside a pill: both fully rounded, so the curves nest at any padding */}
+      <div role="group" aria-label="Language" className="ml-auto flex rounded-full border border-line-strong bg-card p-1">
         {(['en', 'ne'] as const).map((l) => (
           <button key={l} type="button" aria-pressed={lang === l} onClick={() => choose(l)}
-            className={`min-h-10 rounded-md px-3 text-body ${l === 'ne' ? 'font-story-ne' : ''} ${lang === l ? 'bg-primary-soft font-semibold text-primary' : 'text-ink-2 hover:bg-paper-sunken'}`}>
+            className={`min-h-10 rounded-full px-4 text-body ${l === 'ne' ? 'font-story-ne' : ''} ${lang === l ? 'bg-primary-soft font-semibold text-primary' : 'text-ink-2 hover:bg-paper-sunken'}`}>
             {l === 'en' ? 'English' : 'नेपाली'}
           </button>
         ))}
