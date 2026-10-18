@@ -21,7 +21,7 @@ const KEY = 'athena.uiLang'
 const T = {
   en: {
     title: 'A reading friend that writes stories for your child.',
-    lead: 'For children aged 5 to 8 learning to read Nepali and English. Each story uses only the letters your child can read today, about the things they love, and grows with them, letter by letter.',
+    lead: 'For children aged 4 and up learning to read Nepali and English. Each story uses only the letters your child can read today, about the things they love, and grows with them, letter by letter.',
     start: 'Start',
     features: [
       ['Stories written for one child', 'About their favourite animal, food and games. Every word uses only letters they can read, checked by code, not by the AI.'],
@@ -44,7 +44,7 @@ const T = {
   },
   ne: {
     title: 'तपाईंको बच्चाका लागि कथा लेख्ने पढाइ-साथी।',
-    lead: '५ देखि ८ वर्षका, नेपाली र अङ्ग्रेजी पढ्न सिक्दै गरेका बालबालिकाका लागि। हरेक कथामा बच्चाले आज पढ्न सक्ने अक्षर मात्र हुन्छन्, उसलाई मन पर्ने कुराबारे, र अक्षर-अक्षर गर्दै उसैसँग बढ्छ।',
+    lead: '४ वर्ष र सोभन्दा माथिका, नेपाली र अङ्ग्रेजी पढ्न सिक्दै गरेका बालबालिकाका लागि। हरेक कथामा बच्चाले आज पढ्न सक्ने अक्षर मात्र हुन्छन्, उसलाई मन पर्ने कुराबारे, र अक्षर-अक्षर गर्दै उसैसँग बढ्छ।',
     start: 'सुरु गरौँ',
     features: [
       ['एउटै बच्चाका लागि लेखिएका कथा', 'मन पर्ने जनावर, खाना र खेलबारे। हरेक शब्दमा बच्चाले पढ्न सक्ने अक्षर मात्र, AI ले होइन, कोडले जाँचेको।'],
