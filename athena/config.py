@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     store_backend: str = "file"  # "file" (local dev) | "firestore" (Cloud Run: survives restarts)
     firestore_prefix: str = ""  # collection prefix, e.g. "dev_" to keep tests apart
     state_dir: str = str(Path(__file__).resolve().parent.parent / "state")  # learners.json
+    google_oauth_client_id: str = ""  # "Sign in with Google" (a Web OAuth client id; public, not a secret)
     request_timeout_ms: int = 30_000  # normal calls 2-15s; cut runaway thinking and retry
 
 

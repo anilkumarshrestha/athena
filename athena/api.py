@@ -27,6 +27,7 @@ from athena.assess import stt
 from athena.assess.align import assess, discount_hesitant, fold, tokens
 from athena.assess.parts import word_parts
 from athena import tts
+from athena.config import settings
 from athena.generate import generate
 from athena.lexicon import verifier_for
 from athena.mastery import Change, UnitState, allowed, apply_session, practice_targets
@@ -287,16 +288,72 @@ def list_learners(request: Request) -> list[LearnerOut]:
 class FamilyOut(BaseModel):
     code: str  # opens this family on another device; a secret, shown to grown-ups only
     learners: int
+    email: str | None = None  # signed in with Google as
+    google_client_id: str | None = None  # "Sign in with Google" offered when configured
 
 
 class FamilyJoin(BaseModel):
     code: str = Field(min_length=16, max_length=24)
 
 
+def _family_out(fid: str) -> FamilyOut:
+    acct = store.account_for_family(fid)
+    return FamilyOut(code=families.pretty(fid), learners=len(store.family_learners(fid)),
+                     email=acct.get("email") if acct else None,
+                     google_client_id=settings().google_oauth_client_id or None)
+
+
 @app.get("/api/family", response_model=FamilyOut)
 def get_family() -> FamilyOut:
-    fid = families.current.get()
-    return FamilyOut(code=families.pretty(fid), learners=len(store.list_learners()))
+    return _family_out(families.current.get())
+
+
+class GoogleSignIn(BaseModel):
+    credential: str = Field(min_length=20, max_length=4096)  # the ID token from Google's button
+
+
+auth_limit = RateLimit(per_ip=10, global_=100)
+
+
+@app.post("/api/auth/google", response_model=FamilyOut, dependencies=[Depends(auth_limit)])
+def google_sign_in(req: GoogleSignIn, request: Request, response: Response) -> FamilyOut:
+    """Keep progress with a Google account. The ID token is verified with Google's keys
+    (signature, audience = our client id, issuer, expiry). We keep only the account id and
+    email, to find this family again on any device. New account: this family becomes its
+    family. Known account: this browser's own children move into it and the browser switches."""
+    from google.auth.transport import requests as g_requests
+    from google.oauth2 import id_token
+
+    client_id = settings().google_oauth_client_id
+    if not client_id:
+        raise HTTPException(404, "Google sign-in is not set up")
+    try:
+        info = id_token.verify_oauth2_token(req.credential, g_requests.Request(), client_id)
+    except ValueError:
+        raise HTTPException(401, "sign-in failed") from None
+    if info.get("iss") not in ("accounts.google.com", "https://accounts.google.com") or not info.get("email_verified"):
+        raise HTTPException(401, "sign-in failed")
+    sub, email = info["sub"], info.get("email", "")
+    here = families.current.get()
+    acct = store.get_account(sub)
+    if acct is None:
+        store.put_account(sub, {"family": here, "email": email})
+        return _family_out(here)
+    target = acct["family"]
+    if target != here:
+        store.move_family(here, target)
+        secure = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
+        response.headers["set-cookie"] = families.cookie_header(target, secure)
+    return _family_out(target)
+
+
+@app.post("/api/auth/signout", response_model=FamilyOut)
+def sign_out(request: Request, response: Response) -> FamilyOut:
+    """This browser starts a fresh family; the account's family stays, back on next sign-in."""
+    fid = families.new_id()
+    secure = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
+    response.headers["set-cookie"] = families.cookie_header(fid, secure)
+    return FamilyOut(code=families.pretty(fid), learners=0)
 
 
 @app.post("/api/family/join", response_model=FamilyOut, dependencies=[Depends(join_limit)])
@@ -307,7 +364,7 @@ def join_family(req: FamilyJoin, request: Request, response: Response) -> Family
         raise HTTPException(404, "no family with this code")
     secure = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
     response.headers["set-cookie"] = families.cookie_header(fid, secure)
-    return FamilyOut(code=families.pretty(fid), learners=len(store.family_learners(fid)))
+    return _family_out(fid)
 
 
 create_limit = RateLimit(per_ip=10, global_=60)

@@ -33,6 +33,7 @@ class FirestoreHistory(History):
         super().__init__(None)
         self.db = db
         self.col = f"{prefix}learners"
+        self.accounts_col = f"{prefix}accounts"  # Google sign-in: sub -> family
 
     def _events_ref(self, learner_id: str):
         return self.db.collection(self.col).document(learner_id).collection("events")
@@ -60,7 +61,13 @@ class FirestoreStore(MemoryStore):
         self._write_lock = threading.Lock()
         self._written: dict[str, str] = {}  # learner id -> JSON last written (skip unchanged)
 
+    def put_account(self, sub: str, data: dict) -> None:
+        with self._lock:
+            self.accounts[sub] = data
+        self.db.collection(self.accounts_col).document(sub).set(data)
+
     def load(self) -> bool:
+        self.accounts = {d.id: d.to_dict() for d in self.db.collection(self.accounts_col).stream()}
         docs = list(self.db.collection(self.col).stream())
         with self._lock:
             self.learners = {d.id: learner_from_dict(d.to_dict()) for d in docs}

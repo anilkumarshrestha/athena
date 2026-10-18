@@ -90,6 +90,13 @@ export const api = {
   activities: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/activities/${lang}`).then(json<components['schemas']['ActivitiesOut']>),
   family: () => fetch('/api/family').then(json<components['schemas']['FamilyOut']>),
+  googleSignIn: (credential: string) =>
+    fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ credential }),
+    }).then(json<components['schemas']['FamilyOut']>),
+  signOut: () => fetch('/api/auth/signout', { method: 'POST' }).then(json<components['schemas']['FamilyOut']>),
   joinFamily: (code: string) =>
     fetch('/api/family/join', {
       method: 'POST',

@@ -13,6 +13,7 @@ dependencies = [
     "python-multipart>=0.0.9",
     "google-adk>=2.12",
     "google-cloud-firestore>=2.19",
+    "google-auth[requests]>=2.30",  # verifies "Sign in with Google" ID tokens
 ]
 
 [project.optional-dependencies]

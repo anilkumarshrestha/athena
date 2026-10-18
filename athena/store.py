@@ -97,9 +97,43 @@ class MemoryStore:
         self.history = history or History(None)  # story + reading events per learner
         self.learners: dict[str, Learner] = {}
         self.stories: dict[str, Story] = {}
+        self.accounts: dict[str, dict] = {}  # Google account id (sub) -> {"family", "email"}
+
+    def _accounts_path(self) -> Path | None:
+        return self.path.parent / "accounts.json" if self.path else None
+
+    def get_account(self, sub: str) -> dict | None:
+        return self.accounts.get(sub)
+
+    def put_account(self, sub: str, data: dict) -> None:
+        with self._lock:
+            self.accounts[sub] = data
+            path = self._accounts_path()
+            if path:
+                tmp = path.with_suffix(".tmp")
+                tmp.write_text(json.dumps(self.accounts, ensure_ascii=False), encoding="utf-8")
+                os.replace(tmp, path)
+
+    def account_for_family(self, fid: str) -> dict | None:
+        return next((a for a in self.accounts.values() if a.get("family") == fid), None)
+
+    def move_family(self, src: str, dst: str) -> None:
+        """Signing in to an account that already has a family: this browser's own children move
+        into it; its untouched demo copies are dropped (the account already has its own)."""
+        with self._lock:
+            for x in list(self.learners.values()):
+                if x.family != src:
+                    continue
+                if x.profile.get("demo_copy") and not x.sessions:
+                    self.learners.pop(x.id)
+                else:
+                    x.family = dst
+        self.save()
 
     def load(self) -> bool:
         """Load learners from disk. False if there is no file yet."""
+        if (ap := self._accounts_path()) and ap.exists():
+            self.accounts = json.loads(ap.read_text(encoding="utf-8"))
         if not self.path or not self.path.exists():
             return False
         data = json.loads(self.path.read_text(encoding="utf-8"))
@@ -162,7 +196,8 @@ class MemoryStore:
         for t in self.family_learners(families.DEMO):
             # same letters and level as the demo child; their own fresh history
             c = learner_from_dict({**learner_to_dict(t), "id": uuid.uuid4().hex[:8], "family": fam,
-                                   "sessions": [], "history": {"ne": [], "en": []}})
+                                   "sessions": [], "history": {"ne": [], "en": []},
+                                   "profile": {**t.profile, "demo_copy": "1"}})
             copies.append(c)
         with self._lock:
             for c in copies:

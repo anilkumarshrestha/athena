@@ -59,6 +59,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Google Sign In
+         * @description Keep progress with a Google account. The ID token is verified with Google's keys
+         *     (signature, audience = our client id, issuer, expiry). We keep only the account id and
+         *     email, to find this family again on any device. New account: this family becomes its
+         *     family. Known account: this browser's own children move into it and the browser switches.
+         */
+        post: operations["google_sign_in_api_auth_google_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign Out
+         * @description This browser starts a fresh family; the account's family stays, back on next sign-in.
+         */
+        post: operations["sign_out_api_auth_signout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/family/join": {
         parameters: {
             query?: never;
@@ -1063,6 +1106,15 @@ export interface components {
             code: string;
             /** Learners */
             learners: number;
+            /** Email */
+            email?: string | null;
+            /** Google Client Id */
+            google_client_id?: string | null;
+        };
+        /** GoogleSignIn */
+        GoogleSignIn: {
+            /** Credential */
+            credential: string;
         };
         /** GroupOut */
         GroupOut: {
@@ -1883,6 +1935,59 @@ export interface operations {
         };
     };
     get_family_api_family_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyOut"];
+                };
+            };
+        };
+    };
+    google_sign_in_api_auth_google_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleSignIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sign_out_api_auth_signout_post: {
         parameters: {
             query?: never;
             header?: never;

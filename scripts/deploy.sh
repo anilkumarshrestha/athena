@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Deploy Athena to Cloud Run (one service: API + WebSocket + frontend).
 #   ./scripts/deploy.sh            # first deploy and every redeploy
+# Optional: GOOGLE_OAUTH_CLIENT_ID=<web client id> for "Sign in with Google" (public, not a secret).
 # Needs: gcloud logged in, project set, billing on. Creates (idempotent): Secret Manager secret
 # for the Gemini key, a private media bucket, a service account with least privilege.
 set -euo pipefail
@@ -54,7 +55,7 @@ gcloud run deploy "$SERVICE" \
   --region "$REGION" \
   --service-account "$SA" \
   --set-secrets "GEMINI_API_KEY=gemini-api-key:latest,FAMILY_SECRET=family-secret:latest" \
-  --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=${PROJECT},MEDIA_BUCKET=${BUCKET},STORE_BACKEND=firestore" \
+  --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=${PROJECT},MEDIA_BUCKET=${BUCKET},STORE_BACKEND=firestore,GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID:-}" \
   --min-instances "$MIN_INSTANCES" --max-instances 1 \
   --cpu 2 --memory 2Gi --timeout 900 --session-affinity \
   --allow-unauthenticated \

@@ -44,3 +44,38 @@ def test_sign_and_verify():
     assert family.verify(family.sign(fid)) == fid
     assert family.verify(fid + ".deadbeef") is None and family.verify("../etc") is None
     assert family.valid_code(family.pretty(fid)) == fid
+
+
+def test_google_sign_in_keeps_progress_across_devices(monkeypatch):
+    from google.oauth2 import id_token
+
+    from athena.config import settings
+    from athena.store import store
+
+    monkeypatch.setattr(store, "accounts", {})
+    monkeypatch.setattr(store, "put_account", lambda sub, data: store.accounts.__setitem__(sub, data))
+    a, b = client(), client()
+    assert a.post("/api/auth/google", json={"credential": "x" * 30}).status_code == 404  # not set up
+    monkeypatch.setattr(settings(), "google_oauth_client_id", "test-client")
+
+    def verify(token, _req, aud):
+        if token != "good-token-for-parent-1" or aud != "test-client":
+            raise ValueError("bad token")
+        return {"iss": "https://accounts.google.com", "sub": "p1", "email": "parent@example.com", "email_verified": True}
+
+    monkeypatch.setattr(id_token, "verify_oauth2_token", verify)
+    assert a.post("/api/auth/google", json={"credential": "forged-token-xxxxxxxxx"}).status_code == 401
+    a_kids = {x["id"] for x in a.get("/api/learners").json()}
+    r = a.post("/api/auth/google", json={"credential": "good-token-for-parent-1"})
+    assert r.status_code == 200 and r.json()["email"] == "parent@example.com"
+
+    # another device: its untouched demo copies are dropped, the account's children come back
+    b.get("/api/learners")
+    r = b.post("/api/auth/google", json={"credential": "good-token-for-parent-1"})
+    assert r.status_code == 200
+    assert {x["id"] for x in b.get("/api/learners").json()} == a_kids
+
+    # sign out: a fresh family on this browser; the account keeps its children
+    b.post("/api/auth/signout")
+    assert not {x["id"] for x in b.get("/api/learners").json()} & a_kids
+    assert {x["id"] for x in a.get("/api/learners").json()} == a_kids
