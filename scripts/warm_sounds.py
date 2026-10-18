@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 import hashlib  # noqa: E402
 
 from athena import tts  # noqa: E402
-from athena.api import PRAISE  # noqa: E402
+from athena.api import PHRASES, PRAISE  # noqa: E402
 from athena.diagnostic import _EN_SET1, _EN_SET2, _NE_T1, _NE_T2  # noqa: E402
 
 
@@ -25,6 +25,7 @@ def main() -> None:
     phrases = [("ne", tts.letter_phrase("ne", x)) for x in _NE_T1 + _NE_T2]
     phrases += [("en", tts.letter_phrase("en", x)) for x in _EN_SET1 + _EN_SET2]
     phrases += [(lang, text) for lang, tiers in PRAISE.items() for text in tiers.values()]
+    phrases += [(lang, text) for lang, keys in PHRASES.items() for text in keys.values()]
     tts.SHIPPED.mkdir(parents=True, exist_ok=True)
     for lang, text in dict.fromkeys(phrases):
         key = hashlib.sha256(f"v2:{lang}:{text}".encode()).hexdigest()[:24]

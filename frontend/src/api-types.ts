@@ -258,6 +258,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/phrase/{language}/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Phrase Audio
+         * @description A fixed instruction, spoken. Fixed phrases only (no open voice service).
+         */
+        get: operations["phrase_audio_api_phrase__language___key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/praise/{language}/{tier}": {
         parameters: {
             query?: never;
@@ -2436,6 +2456,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CloseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    phrase_audio_api_phrase__language___key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                language: "ne" | "en";
+                key: "clap_intro" | "your_turn";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

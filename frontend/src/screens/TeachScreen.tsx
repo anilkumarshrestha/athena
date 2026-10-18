@@ -8,33 +8,33 @@ import { jingle, sfx } from '../sound'
 
 type Teach = components['schemas']['TeachOut']
 
-// Teach the cat (athena/teach.py): the cat reads a story the child already read, with a few
+// Teach the buddy (athena/teach.py): the cat reads a story the child already read, with a few
 // words wrong, chosen in code from this child's own confusions. The child points them out
 // and hears each word said properly. The child is the teacher; nothing here is ever "wrong".
 
 const T = {
   ne: {
     hello: 'म यो कथा पढ्छु। मेरो गल्ती समात्न सक्छौ?',
-    read: 'बिरालो पढ्छ',
+    read: (b: string) => `${b} पढ्छ`,
     found: (n: number, of: number) => `${n}/${of} गल्ती भेटियो`,
     thanks: (w: string) => `धन्यवाद! यो "${w}" हो।`,
     notThis: 'यो त मैले ठीक पढेँ जस्तो लाग्छ। फेरि सुन!',
     showMe: 'मलाई देखाऊ',
     done: 'तिमी राम्रो शिक्षक हौ!',
     again: 'फेरि सिकाऊ',
-    first: 'पहिले एउटा कथा पढ, अनि बिरालोलाई सिकाउन आऊ।',
+    first: (b: string) => `पहिले एउटा कथा पढ, अनि ${b}लाई सिकाउन आऊ।`,
     limit: 'आजलाई यति नै! भोलि फेरि खेलौँ।',
   },
   en: {
     hello: "I'll read this story. Can you catch my mistakes?",
-    read: 'Cat reads',
+    read: (b: string) => `${b} reads`,
     found: (n: number, of: number) => `${n} of ${of} mistakes found`,
     thanks: (w: string) => `Thank you! It's "${w}".`,
     notThis: 'I think I read that one right. Listen again!',
     showMe: 'Show me',
     done: "You're a great teacher!",
     again: 'Teach again',
-    first: 'Read a story first, then come and teach the cat.',
+    first: (b: string) => `Read a story first, then come and teach the ${b}.`,
     limit: "That's all for today. Let's play again tomorrow!",
   },
 } as const
@@ -49,6 +49,7 @@ export function TeachScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [playing, setPlaying] = useState(false)
   const audio = useRef<HTMLAudioElement | null>(null)
   const tx = T[lang]
+  const buddy = lang === 'ne' ? (t?.buddy_ne ?? 'साथी') : (t?.buddy_en ?? 'buddy')
   const font = lang === 'ne' ? 'font-story-ne' : 'font-story-en'
 
   const load = useCallback(() => {
@@ -102,7 +103,7 @@ export function TeachScreen({ learnerId, lang, onBack }: { learnerId: string; la
         </section>
       ) : error ? (
         <p className={`rounded-2xl border-2 border-line bg-card p-8 ${font} text-child-label text-ink-2`}>
-          {error.startsWith('read a story') ? tx.first : error}
+          {error.startsWith('read a story') ? tx.first(buddy) : error}
         </p>
       ) : !t ? (
         <div className="flex justify-center p-12"><DotLoader /></div>
@@ -143,7 +144,7 @@ export function TeachScreen({ learnerId, lang, onBack }: { learnerId: string; la
           <div className="flex flex-wrap items-center justify-between gap-3">
             <button type="button" onClick={() => play(api.teachAudioUrl(t.id))} disabled={playing}
               className="flex min-h-16 items-center gap-2 rounded-xl border-2 border-b-4 border-sky-edge bg-sky-soft px-5 text-child-label font-bold text-ink active:translate-y-1 disabled:opacity-60">
-              <Volume2 size={28} /> <span className={font}>{tx.read}</span>
+              <Volume2 size={28} /> <span className={font}>{tx.read(buddy)}</span>
             </button>
             <span className={`${font} font-mono text-child-label tabular-nums text-ink-2`}>{tx.found(found.length, t.mistakes)}</span>
           </div>
@@ -156,7 +157,7 @@ export function TeachScreen({ learnerId, lang, onBack }: { learnerId: string; la
           )}
           {shown.length > 0 && !done && (
             <p className={`mt-4 ${font} text-body text-ink-2`}>
-              {lang === 'ne' ? 'बिरालोले फरक पढेका शब्द:' : 'The cat read these differently:'}{' '}
+              {lang === 'ne' ? `${buddy}ले फरक पढेका शब्द:` : `The ${buddy} read these differently:`}{' '}
               <ShowMe id={t.id} lang={lang} onShow={setShown} />
             </p>
           )}

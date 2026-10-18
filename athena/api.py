@@ -848,6 +848,20 @@ PRAISE = {
 }
 
 
+# Fixed spoken instructions for children who cannot read them yet (shipped: scripts/warm_sounds.py).
+PHRASES = {
+    "ne": {"clap_intro": "शब्दको हरेक टुक्रामा एक पटक ताली बजाऊ। हेर!", "your_turn": "अब तिम्रो पालो!"},
+    "en": {"clap_intro": "Clap once for each part of the word. Watch!", "your_turn": "Now you!"},
+}
+
+
+@app.get("/api/phrase/{language}/{key}")
+def phrase_audio(language: Language, key: Literal["clap_intro", "your_turn"]) -> Response:
+    """A fixed instruction, spoken. Fixed phrases only (no open voice service)."""
+    return Response(tts.speak_word(language, PHRASES[language][key]), media_type="audio/wav",
+                    headers={"Cache-Control": "public, max-age=604800"})
+
+
 @app.get("/api/praise/{language}/{tier}")
 def praise_audio(language: Language, tier: Literal["great", "good", "try"]) -> Response:
     """Spoken encouragement after a reading. Fixed phrases only; cached after first use."""

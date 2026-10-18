@@ -76,6 +76,7 @@ export const api = {
       body: JSON.stringify({ index }),
     }).then(json<components['schemas']['TeachTapOut']>),
   praiseUrl: (lang: Language, tier: 'great' | 'good' | 'try') => `/api/praise/${lang}/${tier}`,
+  phraseUrl: (lang: Language, key: 'clap_intro' | 'your_turn') => `/api/phrase/${lang}/${key}`,
   history: (id: string) => fetch(`/api/learners/${id}/stories`).then(json<components['schemas']['HistoryItemOut'][]>),
   historyStory: (id: string, storyId: string) =>
     fetch(`/api/learners/${id}/stories/${storyId}`).then(json<components['schemas']['HistoryStoryOut']>),

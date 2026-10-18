@@ -7,7 +7,9 @@ import { jingle, sfx, soundOn } from '../sound'
 
 type ClapWord = components['schemas']['ClapWordOut']
 
-// Clap the beats (athena/clap.py): hear a word, tap the drum once per beat (सी·ता, rab·bit).
+// Clap the word (athena/clap.py): hear a word, tap the drum once for each part (सी·ता, rab·bit).
+// The first word shows itself first (the parts light up with a clap each), with a spoken
+// instruction, because the youngest children cannot read the instruction.
 // A soft music bed plays underneath (Lyria, shipped). Code counts the taps; a miss is never
 // "wrong": the beats light up one by one with a pop ("let's clap together"), then try again.
 
@@ -19,7 +21,7 @@ export function ClapScreen({ learnerId, lang, onBack }: { learnerId: string; lan
   const [error, setError] = useState<string | null>(null)
   const [i, setI] = useState(0)
   const [taps, setTaps] = useState(0)
-  const [state, setState] = useState<'listen' | 'tapping' | 'right' | 'together' | 'done'>('listen')
+  const [state, setState] = useState<'listen' | 'demo' | 'tapping' | 'right' | 'together' | 'done'>('listen')
   const [lit, setLit] = useState(-1) // beat highlighted in the demo / after a right answer
   const [stars, setStars] = useState(0)
   const idle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -53,12 +55,35 @@ export function ClapScreen({ learnerId, lang, onBack }: { learnerId: string; lan
     setTaps(0)
     setLit(-1)
     setState('listen')
+    if (i === 0) {
+      // show, then ask: "Clap once for each part of the word. Watch!" -> सी · ता -> "Now you!"
+      setState('demo')
+      const intro = new Audio(api.phraseUrl(lang, 'clap_intro'))
+      let cancelled = false
+      const demo = () => {
+        if (cancelled) return
+        say()
+        w.beats.forEach((_, k) => setTimeout(() => !cancelled && (setLit(k), sfx.pop()), 900 + k * DEMO_MS))
+        setTimeout(() => {
+          if (cancelled) return
+          setLit(-1)
+          new Audio(api.phraseUrl(lang, 'your_turn')).play().catch(() => {})
+          setState('tapping')
+        }, 900 + w.beats.length * DEMO_MS + 500)
+      }
+      intro.onended = demo
+      intro.play().catch(demo)
+      return () => {
+        cancelled = true
+        intro.pause()
+      }
+    }
     const t = setTimeout(() => {
       say()
       setState('tapping')
     }, 300)
     return () => clearTimeout(t)
-  }, [w, say])
+  }, [w, say, i, lang])
 
   const lightBeats = (onEnd: () => void) => {
     if (!w) return
@@ -126,7 +151,7 @@ export function ClapScreen({ learnerId, lang, onBack }: { learnerId: string; lan
           <p className="m-0 font-mono text-caption text-ink-3 tabular-nums">{i + 1} / {words?.length}</p>
           {w.picture_url && <img src={w.picture_url} alt="" className="size-32 rounded-2xl object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />}
           <div className={`flex items-center gap-3 ${font} text-story-lg font-bold`}>
-            {state === 'right' || state === 'together' ? (
+            {state === 'right' || state === 'together' || state === 'demo' ? (
               w.beats.map((b, k) => (
                 <span key={k} className={`rounded-xl px-3 py-1 transition-colors duration-150 ${k <= lit ? 'bg-sun text-on-sun' : 'bg-paper-sunken text-ink-2'}`}>{b}</span>
               ))
@@ -151,9 +176,10 @@ export function ClapScreen({ learnerId, lang, onBack }: { learnerId: string; lan
           </button>
 
           <p className={`m-0 min-h-8 ${font} text-child-label font-semibold text-ink-2`}>
-            {state === 'together' ? (isNe ? 'सँगै ताली बजाऔँ!' : "Let's clap together!")
+            {state === 'demo' ? (isNe ? 'हेर: हरेक टुक्रामा एक ताली।' : 'Watch: one clap for each part.')
+              : state === 'together' ? (isNe ? 'सँगै ताली बजाऔँ!' : "Let's clap together!")
               : state === 'right' ? (isNe ? 'ठ्याक्कै!' : 'Just right!')
-              : isNe ? 'हरेक टुक्रामा एक पटक थिच।' : 'Tap once for each beat.'}
+              : isNe ? 'शब्दको हरेक टुक्रामा एक ताली।' : 'Clap once for each part of the word.'}
           </p>
         </article>
       ) : null}

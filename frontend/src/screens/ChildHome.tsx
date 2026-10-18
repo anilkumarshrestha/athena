@@ -105,7 +105,7 @@ export function ChildHome({ learnerId, onBack }: { learnerId: string; onBack: ()
         {langs.map((x) => (
           <Tile key={x} href={`/clap/${l.id}/${x}`} className="border-coral-edge bg-coral-soft text-ink">
             <Drum size={30} className="text-coral-edge" />
-            <span className={`${x === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-label font-bold`}>{x === 'ne' ? 'ताली बजाऊ' : 'Clap the beats'}</span>
+            <span className={`${x === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-label font-bold`}>{x === 'ne' ? 'शब्दमा ताली' : 'Clap the word'}</span>
           </Tile>
         ))}
       </div>
