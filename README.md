@@ -9,7 +9,7 @@ short illustrated story about the things they love (their favourite animal, food
 stuck, and the next story grows with them.
 
 > **Model proposes, code decides.** Gemini writes; a deterministic verifier checks every word.
-> In 300 evaluation stories, **0 words a child could not read** reached a child.
+> In 400 evaluation stories, **0 words a child could not read** reached a child.
 
 **Live demo: https://athena-ybi3v6o5la-el.a.run.app** (Chrome recommended, allow the microphone)
 
@@ -78,15 +78,17 @@ child, today, with exactly their letters, and proves it fits before showing it.
 
 | | Nepali | English |
 |---|---|---|
-| Stories generated in evaluation | 150 | 150 |
+| Stories generated in evaluation (4 full runs) | 200 | 200 |
 | **Unreadable words shipped** | **0** | **0** |
-| Clean on the first draft (latest run) | 32% | 68% |
-| Rescued by a verified fallback | 34% | 4% |
-| Median time to a verified story | 5.7 s | 2.8 s |
+| Clean on the first draft (latest run) | 22% | 66% |
+| Rescued by a verified fallback | 32% | 2% |
+| Median time to a verified story | 7.9 s | 4.3 s |
 | Text cost per story (incl. retries) | $0.003 | $0.001 |
 | Live follow-along delay after a word | 0.1 s | 0.3 s |
 
-- Results: `eval/results/20261017-191030`, `20261017-195125`, `20261018-112925` (`.summary.json`), each `EVAL SUCCESS`.
+- Results: `eval/results/20261017-191030`, `20261017-195125`, `20261018-112925`, `20261018-225811` (latest) (`.summary.json`), each `EVAL SUCCESS`.
+- The latest run is on the final code: Nepali first drafts pass less often (22%) since the writer
+  follows stricter grammar rules (gender, names, plurals); the verified fallbacks still deliver every story.
 - **Coverage:** choosing new letters by unlock value + skill graph: 209 readable Nepali words at 40
   letters vs 75 in textbook order (2.8×). `eval/results/coverage_ne.csv`, `coverage_en.csv`.
 - **Maths:** 60 generated problems, 0 shipped failing a check; Nepali first-draft pass 50% → 70%
