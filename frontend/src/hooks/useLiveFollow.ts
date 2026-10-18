@@ -13,7 +13,7 @@ class Pcm16 extends AudioWorkletProcessor {
       const out = new Int16Array(ch.length)
       for (let i = 0; i < ch.length; i++) out[i] = Math.max(-1, Math.min(1, ch[i])) * 0x7fff
       this.buf.push(out); this.n += out.length
-      if (this.n >= 1600) {               // ~100 ms at 16 kHz
+      if (this.n >= 800) {                // ~50 ms at 16 kHz: the highlight keeps up
         const all = new Int16Array(this.n); let o = 0
         for (const b of this.buf) { all.set(b, o); o += b.length }
         this.port.postMessage(all.buffer, [all.buffer]); this.buf = []; this.n = 0
@@ -29,6 +29,7 @@ export function useLiveFollow(storyId: string | undefined) {
   const [next, setNext] = useState<number | null>(null)
   const ws = useRef<WebSocket | null>(null)
   const ctx = useRef<AudioContext | null>(null)
+  const stopAsked = useRef(false)
 
   const start = useCallback(
     async (stream: MediaStream) => {
@@ -46,6 +47,14 @@ export function useLiveFollow(storyId: string | undefined) {
           setNext(m.next)
         }
         sock.onerror = () => setNext(null)
+        // The mic starts before the socket is open: hold those first chunks instead of
+        // dropping them (the first word used to be lost or late), send them on open.
+        const pending: ArrayBuffer[] = []
+        sock.onopen = () => {
+          for (const b of pending.splice(0)) sock.send(b)
+          if (stopAsked.current) sock.send('stop')
+        }
+        stopAsked.current = false
         ws.current = sock
 
         // The browser resamples the mic to 16 kHz for this context (Chrome, Safari, Firefox).
@@ -55,7 +64,10 @@ export function useLiveFollow(storyId: string | undefined) {
         await ac.audioWorklet.addModule(url)
         URL.revokeObjectURL(url)
         const node = new AudioWorkletNode(ac, 'pcm16')
-        node.port.onmessage = (e) => sock.readyState === WebSocket.OPEN && sock.send(e.data)
+        node.port.onmessage = (e) => {
+          if (sock.readyState === WebSocket.OPEN) sock.send(e.data)
+          else if (sock.readyState === WebSocket.CONNECTING && pending.length < 200) pending.push(e.data) // ≤10 s
+        }
         ac.createMediaStreamSource(stream).connect(node)
       } catch {
         setNext(null) // live view unavailable: recording and scoring still work
@@ -67,6 +79,7 @@ export function useLiveFollow(storyId: string | undefined) {
   const stop = useCallback(() => {
     const sock = ws.current
     if (sock?.readyState === WebSocket.OPEN) sock.send('stop')
+    else stopAsked.current = true // still connecting: onopen sends the held audio, then stop
     setTimeout(() => sock?.close(), 3000) // let the last words arrive
     ws.current = null
     ctx.current?.close().catch(() => {})

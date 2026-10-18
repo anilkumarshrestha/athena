@@ -97,8 +97,12 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
         ? new Map(
             reading.words.map((w) => [w.index, (fixed.has(w.index) ? 'self_corrected' : w.outcome) as Outcome]),
           )
-        : undefined,
-    [reading, fixed],
+        : checking && live.heard.size
+          ? // Instant, provisional: the words the live guide heard, while the accurate scoring
+            // runs (~2 s). Replaced by that result; only it changes mastery and levels.
+            new Map([...live.heard].map((i) => [i, 'correct' as Outcome]))
+          : undefined,
+    [reading, fixed, checking, live.heard],
   )
 
   // A long stop on one word while reading aloud: noted, never interrupted (the mic is open).
@@ -124,10 +128,13 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     live.stop()
     const { blob, durationS } = await recorder.stop()
     sfx.click() // mic is closed now: safe to play
-    setChecking(true)
+    setChecking(true) // the live guide's words show at once (outcomes), the accurate result follows
+    const instant = live.heard.size > 0
+    if (instant) setTimeout(sfx.chime, 150) // feedback now, not after the ~2 s scoring
     try {
       const r = await api.read(story.id, blob, durationS, [...paused.current])
       setReading(r)
+      setChecking(false) // the screen is free: saving the session happens behind
       // Confusion spotted in code (same letter missed twice, or a long stop then a miss):
       // after the praise, open the help card on that word, gently, once per story.
       const target = r.reteach as { index: number; reason: 'repeat' | 'pause' } | null | undefined
@@ -142,8 +149,8 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
       const acc = r.words.length ? r.words_correct / r.words.length : 0
       const tier = acc >= 0.9 ? 'great' : acc >= 0.6 ? 'good' : 'try'
       setPraise(tier)
-      sfx.chime()
-      setTimeout(() => new Audio(api.praiseUrl(lang, tier)).play().catch(() => {}), 350) // chime, then praise
+      if (!instant) sfx.chime()
+      setTimeout(() => new Audio(api.praiseUrl(lang, tier)).play().catch(() => {}), instant ? 0 : 350) // chime, then praise
       // First reading of a story updates mastery once; later re-reads are practice only.
       if (!closed) {
         const c = await api.closeSession(story.id)
