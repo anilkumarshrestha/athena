@@ -60,3 +60,15 @@ def test_name_must_be_exact_and_attached():
     # plural possessive: सीताका ३ केरा थिए, never सीताको ३ केरा थिए
     lines = {line for t in _ne_templates(Problem("ne", 3, 2, "+", "केरा"), "सीता", "girl") for line in t}
     assert "सीताका ३ केरा थिए।" in lines and "सीताको ३ केरा थिए।" not in lines
+
+
+def test_maths_counts_the_childs_favourite_when_readable():
+    import random
+
+    from athena.maths import pick
+
+    readable = {"केरा", "बिरालो", "कुकुर"}
+    nouns = [pick("ne", 1, readable, random.Random(i), prefer=("बिरालो",))[3] for i in range(100)]
+    assert 55 <= nouns.count("बिरालो") <= 90  # mostly the favourite, still some variety
+    nouns = [pick("ne", 1, readable, random.Random(i), prefer=("याक",))[3] for i in range(30)]
+    assert "याक" not in nouns  # not countable/readable: never forced in

@@ -1155,6 +1155,17 @@ def _maths_plan(learner: Learner, language: Language):
                 child_gender=learner.profile.get("gender", "unspecified"))
 
 
+def _maths_prefer(learner: Learner, language: Language) -> tuple[str, ...]:
+    """The child's favourite animal and food, as countable words in this language."""
+    from athena.profile import ANIMALS, FOODS
+
+    words: list[str] = []
+    for key, table in (("favorite_animal", ANIMALS), ("favorite_food", FOODS)):
+        if fav := table.get(learner.profile.get(key, "")):
+            words += fav[1] if language == "ne" else fav[2]
+    return tuple(words)
+
+
 def _maths_get(pid: str) -> dict | None:
     """An open problem: from memory, else rebuilt from the learner's history (Cloud Run may
     have restarted or scaled to zero since it was shown). The pid carries the learner id."""
@@ -1197,8 +1208,11 @@ def maths_start(req: MathsStart) -> MathsOut:
     if entry and entry[0] == level and entry[1].done() and not entry[1].exception():
         prob = entry[1].result()
     if prob is None:
-        prob = quick_problem(_maths_plan(learner, req.language)) or make_problem(_maths_plan(learner, req.language))
-    _maths_next[key] = (level, _pool.submit(make_problem, _maths_plan(learner, req.language)))
+        prefer = _maths_prefer(learner, req.language)
+        prob = quick_problem(_maths_plan(learner, req.language), prefer=prefer) or make_problem(
+            _maths_plan(learner, req.language), prefer=prefer)
+    _maths_next[key] = (level, _pool.submit(make_problem, _maths_plan(learner, req.language), None,
+                                            _maths_prefer(learner, req.language)))
 
     pid = f"{learner.id}-{_uuid.uuid4().hex[:12]}"
     rng = _random.Random()

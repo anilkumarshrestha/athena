@@ -61,7 +61,12 @@ class Problem:
         return self.a + self.b if self.op == "+" else self.a - self.b
 
 
-def pick(language: str, level: int, readable: set[str], rng: random.Random) -> tuple[int, int, str, str]:
+FAVOURITE_SHARE = 0.7  # how often the child's favourite (when readable) is what gets counted
+
+
+def pick(
+    language: str, level: int, readable: set[str], rng: random.Random, prefer: tuple[str, ...] = ()
+) -> tuple[int, int, str, str]:
     top, ops = LEVELS.get(level, LEVELS[1])
     op = rng.choice(ops)
     # Pick the ANSWER uniformly first, then split it. (Picking a, then b "whatever still fits"
@@ -75,7 +80,11 @@ def pick(language: str, level: int, readable: set[str], rng: random.Random) -> t
         answer = rng.randint(1, a - 1)
         b = a - answer
     pool = [w for w in (NE_OBJECTS if language == "ne" else EN_OBJECTS) if w in readable]
-    noun = rng.choice(pool) if pool else ("केरा" if language == "ne" else "cats")
+    fav = [w for w in pool if w in prefer]  # interest-based: count the child's favourite
+    if fav and rng.random() < FAVOURITE_SHARE:
+        noun = rng.choice(fav)
+    else:
+        noun = rng.choice(pool) if pool else ("केरा" if language == "ne" else "cats")
     return a, b, op, noun
 
 
@@ -226,13 +235,13 @@ def _template(p: Problem, plan: StoryPlan, verifier) -> list[str] | None:
     return next((o for o in options if not _check(p, o, verifier, name)), None)
 
 
-def quick_problem(plan: StoryPlan, seed: int | None = None) -> Problem | None:
+def quick_problem(plan: StoryPlan, seed: int | None = None, prefer: tuple[str, ...] = ()) -> Problem | None:
     """Instant, code-built problem (no model): the first problem of a session, while a model-
     written one is prepared in the background. None if no template is readable."""
     rng = random.Random(seed)
     readable = set(decodable_words(plan.language, frozenset(plan.mastery)))
     for _ in range(6):  # a few number/object draws until one reads
-        a, b, op, noun = pick(plan.language, plan.level, readable, rng)
+        a, b, op, noun = pick(plan.language, plan.level, readable, rng, prefer)
         p = Problem(plan.language, a, b, op, noun)
         if t := _template(p, plan, _verifier(plan, p)):
             p.sentences, p.source = t, "template"
@@ -245,11 +254,11 @@ def _verifier(plan: StoryPlan, p: Problem):
     return verifier_for(plan.language, frozenset(plan.mastery), names | DIGITS | _digit_words(p.a, p.b) | QUESTION_WORDS[plan.language])
 
 
-def make_problem(plan: StoryPlan, seed: int | None = None) -> Problem:
+def make_problem(plan: StoryPlan, seed: int | None = None, prefer: tuple[str, ...] = ()) -> Problem:
     rng = random.Random(seed)
     names = frozenset(plan.learner_name.split()) | frozenset(plan.learner_name.lower().split())
     readable = set(decodable_words(plan.language, frozenset(plan.mastery)))
-    a, b, op, noun = pick(plan.language, plan.level, readable, rng)
+    a, b, op, noun = pick(plan.language, plan.level, readable, rng, prefer)
     p = Problem(plan.language, a, b, op, noun)
     # The fixed question phrase is allowed in maths ("How many?"/"कति"): the child can tap to hear it.
     question = QUESTION_WORDS[plan.language]

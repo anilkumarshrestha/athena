@@ -86,7 +86,7 @@ def maths_api(tmp_path, monkeypatch):
     monkeypatch.setattr(store, "save", lambda: None)
     monkeypatch.setitem(store.learners, learner.id, learner)
 
-    def fixed(plan, seed=None):  # 2 + 1, no model call
+    def fixed(plan, seed=None, prefer=()):  # 2 + 1, no model call
         p = maths.Problem(plan.language, 2, 1, "+", "केरा", sentences=["२ केरा।", "१ केरा।", "कति केरा?"], source="template")
         return p
 
