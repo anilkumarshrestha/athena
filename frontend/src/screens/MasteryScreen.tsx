@@ -67,6 +67,9 @@ export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack
               level <span className="text-stat font-medium text-ink">{learner.level[lang] ?? 1}</span> / 3
             </span>
             <span>
+              maths level <span className="text-stat font-medium text-ink">{learner.maths_level[lang] ?? 1}</span> / 3
+            </span>
+            <span>
               last sessions:{' '}
               {(learner.recent_accuracy[lang] ?? []).length
                 ? learner.recent_accuracy[lang].map((a) => `${Math.round(a * 100)}%`).join(' · ')

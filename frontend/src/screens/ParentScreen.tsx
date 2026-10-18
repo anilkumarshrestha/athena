@@ -5,6 +5,7 @@ import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { ContentControls } from '../components/ContentControls'
 import { FamilyCode } from '../components/FamilyCode'
+import { LevelStars, knownCount } from '../components/LevelStars'
 import { MathsProgress } from '../components/MathsProgress'
 import { ProfileInsights } from '../components/ProfileInsights'
 import { UnitChip } from '../components/UnitChip'
@@ -14,6 +15,7 @@ type Dashboard = components['schemas']['DashboardOut']
 type Activities = components['schemas']['ActivitiesOut']
 
 const LIMITS = [0, 10, 15, 20, 30] as const
+const MATHS_LEVEL: Record<number, string> = { 1: 'adding up to 5', 2: 'adding and taking away up to 10', 3: 'adding and taking away up to 20' }
 const glyph = unitGlyph // matras on a dotted circle: ◌ै
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -58,7 +60,23 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
       <h1 className="m-0 mb-1 text-display font-semibold">
         {name.ne} <span className="text-ink-3">· {name.en}</span>
       </h1>
-      <p className="m-0 mb-6 text-body text-ink-3">अभिभावकका लागि · For parents: this week, what's hard, and how to help at home.</p>
+      <p className="m-0 mb-3 text-body text-ink-3">अभिभावकका लागि · For parents: this week, what's hard, and how to help at home.</p>
+      <ul className="m-0 mb-6 flex list-none flex-wrap gap-2 p-0 text-small">
+        {(['ne', 'en'] as const).map((l) => (
+          <li key={l} className="flex items-center gap-2 rounded-lg border border-line bg-card px-3 py-2">
+            <span className="font-semibold">{l === 'ne' ? 'Nepali' : 'English'}:</span>
+            <LevelStars level={d.learner.level[l] ?? 1} size={14} />
+            <span>story level {d.learner.level[l] ?? 1} of 3 · {knownCount(d.learner, l)} {l === 'ne' ? 'letters' : 'sounds'} read confidently</span>
+          </li>
+        ))}
+        {(['ne', 'en'] as const).map((l) => (
+          <li key={`m${l}`} className="flex items-center gap-2 rounded-lg border border-line bg-card px-3 py-2">
+            <span className="font-semibold">Maths ({l === 'ne' ? 'ने' : 'EN'}):</span>
+            <LevelStars level={d.learner.maths_level[l] ?? 1} size={14} />
+            <span>{MATHS_LEVEL[d.learner.maths_level[l] ?? 1]}</span>
+          </li>
+        ))}
+      </ul>
 
       <div role="tablist" className="mb-6 flex gap-1">
         {(['ne', 'en'] as const).map((l) => (

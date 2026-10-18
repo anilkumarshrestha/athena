@@ -2,6 +2,7 @@ import { Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api, type Language, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
+import { LevelStars, knownCount, neNum } from '../components/LevelStars'
 import { JoinFamily } from '../components/FamilyCode'
 import { setSoundOn, sfx, soundOn } from '../sound'
 
@@ -19,13 +20,38 @@ const buddyNe = (l: Learner) => BUDDY_NE[l.profile.buddy ?? 'cat'] ?? 'बिर
 const goalOf = (l: Learner) => Number(l.profile.daily_goal ?? 10)
 const learns = (l: Learner, lang: 'ne' | 'en') => (l.profile.languages ?? 'both') === 'both' || l.profile.languages === lang
 
+// Stars last seen on this device, per child: a gained star is celebrated once.
+const STARS_KEY = 'athena.stars'
+function starsGained(ls: Learner[]): Set<string> {
+  const now: Record<string, number> = {}
+  for (const l of ls) now[l.id] = (l.level.ne ?? 1) + (l.level.en ?? 1) + (l.maths_level.ne ?? 1) + (l.maths_level.en ?? 1)
+  try {
+    const before = JSON.parse(localStorage.getItem(STARS_KEY) ?? '{}') as Record<string, number>
+    localStorage.setItem(STARS_KEY, JSON.stringify(now))
+    return new Set(ls.filter((l) => before[l.id] !== undefined && now[l.id] > before[l.id]).map((l) => l.id))
+  } catch {
+    return new Set() // storage blocked: no celebration, nothing else changes
+  }
+}
+
 export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Language) => void }) {
   const [learners, setLearners] = useState<Learner[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sound, setSound] = useState(soundOn())
+  const [newStar, setNewStar] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    api.learners().then(setLearners).catch((e) => setError(String(e.message ?? e)))
+    api
+      .learners()
+      .then((ls) => {
+        setLearners(ls)
+        const up = starsGained(ls)
+        if (up.size) {
+          setNewStar(up)
+          setTimeout(sfx.sparkle, 400)
+        }
+      })
+      .catch((e) => setError(String(e.message ?? e)))
   }, [])
 
   return (
@@ -65,6 +91,11 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
                   onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
               </div>
               <div className="min-w-0 flex-1">
+                {newStar.has(l.id) && (
+                  <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-sun-soft px-2 py-0.5 text-small font-bold text-ink">
+                    <LevelStars level={1} size={12} /> नयाँ तारा! · New star!
+                  </span>
+                )}
                 <div className="font-story-ne text-child-title font-bold">{l.name.ne}</div>
                 <div className="font-story-en text-child-label text-ink-2">{l.name.en}</div>
                 {/* today's goal: minutes so far / goal, as a bar + numbers (not colour alone) */}
@@ -82,16 +113,25 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
               {learns(l, 'ne') && <button
                 type="button"
                 onClick={() => onPick(l.id, 'ne')}
-                className={`${CHUNKY} font-story-ne ${a.btn}`}
+                className={`${CHUNKY} flex flex-col items-center justify-center py-2 font-story-ne ${a.btn}`}
               >
                 नेपाली
+                {/* growth, not a grade: story-size stars + letters read confidently */}
+                <span className="flex items-center gap-2 text-small font-semibold">
+                  <LevelStars level={l.level.ne ?? 1} size={14} className="rounded-full bg-card px-1.5 py-0.5" />
+                  {neNum(knownCount(l, 'ne'))} अक्षर
+                </span>
               </button>}
               {learns(l, 'en') && <button
                 type="button"
                 onClick={() => onPick(l.id, 'en')}
-                className={`${CHUNKY} font-story-en ${a.btn}`}
+                className={`${CHUNKY} flex flex-col items-center justify-center py-2 font-story-en ${a.btn}`}
               >
                 English
+                <span className="flex items-center gap-2 text-small font-semibold">
+                  <LevelStars level={l.level.en ?? 1} size={14} className="rounded-full bg-card px-1.5 py-0.5" />
+                  {knownCount(l, 'en')} sounds
+                </span>
               </button>}
             </div>
             {l.controls.maths !== false && (
@@ -102,7 +142,7 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
                   href={`/maths/${l.id}/${ml}`}
                   className={`flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-b-4 border-line-strong bg-card ${ml === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-label font-bold text-ink transition-transform duration-150 active:translate-y-1`}
                 >
-                  {ml === 'ne' ? 'गणित' : 'Maths'} <span className="font-mono text-small font-semibold text-ink-3">{ml === 'ne' ? '१+२' : '1+2'}</span>
+                  {ml === 'ne' ? 'गणित' : 'Maths'} <LevelStars level={l.maths_level[ml] ?? 1} size={14} />
                 </a>
               ))}
             </div>
