@@ -28,6 +28,31 @@ def _client():
     return firestore.Client(project=settings().google_cloud_project or None)
 
 
+# Firestore forbids an array directly inside an array ("invalid nested entity"); our data has
+# some ([[unit, before, after]] changes, [[word, unit, reason]] violations). Encoded at this
+# boundary only: an inner list becomes {"_list": [...]}, decoded on the way back.
+_LIST = "_list"
+
+
+def _enc(x, in_list: bool = False):
+    if isinstance(x, dict):
+        return {k: _enc(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        inner = [_enc(v, in_list=True) for v in x]
+        return {_LIST: inner} if in_list else inner
+    return x
+
+
+def _dec(x):
+    if isinstance(x, dict):
+        if set(x) == {_LIST}:
+            return [_dec(v) for v in x[_LIST]]
+        return {k: _dec(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_dec(v) for v in x]
+    return x
+
+
 class FirestoreHistory(History):
     def __init__(self, db, prefix: str = "") -> None:
         super().__init__(None)
@@ -39,7 +64,7 @@ class FirestoreHistory(History):
 
     def append(self, learner_id: str, event: dict) -> None:
         try:
-            self._events_ref(learner_id).add({**event, "ts": time.time()})
+            self._events_ref(learner_id).add(_enc({**event, "ts": time.time()}))
         except Exception:  # noqa: BLE001 - history is for review; never break the child's flow
             log.exception("history write failed")
 
@@ -50,14 +75,14 @@ class FirestoreHistory(History):
             for start in range(0, len(events), 400):
                 batch = self.db.batch()
                 for i, e in enumerate(events[start:start + 400], start):
-                    batch.set(self._events_ref(learner_id).document(), {**e, "ts": base + i * 1e-3})
+                    batch.set(self._events_ref(learner_id).document(), _enc({**e, "ts": base + i * 1e-3}))
                 batch.commit()
         except Exception:  # noqa: BLE001 - sample history is optional
             log.exception("history batch write failed")
 
     def _events(self, learner_id: str) -> list[dict]:
         docs = self._events_ref(learner_id).order_by("ts").stream()
-        return [d.to_dict() for d in docs]
+        return [_dec(d.to_dict()) for d in docs]
 
     def delete(self, learner_id: str) -> None:
         for d in self._events_ref(learner_id).stream():
@@ -82,8 +107,8 @@ class FirestoreStore(MemoryStore):
         self.accounts = {d.id: d.to_dict() for d in self.db.collection(self.accounts_col).stream()}
         docs = list(self.db.collection(self.col).stream())
         with self._lock:
-            self.learners = {d.id: learner_from_dict(d.to_dict()) for d in docs}
-            self._written = {lid: json.dumps(learner_to_dict(x), sort_keys=True, ensure_ascii=False)
+            self.learners = {d.id: learner_from_dict(_dec(d.to_dict())) for d in docs}
+            self._written = {lid: json.dumps(_enc(learner_to_dict(x)), sort_keys=True, ensure_ascii=False)
                              for lid, x in self.learners.items()}
         return bool(docs)
 
@@ -91,7 +116,7 @@ class FirestoreStore(MemoryStore):
         """Write through the learners that changed since the last write (batched, atomic).
         Many families share the store: rewriting every learner on each answer would not scale."""
         with self._lock:
-            payload = {lid: learner_to_dict(x) for lid, x in self.learners.items()}
+            payload = {lid: _enc(learner_to_dict(x)) for lid, x in self.learners.items()}
         with self._write_lock:
             changed = {}
             for lid, data in payload.items():
