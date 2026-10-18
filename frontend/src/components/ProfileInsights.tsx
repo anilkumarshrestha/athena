@@ -19,6 +19,7 @@ const HELPS: Record<string, string> = {
   hear: 'hearing the word · शब्द सुन्दा',
   parts: 'seeing its parts · टुक्रा हेर्दा',
   picture: 'seeing a picture · चित्र हेर्दा',
+  anchor: 'linking the letter to a known word · चिनेको शब्दसँग जोड्दा',
 }
 
 const KIND: Record<string, string> = {

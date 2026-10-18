@@ -680,6 +680,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stories/{story_id}/words/{index}/anchors/{k}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Word Anchor Audio
+         * @description The anchor said as a teacher would ("ख, खसीको ख"). Built only from this story word.
+         */
+        get: operations["word_anchor_audio_api_stories__story_id__words__index__anchors__k__audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}/audio": {
         parameters: {
             query?: never;
@@ -798,6 +818,15 @@ export interface components {
             activities: {
                 [key: string]: unknown;
             }[];
+        };
+        /** AnchorOut */
+        AnchorOut: {
+            /** Glyph */
+            glyph: string;
+            /** Word */
+            word: string;
+            /** Picture Url */
+            picture_url: string | null;
         };
         /** AttemptLog */
         AttemptLog: {
@@ -1619,6 +1648,11 @@ export interface components {
             parts: components["schemas"]["PartOut"][];
             /** Styles */
             styles: string[];
+            /**
+             * Anchors
+             * @default []
+             */
+            anchors: components["schemas"]["AnchorOut"][];
         };
         /** WordOut */
         WordOut: {
@@ -2798,6 +2832,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WordHelpOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    word_anchor_audio_api_stories__story_id__words__index__anchors__k__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                index: number;
+                k: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

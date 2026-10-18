@@ -83,7 +83,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] 5. Response time in adaptation: slow-but-right maths does not count toward level up; long hesitations keep a word's units practising
 
 - [x] 7. Content controls: maths on/off, pictures on/off, themes to avoid (fixed list); planner + learner card respect them
-- [ ] 8. Story-based re-teach: letter mnemonic ("ख, खसीको ख"); maths step-by-step ("start with 3, count 2 more: 4, 5")
+- [x] 8. Story-based re-teach: letter mnemonic ("ख, खसीको ख"); maths step-by-step ("start with 3, count 2 more: 4, 5")
 - [ ] 9. Interests in maths: prefer favourite animal/food when readable
 - [ ] 10. Explicit skill graph: prerequisites (matra needs a consonant, conjunct needs both letters; maths +5 -> +10 -> -10 -> 20), shown in teacher view
 

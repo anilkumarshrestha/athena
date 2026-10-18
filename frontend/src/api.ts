@@ -100,6 +100,7 @@ export const api = {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ daily_minutes }),
     }).then(json<Learner>),
+  anchorAudioUrl: (storyId: string, index: number, k: number) => `/api/stories/${storyId}/words/${index}/anchors/${k}/audio`,
   wordAudioUrl: (storyId: string, index: number) => `/api/stories/${storyId}/words/${index}/audio`,
   retryWord: (storyId: string, index: number, audio: Blob, styles: string[] = [], trigger = 'tap') => {
     const form = new FormData()

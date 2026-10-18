@@ -40,6 +40,14 @@ export function ReteachPanel({
   const audio = useRef<HTMLAudioElement | null>(null)
   const isNe = lang === 'ne'
 
+  // "ख, खसीको ख": the tricky letter tied to a familiar word, said as a teacher would
+  const sayAnchor = (k: number) => {
+    if (used.current[used.current.length - 1] !== 'anchor') used.current.push('anchor')
+    audio.current?.pause()
+    audio.current = new Audio(api.anchorAudioUrl(storyId, index, k))
+    audio.current.play().catch(() => {})
+  }
+
   const markUsed = (style: string) => {
     if (used.current[used.current.length - 1] !== style) used.current.push(style)
   }
@@ -60,6 +68,7 @@ export function ReteachPanel({
         setHelp(h)
         const first = h.styles[0] ?? 'hear'
         if (first === 'hear') hear() // hearing it is this child's best first help
+        else if (first === 'anchor') sayAnchor(0)
         else markUsed(first)
       })
       .catch(() => {})
@@ -72,6 +81,7 @@ export function ReteachPanel({
     const next = help.styles[shown]
     setShown(shown + 1)
     if (next === 'hear') hear()
+    else if (next === 'anchor') sayAnchor(0)
     else markUsed(next)
   }
 
@@ -124,6 +134,22 @@ export function ReteachPanel({
             </div>
           )}
           <div className={`${story} text-story-lg font-semibold`}>{help.word}</div>
+
+          {/* Tie the tricky letter to a word the child knows */}
+          {open.includes('anchor') && help.anchors.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-3">
+              {help.anchors.map((a, k) => (
+                <button key={a.glyph} type="button" onClick={() => sayAnchor(k)}
+                  className={`${story} flex min-h-14 items-center gap-3 rounded-xl border-2 border-b-4 border-sun-edge bg-sun-soft px-4 text-child-label active:translate-y-1`}>
+                  <span className="text-story-md font-bold">{a.glyph}</span>
+                  <span aria-hidden className="text-ink-3">→</span>
+                  {a.picture_url && <img src={a.picture_url} alt="" className="size-10 rounded-lg object-cover" />}
+                  <span className="font-semibold">{a.word}</span>
+                  <Volume2 size={22} className="text-ink-2" />
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* See its parts */}
           {open.includes('parts') && (

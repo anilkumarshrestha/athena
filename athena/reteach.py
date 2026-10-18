@@ -11,8 +11,9 @@ credit (or the blame): it is what the child saw just before reading the word aga
 The card then opens with the way that has worked best for this child.
 """
 
-STYLES = ("hear", "parts", "picture")
+STYLES = ("hear", "parts", "picture", "anchor")
 DEFAULT_ORDER = STYLES  # hearing first: the most direct help for a beginner
+# anchor: the tricky letter tied to a familiar word, as teachers do ("ख, खसीको ख"; "s as in sun")
 MIN_EVIDENCE = 2  # tries before a style's own record outweighs the default order
 
 
@@ -29,16 +30,43 @@ def style_stats(events: list[dict]) -> dict[str, dict[str, int]]:
     return out
 
 
-def style_order(events: list[dict], has_picture: bool) -> list[str]:
+def style_order(events: list[dict], has_picture: bool, has_anchor: bool = False) -> list[str]:
     """Best first. Laplace-smoothed success rate; styles with little evidence keep their default place."""
     stats = style_stats(events)
+    offered = {"hear", "parts"} | ({"picture"} if has_picture else set()) | ({"anchor"} if has_anchor else set())
 
     def score(s: str) -> tuple[float, int]:
         st = stats[s]
         rate = (st["worked"] + 1) / (st["tries"] + 2) if st["tries"] >= MIN_EVIDENCE else 0.5
         return (-rate, DEFAULT_ORDER.index(s))
 
-    return sorted((s for s in STYLES if has_picture or s != "picture"), key=score)
+    return sorted((s for s in STYLES if s in offered), key=score)
+
+
+def anchors(language: str, word: str, parts: list[tuple[list[str], bool]], limit: int = 2) -> list[dict]:
+    """Letter anchors for a word: the tricky parts' letters first (else the first letter),
+    each tied to a familiar word: [{unit, glyph, word, phrase}]. parts: (units, tricky)."""
+    from athena.letters import example_word
+    from athena.tts import letter_phrase
+
+    units = [u for us, tricky in parts if tricky for u in us]
+    if not units:
+        units = [u for us, _ in parts[:1] for u in us if u[:2] in ("c:", "g:")]
+    out, seen = [], set()
+    for u in units:
+        if u[:2] not in ("c:", "m:", "g:") or u in seen:
+            continue
+        seen.add(u)
+        glyph = u.split(":", 1)[1]
+        anchor = example_word(language, u)
+        if not anchor or anchor == word or anchor == glyph:
+            continue
+        # consonants/vowels: the classroom phrase; a vowel sign is heard inside its word
+        phrase = letter_phrase(language, glyph) if u[:2] in ("c:", "g:") else anchor
+        out.append({"unit": u, "glyph": glyph, "word": anchor, "phrase": phrase})
+        if len(out) == limit:
+            break
+    return out
 
 
 def best_style(events: list[dict]) -> dict | None:

@@ -11,7 +11,7 @@ type Detail = components['schemas']['HistoryStoryOut']
 
 // Parent review of one past story: the story as the child saw it, each word coloured
 // by how they read it, what speech-to-text heard, and what the verifier did. No audio.
-const WAYS: Record<string, string> = { hear: 'heard it', parts: 'saw its parts', picture: 'saw a picture' }
+const WAYS: Record<string, string> = { hear: 'heard it', parts: 'saw its parts', picture: 'saw a picture', anchor: 'linked the letter to a word it knows' }
 
 export function StoryReview({ learnerId, storyId, onBack }: { learnerId: string; storyId: string; onBack: () => void }) {
   const [d, setD] = useState<Detail | null>(null)

@@ -63,3 +63,14 @@ def test_auto_reteach_picks_repeat_then_pause():
     assert auto_target(words, {2}) == {"index": 2, "reason": "pause"}
     assert auto_target(words, {0}) is None  # paused but read it right: no interruption
     assert auto_target([w(0, "correct")], set()) is None
+
+
+def test_anchor_ties_the_tricky_letter_to_a_known_word():
+    from athena.assess.parts import word_parts
+    from athena.reteach import anchors, style_order
+
+    parts = [(list(p.units), i == 0) for i, p in enumerate(word_parts("ne", "खरायो"))]
+    a = anchors("ne", "खरायो", parts)
+    assert a and a[0]["glyph"] == "ख" and a[0]["phrase"].startswith("ख, ") and a[0]["word"] != "खरायो"
+    assert "anchor" in style_order([], has_picture=False, has_anchor=True)
+    assert "anchor" not in style_order([], has_picture=False)

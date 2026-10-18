@@ -1571,6 +1571,12 @@ class PartOut(BaseModel):
     tricky: bool  # behind this child's error in the latest reading
 
 
+class AnchorOut(BaseModel):
+    glyph: str
+    word: str
+    picture_url: str | None
+
+
 class WordHelpOut(BaseModel):
     index: int
     word: str
@@ -1579,6 +1585,7 @@ class WordHelpOut(BaseModel):
     heard: str | None
     parts: list[PartOut]
     styles: list[str]  # ways to re-teach, best first for this child (athena/reteach.py)
+    anchors: list[AnchorOut] = []  # the tricky letter tied to a familiar word ("ख, खसीको ख")
 
 
 class RetryOut(BaseModel):
@@ -1607,18 +1614,38 @@ def word_help(story_id: str, index: int) -> WordHelpOut:
     wrong = set(result.error_units) if result else set()
     from athena.agents.picture import concrete_noun
 
-    from athena.reteach import style_order
+    from athena.reteach import anchors, style_order
 
     noun = concrete_noun(s.language, word)
+    parts = word_parts(s.language, word)
+    anch = anchors(s.language, word, [(list(p.units), bool(wrong & set(p.units))) for p in parts])
     return WordHelpOut(
         index=index,
         word=word,
         picture_url=f"/api/pictures/{s.language}/{noun}" if noun else None,
         outcome=result.outcome if result else None,
         heard=result.heard if result else None,
-        parts=[PartOut(text=p.text, units=list(p.units), tricky=bool(wrong & set(p.units))) for p in word_parts(s.language, word)],
-        styles=style_order(_reteach_events(s.learner_id, s.language), has_picture=bool(noun)),
+        parts=[PartOut(text=p.text, units=list(p.units), tricky=bool(wrong & set(p.units))) for p in parts],
+        styles=style_order(_reteach_events(s.learner_id, s.language), has_picture=bool(noun), has_anchor=bool(anch)),
+        anchors=[AnchorOut(glyph=a["glyph"], word=a["word"],
+                           picture_url=f"/api/pictures/{s.language}/{n}" if (n := concrete_noun(s.language, a["word"])) else None)
+                 for a in anch],
     )
+
+
+@app.get("/api/stories/{story_id}/words/{index}/anchors/{k}/audio", dependencies=[Depends(narrate_limit)])
+def word_anchor_audio(story_id: str, index: int, k: int) -> Response:
+    """The anchor said as a teacher would ("ख, खसीको ख"). Built only from this story word."""
+    from athena.reteach import anchors
+
+    s, word = _story_word(story_id, index)
+    result = next((w for w in s.readings[-1].words if w.index == index), None) if s.readings else None
+    wrong = set(result.error_units) if result else set()
+    anch = anchors(s.language, word, [(list(p.units), bool(wrong & set(p.units))) for p in word_parts(s.language, word)])
+    if not 0 <= k < len(anch):
+        raise HTTPException(404, "no such anchor")
+    return Response(tts.speak_word(s.language, anch[k]["phrase"]), media_type="audio/wav",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 
 def _reteach_events(learner_id: str, language: str) -> list[dict]:

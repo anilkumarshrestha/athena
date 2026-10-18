@@ -24,6 +24,7 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [levelUp, setLevelUp] = useState(false) // bigger numbers from the next problem
   // Teach the cat: on some problems the cat answers first and the child checks it.
   const [catSays, setCatSays] = useState<string | null>(null) // null: still asking the child
+  const [steps, setSteps] = useState(-1) // step-by-step: hops shown so far (-1: closed)
   const isNe = lang === 'ne'
   const font = isNe ? 'font-story-ne' : 'font-story-en'
 
@@ -34,9 +35,17 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setCounting(0)
     setError(null)
     setCatSays(null)
+    setSteps(-1)
     api.mathsStart(learnerId, lang).then(setM).catch((e) => setError(String(e.message ?? e)))
   }, [learnerId, lang])
   useEffect(load, [load])
+
+  // Step by step: start at the first number, hop one at a time (+1 or −1), b hops, to "?".
+  const stepByStep = () => {
+    if (!m) return
+    setSteps(0)
+    for (let i = 1; i < m.b; i++) setTimeout(() => (setSteps(i), sfx.pop()), i * 700)
+  }
 
   const countTogether = (total: number) => {
     setCounting(0)
@@ -181,6 +190,20 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
             })}
           </div>
 
+          {steps >= 0 && solved === null && (
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 font-mono text-stat tabular-nums" aria-label="step by step">
+              <span className="rounded-lg border-2 border-primary bg-primary-soft px-3 py-1">{num(m.a, lang)}</span>
+              {Array.from({ length: m.b }, (_, i) => (
+                <Fragment key={i}>
+                  <span className="text-caption text-ink-3">{m.op === '+' ? (isNe ? '+१' : '+1') : isNe ? '−१' : '−1'}</span>
+                  <span className={`rounded-lg border-2 px-3 py-1 ${i <= steps ? 'border-line-strong bg-card' : 'border-dashed border-line text-ink-4'}`}>
+                    {i === m.b - 1 ? '?' : i <= steps ? num(m.op === '+' ? m.a + i + 1 : m.a - i - 1, lang) : '·'}
+                  </span>
+                </Fragment>
+              ))}
+            </div>
+          )}
+
           <div aria-live="polite" className={`mt-5 min-h-10 text-center ${font} text-child-label font-semibold`}>
             {solved !== null && <span className="text-correct">{isNe ? 'धेरै राम्रो!' : 'Well done!'}</span>}
             {solved !== null && levelUp && (
@@ -189,9 +212,14 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
               </span>
             )}
             {solved === null && tried.length > 0 && (
-              <button type="button" onClick={() => countTogether(pictures)} className="text-ink-2 underline underline-offset-4">
-                {isNe ? 'सँगै गनौँ!' : "Let's count together!"}
-              </button>
+              <span className="flex flex-wrap items-center justify-center gap-4">
+                <button type="button" onClick={() => countTogether(pictures)} className="text-ink-2 underline underline-offset-4">
+                  {isNe ? 'सँगै गनौँ!' : "Let's count together!"}
+                </button>
+                <button type="button" onClick={stepByStep} className="text-ink-2 underline underline-offset-4">
+                  {isNe ? 'एक-एक गरेर' : 'Step by step'}
+                </button>
+              </span>
             )}
           </div>
 
