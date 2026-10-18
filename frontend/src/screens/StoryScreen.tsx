@@ -89,7 +89,9 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setError(null)
     clearTimeout(autoTimer.current)
     api
-      .choices(learnerId, lang)
+      .warm(learnerId) // the prepared story (a shelf story for demo children) becomes the "ready" tile
+      .catch(() => ({}))
+      .then(() => api.choices(learnerId, lang))
       .then((c) => id === reqId.current && (c.length ? setChoices(c) : load()))
       .catch(() => id === reqId.current && load())
   }, [learnerId, lang, load])

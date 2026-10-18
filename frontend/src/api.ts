@@ -99,6 +99,7 @@ export const api = {
   mathsProgress: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/maths/${lang}`).then(json<components['schemas']['MathsProgressOut']>),
   summary: (id: string, lang: Language) => fetch(`/api/learners/${id}/summary/${lang}`).then(json<{ ne: string; en: string }>),
+  warm: (id: string) => fetch(`/api/learners/${id}/warm`, { method: 'POST' }).then(json<Record<string, string>>),
   dashboard: (id: string) => fetch(`/api/learners/${id}/dashboard`).then(json<components['schemas']['DashboardOut']>),
   activities: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/activities/${lang}`).then(json<components['schemas']['ActivitiesOut']>),

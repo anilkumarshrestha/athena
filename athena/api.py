@@ -659,6 +659,43 @@ def _prefetch_next(learner: Learner, language: Language) -> None:
         )
 
 
+def _warm(learner: Learner, language: Language) -> str:
+    """Make sure a story is ready before the child asks: the next shelf story for a demo child
+    (instant, athena/shelf.py), else one composed in the background. One at a time per child
+    and language. The prepared slot re-checks letters and level when the story is taken."""
+    from athena import shelf
+    from athena.letters import MIN_STORY_WORDS
+    from athena.lexicon import decodable_words
+
+    key = (learner.id, language)
+    with _prefetch_lock:
+        if key in _prefetch:
+            return "ready"
+    if (item := shelf.take(learner, language)) is not None:
+        done: Future = Future()
+        done.set_result(item)
+        with _prefetch_lock:
+            _prefetch.setdefault(key, (time.time(), done))
+        return "shelf"
+    if len(decodable_words(language, allowed(learner.units[language]))) < MIN_STORY_WORDS:
+        return "letters"
+    _prefetch_next(learner, language)
+    return "composing"
+
+
+warm_limit = RateLimit(per_ip=30, global_=200)
+
+
+@app.post("/api/learners/{learner_id}/warm", dependencies=[Depends(warm_limit)])
+def warm(learner_id: str) -> dict[str, str]:
+    """Called when a child's home opens: have a story ready in each language they learn."""
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    langs = {"ne": ["ne"], "en": ["en"]}.get(learner.profile.get("languages", "both"), ["ne", "en"])
+    return {lang: _warm(learner, lang) for lang in langs}
+
+
 def _take_prefetched(learner: Learner, language: Language, theme: str | None = None):
     """The prepared story, if still valid for the child RIGHT NOW. The verifier re-checks it
     against current units and level: anything that changed since means compose afresh."""
@@ -829,7 +866,7 @@ def close_session(req: CloseRequest) -> CloseOut:
             "changes": [[c.unit, c.before, c.after] for c in changes],
         },
     )
-    _prefetch_next(learner, lang)  # next story is written while the child looks at this result
+    _warm(learner, lang)  # next story: off the shelf for a demo child, else written while the child looks at this result
     return CloseOut(
         story_id=s.id,
         accuracy=round(accuracy, 2),

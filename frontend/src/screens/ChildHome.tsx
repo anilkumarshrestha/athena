@@ -26,6 +26,7 @@ export function ChildHome({ learnerId, onBack }: { learnerId: string; onBack: ()
   const [newStar, setNewStar] = useState(false)
 
   useEffect(() => {
+    api.warm(learnerId).catch(() => {}) // a story ready in each language before the child taps
     api
       .learner(learnerId)
       .then((x) => {

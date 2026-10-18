@@ -197,7 +197,7 @@ class MemoryStore:
             # same letters and level as the demo child; their own fresh history
             c = learner_from_dict({**learner_to_dict(t), "id": uuid.uuid4().hex[:8], "family": fam,
                                    "sessions": [], "history": {"ne": [], "en": []},
-                                   "profile": {**t.profile, "demo_copy": "1"}})
+                                   "profile": {**t.profile, "demo_copy": "1", "demo_of": t.id}})
             copies.append(c)
         from athena.demo import sample_week
 
