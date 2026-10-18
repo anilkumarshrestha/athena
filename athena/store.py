@@ -124,7 +124,7 @@ class MemoryStore:
             for x in list(self.learners.values()):
                 if x.family != src:
                     continue
-                if x.profile.get("demo_copy") and not x.sessions:
+                if x.profile.get("demo_copy") and all(s.get("demo") for s in x.sessions):  # only sample sessions
                     self.learners.pop(x.id)
                 else:
                     x.family = dst
@@ -199,10 +199,23 @@ class MemoryStore:
                                    "sessions": [], "history": {"ne": [], "en": []},
                                    "profile": {**t.profile, "demo_copy": "1"}})
             copies.append(c)
+        from athena.demo import sample_week
+
+        weeks = {}
+        for c in copies:  # a lived-in sample week, so the parent view has something to show
+            try:
+                sessions, events, over = sample_week(c)
+            except Exception:  # noqa: BLE001 - an empty demo child is still usable
+                log.exception("sample week failed for %s", c.name.get("en"))
+                continue
+            c.sessions, c.level, c.maths, c.history = sessions, over["level"], over["maths"], over["history"]
+            weeks[c.id] = events
         with self._lock:
             for c in copies:
                 self.learners[c.id] = c
         self.save()
+        for lid, events in weeks.items():
+            self.history.append_many(lid, events)
         return copies
 
     def adopt_unassigned(self) -> None:

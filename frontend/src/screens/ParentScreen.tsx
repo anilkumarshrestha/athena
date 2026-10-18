@@ -60,6 +60,11 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
       <h1 className="m-0 mb-1 text-display font-semibold">
         {name.ne} <span className="text-ink-3">· {name.en}</span>
       </h1>
+      {d.learner.profile.demo_copy && (
+        <p className="m-0 mb-4 rounded-lg border border-line bg-paper-sunken px-3 py-2 text-small text-ink-2">
+          Sample data: a made-up week so you can see what this view shows. Your own children start empty.
+        </p>
+      )}
       <p className="m-0 mb-3 text-body text-ink-3">अभिभावकका लागि · For parents: this week, what's hard, and how to help at home.</p>
       <ul className="m-0 mb-6 flex list-none flex-wrap gap-2 p-0 text-small">
         {(['ne', 'en'] as const).map((l) => (

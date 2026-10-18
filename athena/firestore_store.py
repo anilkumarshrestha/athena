@@ -43,6 +43,18 @@ class FirestoreHistory(History):
         except Exception:  # noqa: BLE001 - history is for review; never break the child's flow
             log.exception("history write failed")
 
+    def append_many(self, learner_id: str, events: list[dict]) -> None:
+        """One batched write (Firestore: up to 500 per batch); ts keeps the given order."""
+        try:
+            base = time.time()
+            for start in range(0, len(events), 400):
+                batch = self.db.batch()
+                for i, e in enumerate(events[start:start + 400], start):
+                    batch.set(self._events_ref(learner_id).document(), {**e, "ts": base + i * 1e-3})
+                batch.commit()
+        except Exception:  # noqa: BLE001 - sample history is optional
+            log.exception("history batch write failed")
+
     def _events(self, learner_id: str) -> list[dict]:
         docs = self._events_ref(learner_id).order_by("ts").stream()
         return [d.to_dict() for d in docs]

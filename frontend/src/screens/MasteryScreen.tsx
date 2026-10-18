@@ -39,6 +39,11 @@ export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack
           <h1 className="m-0 mb-1 text-display font-semibold">
             {learner.name.ne} <span className="text-ink-3">· {learner.name.en}</span>
           </h1>
+          {learner.profile.demo_copy && (
+        <p className="m-0 mb-4 rounded-lg border border-line bg-paper-sunken px-3 py-2 text-small text-ink-2">
+          Sample data: a made-up week so you can see what this view shows. Your own children start empty.
+        </p>
+      )}
           <p className="m-0 mb-6 text-body text-ink-3">
             Stories use mastered and practising units only. A unit read wrong twice in one session goes back to
             practising and sits out the next story. After two strong sessions (90%+) the level rises and new

@@ -16,7 +16,12 @@ def test_each_browser_gets_its_own_children():
     la = a.get("/api/learners").json()
     lb = b.get("/api/learners").json()
     assert {x["name"]["en"] for x in la} == {"Sita", "Ram"}  # own copies of the demo children
-    assert all(x["used_today"] == 0 and not any(x["recent_accuracy"].values()) for x in la)  # fresh history
+    assert all(x["profile"].get("demo_copy") for x in la)  # labelled as sample data
+    sita = next(x for x in la if x["name"]["en"] == "Sita")
+    week = a.get(f"/api/learners/{sita['id']}/dashboard").json()["week"]["ne"]
+    assert week["stories"] >= 3 and week["struggling"]  # a lived-in sample week, with a struggle alert
+    assert len(a.get(f"/api/learners/{sita['id']}/stories").json()) >= 4
+    assert a.get(f"/api/learners/{sita['id']}/insights/ne").json()["helps_most"]
     assert not {x["id"] for x in la} & {x["id"] for x in lb}  # never the same records
     other = lb[0]["id"]
     assert a.get(f"/api/learners/{other}").status_code == 404

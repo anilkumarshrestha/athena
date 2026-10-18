@@ -41,6 +41,17 @@ class History:
             with path.open("a", encoding="utf-8") as f:
                 f.write(line + "\n")
 
+    def append_many(self, learner_id: str, events: list[dict]) -> None:
+        """Several events at once (the demo's sample week): one file write."""
+        path = self._path(learner_id)
+        if not path or not events:
+            return
+        lines = "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in events)
+        with self._lock:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as f:
+                f.write(lines)
+
     def _events(self, learner_id: str) -> list[dict]:
         path = self._path(learner_id)
         if not path or not path.exists():
