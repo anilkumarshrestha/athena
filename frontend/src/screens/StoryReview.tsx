@@ -2,6 +2,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { components } from '../api-types'
 import { api } from '../api'
+import { EnglishGloss } from '../components/EnglishGloss'
 import { DotLoader } from '../components/DotLoader'
 import { StoryCard } from '../components/StoryCard'
 import type { Outcome } from '../components/WordToken'
@@ -68,6 +69,8 @@ export function StoryReview({ learnerId, storyId, onBack }: { learnerId: string;
         outcomes={outcomes}
         wordPractice={d.outcome === 'wordlist'}
       />
+
+      {d.lang === 'ne' && <EnglishGloss load={() => api.historyGloss(learnerId, storyId)} />}
 
       <section className="mt-6 rounded-xl border-2 border-line bg-card p-4 font-mono text-mono">
         {reading ? (

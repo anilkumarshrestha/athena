@@ -4,6 +4,7 @@ import type { components } from '../api-types'
 import { api, type CloseResult, type Language, type ReadResult, type Story } from '../api'
 import { ReadingLog } from '../components/ReadingLog'
 import { LetterPractice } from '../components/LetterPractice'
+import { EnglishGloss } from '../components/EnglishGloss'
 import { ReteachPanel } from '../components/ReteachPanel'
 import { StoryChoice } from '../components/StoryChoice'
 import { RecordButton, StoryCard } from '../components/StoryCard'
@@ -310,6 +311,10 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
             )
           })()}
         </div>
+      )}
+
+      {story && story.outcome !== 'letters' && lang === 'ne' && (
+        <EnglishGloss key={story.id} load={() => api.storyGloss(story.id)} />
       )}
 
       {story && story.outcome !== 'letters' && (

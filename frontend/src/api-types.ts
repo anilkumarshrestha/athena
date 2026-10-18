@@ -783,6 +783,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stories/{story_id}/gloss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Story Gloss
+         * @description "Show in English" for grown-ups: this story's sentences romanised and translated.
+         */
+        get: operations["story_gloss_api_stories__story_id__gloss_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/stories/{story_id}/gloss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History Gloss */
+        get: operations["history_gloss_api_learners__learner_id__stories__story_id__gloss_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}": {
         parameters: {
             query?: never;
@@ -1138,6 +1175,21 @@ export interface components {
             email?: string | null;
             /** Google Client Id */
             google_client_id?: string | null;
+        };
+        /** GlossLine */
+        GlossLine: {
+            /** Text */
+            text: string;
+            /** Roman */
+            roman: string;
+            /** English */
+            english: string;
+        };
+        /** GlossOut */
+        GlossOut: {
+            title: components["schemas"]["GlossLine"];
+            /** Sentences */
+            sentences: components["schemas"]["GlossLine"][];
         };
         /** GoogleSignIn */
         GoogleSignIn: {
@@ -3188,6 +3240,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SkillGraphOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    story_gloss_api_stories__story_id__gloss_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    history_gloss_api_learners__learner_id__stories__story_id__gloss_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossOut"];
                 };
             };
             /** @description Validation Error */

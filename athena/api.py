@@ -1731,6 +1731,49 @@ def learner_skills(learner_id: str, language: Language) -> SkillGraphOut:
     )
 
 
+class GlossLine(BaseModel):
+    text: str
+    roman: str  # romanised in code (athena/gloss.py)
+    english: str  # translated for grown-ups
+
+
+class GlossOut(BaseModel):
+    title: GlossLine
+    sentences: list[GlossLine]
+
+
+gloss_limit = RateLimit(per_ip=20, global_=120)
+
+
+def _gloss(lang: str, title: str, sentences: list[str]) -> GlossOut:
+    from athena.gloss import gloss
+
+    if lang != "ne":
+        raise HTTPException(404, "only Nepali stories have an English gloss")
+    try:
+        return GlossOut(**gloss(title, sentences))
+    except Exception:  # noqa: BLE001 - model unavailable: no gloss, the story still works
+        log.warning("gloss failed")
+        raise HTTPException(503, "translation not available right now") from None
+
+
+@app.get("/api/stories/{story_id}/gloss", response_model=GlossOut, dependencies=[Depends(gloss_limit)])
+def story_gloss(story_id: str) -> GlossOut:
+    """"Show in English" for grown-ups: this story's sentences romanised and translated."""
+    s = store.get_story(story_id)
+    if not s:
+        raise HTTPException(404, "story not found")
+    return _gloss(s.language, s.result.title, s.result.sentences)
+
+
+@app.get("/api/learners/{learner_id}/stories/{story_id}/gloss", response_model=GlossOut, dependencies=[Depends(gloss_limit)])
+def history_gloss(learner_id: str, story_id: str) -> GlossOut:
+    r = store.history.story(learner_id, story_id) if store.get_learner(learner_id) else None
+    if not r:
+        raise HTTPException(404, "story not found")
+    return _gloss(r["lang"], r.get("title", ""), r.get("sentences", []))
+
+
 class PartOut(BaseModel):
     text: str
     units: list[str]
