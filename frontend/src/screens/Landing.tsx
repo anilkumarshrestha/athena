@@ -30,6 +30,14 @@ const T = {
       ['Clear for parents', 'What they learned this week, what is hard, why each story was chosen, ideas for home, time limits.'],
     ],
     safety: 'Every story is checked for child safety. First name only, no recordings kept.',
+    tourTitle: 'Try it in 3 minutes',
+    tour: [
+      'Press Start, then "Continue without an account", then "Skip, try demo". You get your own private copies of three demo children.',
+      'Tap Leo, then English. Press the microphone and read the story aloud: words light up as you read. Tap any word for help.',
+      'Tap Sita, then नेपाली. Every word uses only letters Sita knows. Press "Show in English" under the story to read it.',
+      'Back on a child\'s page, try "Teach the cat": the cat reads with mistakes and you catch them.',
+      'Open "For grown-ups" (type the number words as digits), then a Parent view: the week, why each story was written, what is hard.',
+    ],
     already: 'Already here? Go to your children',
     accountTitle: 'Your account',
     accountText: "Sign in with Google to keep your children's progress and open it on any device. Or continue without an account: everything stays private to this browser, and you can sign in later from the parent view.",
@@ -53,6 +61,14 @@ const T = {
       ['अभिभावकका लागि स्पष्ट', 'यो हप्ता के सिक्यो, के गाह्रो छ, हरेक कथा किन छानियो, घरमा गर्ने अभ्यास, समय सीमा।'],
     ],
     safety: 'हरेक कथा बाल-सुरक्षाका लागि जाँचिन्छ। पहिलो नाम मात्र, कुनै रेकर्डिङ राखिँदैन।',
+    tourTitle: '३ मिनेटमा चलाएर हेर्नुहोस्',
+    tour: [
+      'सुरु गरौँ थिच्नुहोस्, "खाता बिना अगाडि बढ्नुहोस्", अनि "पछि, नमुना हेर्नुहोस्"। तपाईंले तीन नमुना बच्चाका आफ्नै प्रति पाउनुहुन्छ।',
+      'सीता, अनि नेपाली थिच्नुहोस्। माइक थिचेर कथा ठूलो स्वरले पढ्नुहोस्: पढ्दै जाँदा शब्द बल्छन्। कुनै शब्द थिचे मद्दत आउँछ।',
+      'लियो, अनि English थिच्नुहोस्: अङ्ग्रेजी पढाइ उस्तै तरिकाले।',
+      'बच्चाको पृष्ठमा "बिरालोलाई सिकाऊ" थिच्नुहोस्: बिरालोले गल्ती गर्दै पढ्छ, तपाईं समात्नुहोस्।',
+      '"For grown-ups" खोल्नुहोस् (अङ्ग्रेजी अङ्कका शब्द अङ्कमा लेख्नुहोस्), अनि अभिभावक पृष्ठ: यो हप्ता, हरेक कथा किन, के गाह्रो छ।',
+    ],
     already: 'पहिले नै सुरु गर्नुभएको? बच्चाहरूतिर जानुहोस्',
     accountTitle: 'तपाईंको खाता',
     accountText: 'बच्चाको प्रगति राख्न र जुनसुकै उपकरणमा खोल्न Google बाट साइन इन गर्नुहोस्। वा खाता बिना अगाडि बढ्नुहोस्: सबै कुरा यही ब्राउजरमा गोप्य रहन्छ, र पछि अभिभावक पृष्ठबाट साइन इन गर्न सकिन्छ।',
@@ -219,6 +235,16 @@ export function Landing({ step }: { step: LandingStep }) {
             </article>
           )
         })}
+      </section>
+
+      {/* a short guided path for first-time visitors (and judges) */}
+      <section className={`${card} mb-12`}>
+        <h2 className="m-0 mb-3 text-h2 font-bold">{t.tourTitle}</h2>
+        <ol className="m-0 grid list-decimal gap-2 pl-6 text-body text-ink-2 marker:font-bold marker:text-primary">
+          {t.tour.map((step, i) => (
+            <li key={i}>{step}</li>
+          ))}
+        </ol>
       </section>
 
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-small text-ink-3">
