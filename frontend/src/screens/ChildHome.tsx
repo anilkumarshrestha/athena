@@ -4,7 +4,7 @@ import { api, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { LevelStars, knownCount, neNum } from '../components/LevelStars'
 import { accentOf, buddyEn, buddyNe, gainedStar, goalOf, learns } from '../learner'
-import { jingle } from '../sound'
+import { sfx } from '../sound'
 import { bi, uiLang } from '../ui'
 
 // One child's home (/child/<id>): only their things. Big picture tiles for each activity in
@@ -32,7 +32,7 @@ export function ChildHome({ learnerId, onBack }: { learnerId: string; onBack: ()
         setL(x)
         if (gainedStar(x)) {
           setNewStar(true)
-          setTimeout(() => jingle('star'), 400)
+          setTimeout(sfx.sparkle, 400)
         }
       })
       .catch((e) => setError(String(e.message ?? e)))

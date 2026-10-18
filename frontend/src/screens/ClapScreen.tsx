@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
-import { jingle, sfx, soundOn } from '../sound'
+import { sfx, soundOn } from '../sound'
 
 type ClapWord = components['schemas']['ClapWordOut']
 
@@ -112,7 +112,7 @@ export function ClapScreen({ learnerId, lang, onBack }: { learnerId: string; lan
   const finish = () => {
     setState('done')
     bed.current?.pause()
-    jingle('star')
+    sfx.sparkle()
   }
 
   const tap = () => {

@@ -74,7 +74,7 @@ export const sfx = {
 
 // Music made once with Lyria (scripts/make_music.py), shipped in /music. Jingles celebrate;
 // they follow the sound toggle and are never played while the microphone is open (callers).
-export function jingle(id: 'star' | 'story_done' | 'cat', volume = 0.7): HTMLAudioElement | null {
+export function jingle(id: 'story_done' | 'cat', volume = 0.7): HTMLAudioElement | null {
   if (!soundOn()) return null
   const a = new Audio(`/music/${id}.mp3`)
   a.volume = volume

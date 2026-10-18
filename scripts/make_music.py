@@ -24,8 +24,6 @@ NEGATIVE = "vocals, singing, speech, harsh, loud drums, distortion, scary, sad"
 
 # id -> (prompt, seconds kept: None = whole clip as a loop)
 TRACKS: dict[str, tuple[str, float | None]] = {
-    "star": ("A very short, bright, joyful celebration fanfare for a child earning a star: glockenspiel and xylophone "
-             "rising arpeggio, sparkly bells, happy and warm", 4.0),
     "story_done": ("A short happy flourish for a young child who just finished reading a story: ukulele strum, "
                    "hand claps and a cheerful marimba melody", 4.0),
     "cat": ("A short playful, quirky tune for a funny cartoon cat being thankful: pizzicato strings, wood block "
