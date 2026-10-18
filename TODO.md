@@ -62,6 +62,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] Live follow-along (STT v1 streaming + hints, WebSocket), >60 s recordings chunked
 - [x] Instant Next (prefetch after reading, re-verified), pre-spoken words, 30x smaller pictures
 - [x] Profile insights (groups, mistake patterns, pace, parent note) + game-like card check (listen-and-tap, early stop)
+- [x] Read to me (karaoke), child picks the story (3 tiles, prepared one ready), gender agreement, maths word problems
 - [ ] Deploy (evening): Dockerfile w/ ffmpeg, otel/api-core pin conflict, WebSocket timeout, Secret Manager
 
 ## Tech debt / decisions pending
