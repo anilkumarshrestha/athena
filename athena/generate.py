@@ -39,7 +39,11 @@ MIN_CALL_MS = 5_000
 
 
 def generate(
-    plan: StoryPlan, log: bool = True, budget_s: float | None = None, check_safety: bool = True
+    plan: StoryPlan,
+    log: bool = True,
+    budget_s: float | None = None,
+    check_safety: bool = True,
+    engine: str | None = None,
 ) -> GenerationResult:
     """budget_s: total time for model attempts. Past it, go straight to the verified fallback."""
     t0 = time.perf_counter()
@@ -64,7 +68,7 @@ def generate(
             ViolationOut(word=v.word, word_index=v.word_index, unit=None, reason=v.reason) for v in shape
         ]
 
-    engine = settings().writer_engine
+    engine = engine or settings().writer_engine
     if engine == "adk":
         # ADK agent: drafts, calls the verifier tool, code ends the turn on acceptance.
         try:

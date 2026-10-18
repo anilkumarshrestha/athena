@@ -46,7 +46,7 @@ def test_level_change_discards():
 
 def test_close_triggers_prefetch(monkeypatch):
     calls = []
-    monkeypatch.setattr(api, "_compose", lambda learner, lang, theme=None: calls.append((learner.id, lang)))
+    monkeypatch.setattr(api, "_compose", lambda learner, lang, *rest: calls.append((learner.id, lang)))
     api._prefetch.clear()
     api._prefetch_next(store.get_learner("sita"), "ne")
     api._prefetch[("sita", "ne")][1].result(timeout=5)

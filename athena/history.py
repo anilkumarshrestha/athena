@@ -39,29 +39,21 @@ class History:
             with path.open("a", encoding="utf-8") as f:
                 f.write(line + "\n")
 
-    def stories(self, learner_id: str) -> list[dict]:
-        """Story records with their readings and outcome, newest first."""
+    def _events(self, learner_id: str) -> list[dict]:
         path = self._path(learner_id)
         if not path or not path.exists():
             return []
-        records: dict[str, dict] = {}
+        out = []
         for raw in path.read_text(encoding="utf-8").splitlines():
             try:
-                e = json.loads(raw)
+                out.append(json.loads(raw))
             except json.JSONDecodeError:
                 continue  # a torn last line after a crash
-            sid = e.get("story_id")
-            if e.get("type") == "story":
-                records[sid] = {**e, "image_id": None, "readings": [], "close": None}
-            elif sid in records:
-                r = records[sid]
-                if e["type"] == "image":
-                    r["image_id"] = e.get("image_id")
-                elif e["type"] == "reading":
-                    r["readings"].append(e)
-                elif e["type"] == "close":
-                    r["close"] = e
-        return sorted(records.values(), key=lambda r: r["at"], reverse=True)
+        return out
+
+    def stories(self, learner_id: str) -> list[dict]:
+        """Story records with their readings and outcome, newest first."""
+        return fold(self._events(learner_id))
 
     def story(self, learner_id: str, story_id: str) -> dict | None:
         return next((r for r in self.stories(learner_id) if r["story_id"] == story_id), None)
@@ -70,3 +62,21 @@ class History:
         path = self._path(learner_id)
         if path and path.exists():
             path.unlink()
+
+
+def fold(events: list[dict]) -> list[dict]:
+    """Events (in write order) -> story records with readings and close, newest first."""
+    records: dict[str, dict] = {}
+    for e in events:
+        sid = e.get("story_id")
+        if e.get("type") == "story":
+            records[sid] = {**e, "image_id": None, "readings": [], "close": None}
+        elif sid in records:
+            r = records[sid]
+            if e["type"] == "image":
+                r["image_id"] = e.get("image_id")
+            elif e["type"] == "reading":
+                r["readings"].append(e)
+            elif e["type"] == "close":
+                r["close"] = e
+    return sorted(records.values(), key=lambda r: r["at"], reverse=True)

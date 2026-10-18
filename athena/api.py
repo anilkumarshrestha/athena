@@ -417,7 +417,12 @@ def start_session(req: StartRequest) -> StoryOut:
     return story_out(_publish(learner, req.language, result, image_future))
 
 
-def _compose(learner: Learner, language: Language, theme: str | None = None):
+PREFETCH_ENGINE = "adk"  # background stories: the ADK agent's better Nepali, its time hidden
+PREFETCH_BUDGET_S = 45  # the child is on the result screen meanwhile
+
+
+def _compose(learner: Learner, language: Language, theme: str | None = None, engine: str | None = None,
+             budget_s: float = STORY_BUDGET_S):
     """Plan + generate + verify a story, with its picture started in parallel. Not stored yet."""
     units = learner.units[language]
     p = plan(
@@ -433,7 +438,7 @@ def _compose(learner: Learner, language: Language, theme: str | None = None):
     )
     # Image starts now from the theme; text is generated + verified meanwhile.
     image_future = _pool.submit(illustrator.illustrate, p.theme)
-    return generate(p, budget_s=STORY_BUDGET_S), image_future
+    return generate(p, budget_s=budget_s, engine=engine), image_future
 
 
 def _publish(learner: Learner, language: Language, result, image_future) -> Story:
@@ -493,6 +498,7 @@ def _prespeak(language: str, sentences: list[str]) -> None:
 # --- next story, prepared while the child looks at their result ---------------------
 
 PREFETCH_TTL_S = 30 * 60
+PREFETCH_WAIT_S = 5
 _prefetch: dict[tuple[str, str], tuple[float, object]] = {}
 _prefetch_lock = threading.Lock()
 
@@ -508,7 +514,10 @@ def _prefetch_next(learner: Learner, language: Language) -> None:
     with _prefetch_lock:
         if key in _prefetch:
             return
-        _prefetch[key] = (time.time(), _pool.submit(_compose, learner, language))
+        _prefetch[key] = (
+            time.time(),
+            _pool.submit(_compose, learner, language, None, PREFETCH_ENGINE, PREFETCH_BUDGET_S),
+        )
 
 
 def _take_prefetched(learner: Learner, language: Language, theme: str | None = None):
@@ -529,7 +538,8 @@ def _take_prefetched(learner: Learner, language: Language, theme: str | None = N
     if time.time() - created > PREFETCH_TTL_S:
         return None
     try:
-        result, image_future = fut.result(timeout=STORY_BUDGET_S)
+        # Not ready yet: wait a little, then let the fast engine write a fresh story instead.
+        result, image_future = fut.result(timeout=PREFETCH_WAIT_S)
     except Exception:  # noqa: BLE001 - compose afresh
         return None
     if result.plan.level != learner.level[language] or result.outcome == "wordlist":

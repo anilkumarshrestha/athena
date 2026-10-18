@@ -43,8 +43,8 @@ def build_prompt(plan: StoryPlan, feedback: list[ViolationOut] | None = None) ->
         else "Every word in the title and story MUST come from the word bank (case-insensitive)."
     )
     gender_rule = {
-        "boy": f"- {plan.learner_name} is a BOY: masculine past verbs for him: \"{plan.learner_name} बजार गयो\", \"{plan.learner_name} खुसी भयो\", \"{plan.learner_name}ले भात खायो\". Never गइन्/भइन्/खाइन् for him.\n",
-        "girl": f"- {plan.learner_name} is a GIRL: feminine past verbs for her: \"{plan.learner_name} बजार गइन्\", \"{plan.learner_name} खुसी भइन्\", \"{plan.learner_name}ले भात खाइन्\". Never गयो/भयो/खायो for her.\n",
+        "boy": f"- {plan.learner_name} is a BOY: masculine verbs for him: past \"{plan.learner_name} बजार गयो\", \"{plan.learner_name} खुसी भयो\", \"{plan.learner_name}ले भात खायो\"; present \"{plan.learner_name} भात खान्छ\", \"{plan.learner_name} खेल्छ\". Never गइन्/भइन्/खाइन्/खान्छिन् for him.\n",
+        "girl": f"- {plan.learner_name} is a GIRL: feminine verbs for her: past \"{plan.learner_name} बजार गइन्\", \"{plan.learner_name} खुसी भइन्\", \"{plan.learner_name}ले भात खाइन्\"; present \"{plan.learner_name} भात खान्छिन्\", \"{plan.learner_name} खेल्छिन्\". Never गयो/भयो/खायो/खान्छ for her.\n",
     }.get(plan.child_gender, f"- {plan.learner_name}'s gender is not given: avoid gendered past-tense verbs for {plan.learner_name}; use present tense (\"{plan.learner_name} खुसी छ\", \"{plan.learner_name} बजार जान्छ\").\n")
     grammar = (
         """

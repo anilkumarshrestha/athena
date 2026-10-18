@@ -179,7 +179,15 @@ def new_learner(name_ne: str, name_en: str, profile: dict[str, str], start: str)
 def _open_store() -> MemoryStore:
     from athena.config import settings
 
-    state = Path(settings().state_dir)
+    s = settings()
+    if s.store_backend == "firestore":
+        from athena.firestore_store import open_firestore_store
+
+        st = open_firestore_store(s.firestore_prefix)
+        if not st.learners:
+            _seed(st)  # empty database: demo learners
+        return st
+    state = Path(s.state_dir)
     st = MemoryStore(state / "learners.json", History(state / "stories"))
     if not st.load():
         _seed(st)  # first run: demo learners, written to disk

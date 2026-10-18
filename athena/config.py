@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     writer_thinking_level: str = "low"
     writer_engine: str = "loop"  # "loop": code feedback loop · "adk": ADK agent with verifier tool
     media_bucket: str = ""
+    store_backend: str = "file"  # "file" (local dev) | "firestore" (Cloud Run: survives restarts)
+    firestore_prefix: str = ""  # collection prefix, e.g. "dev_" to keep tests apart
     state_dir: str = str(Path(__file__).resolve().parent.parent / "state")  # learners.json
     request_timeout_ms: int = 30_000  # normal calls 2-15s; cut runaway thinking and retry
 

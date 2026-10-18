@@ -12,6 +12,7 @@ dependencies = [
     "google-cloud-storage>=2.18",
     "python-multipart>=0.0.9",
     "google-adk>=2.12",
+    "google-cloud-firestore>=2.19",
 ]
 
 [project.optional-dependencies]
