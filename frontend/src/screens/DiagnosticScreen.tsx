@@ -5,6 +5,7 @@ import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { RiverCrossing } from '../components/RiverCrossing'
 import { UnitChip } from '../components/UnitChip'
+import { sfx } from '../sound'
 
 type Diagnostic = components['schemas']['DiagnosticOut']
 type Placement = components['schemas']['PlacementOut']
@@ -86,16 +87,24 @@ export function DiagnosticScreen({ learnerId, lang, onDone }: { learnerId: strin
     const next = deck.tiers.findIndex((t, i) => i > tierIdx && (passed || t.always) && !(t.kind === 'listen'))
     run.current = { quick: 0, misses: 0 }
     if (next === -1) {
-      api.placement(learnerId, lang, all).then(setResult).catch((e) => setError(String(e.message ?? e)))
+      api
+        .placement(learnerId, lang, all)
+        .then((r) => {
+          sfx.tada() // the animal reached the far bank
+          setResult(r)
+        })
+        .catch((e) => setError(String(e.message ?? e)))
       setTierIdx(deck.tiers.length) // no card shown while placing
       return
     }
+    sfx.plop() // hop to the next stone
     setTierIdx(next)
     setCardIdx(0)
   }
 
   const tapTile = (option: string) => {
     if (!card || tapped) return
+    sfx.pop() // same sound right or wrong: never a "wrong" sound
     setTapped(option)
     // Same calm transition either way: no "wrong" sound or colour for the child.
     setTimeout(() => answer(option === card.text), 450)

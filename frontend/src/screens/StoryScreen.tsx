@@ -10,6 +10,7 @@ import { UnitChip } from '../components/UnitChip'
 import type { Outcome } from '../components/WordToken'
 import { useLiveFollow } from '../hooks/useLiveFollow'
 import { useRecorder } from '../hooks/useRecorder'
+import { sfx } from '../sound'
 
 const POLL_MS = 1500
 
@@ -72,10 +73,13 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     if (!story) return
     if (recorder.state !== 'recording') {
       setReading(null)
+      sfx.click()
+      await new Promise((r) => setTimeout(r, 120)) // let the click finish before the mic opens
       return recorder.start((stream) => live.start(stream)) // same mic for recording + live guide
     }
     live.stop()
     const { blob, durationS } = await recorder.stop()
+    sfx.click() // mic is closed now: safe to play
     setChecking(true)
     try {
       const r = await api.read(story.id, blob, durationS)
@@ -84,9 +88,14 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
       const acc = r.words.length ? r.words_correct / r.words.length : 0
       const tier = acc >= 0.9 ? 'great' : acc >= 0.6 ? 'good' : 'try'
       setPraise(tier)
-      new Audio(api.praiseUrl(lang, tier)).play().catch(() => {})
+      sfx.chime()
+      setTimeout(() => new Audio(api.praiseUrl(lang, tier)).play().catch(() => {}), 350) // chime, then praise
       // First reading of a story updates mastery once; later re-reads are practice only.
-      if (!closed) setClosed(await api.closeSession(story.id))
+      if (!closed) {
+        const c = await api.closeSession(story.id)
+        setClosed(c)
+        if (c.changes.some((x) => x.after === 'mastered' || x.before === 'unseen')) setTimeout(sfx.sparkle, 900)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -137,7 +146,14 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
           imageStatus={story?.image_status}
           display={story?.display}
           wordPractice={story?.outcome === 'wordlist'}
-          onWordTap={story ? (i) => setHelpWord((cur) => (cur === i ? null : i)) : undefined}
+          onWordTap={
+            story
+              ? (i) => {
+                  if (recorder.state !== 'recording') sfx.pop() // never into the microphone
+                  setHelpWord((cur) => (cur === i ? null : i))
+                }
+              : undefined
+          }
           selectedWord={helpWord}
           onDismiss={() => setHelpWord(null)}
           wordPopover={

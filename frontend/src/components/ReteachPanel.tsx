@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { useRecorder } from '../hooks/useRecorder'
+import { sfx } from '../sound'
 import { DotLoader } from './DotLoader'
 
 type WordHelp = components['schemas']['WordHelpOut']
@@ -55,6 +56,7 @@ export function ReteachPanel({
     try {
       const r = await api.retryWord(storyId, index, blob)
       setRetry(r.correct ? 'yes' : 'again')
+      if (r.correct) sfx.chime() // a miss stays silent
       if (r.correct) onSuccess(index)
     } catch {
       setRetry('again')

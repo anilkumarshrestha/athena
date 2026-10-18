@@ -212,6 +212,14 @@ Max weight is 600 (Baloo `700` allowed only for the child title). No letter-spac
 
 **Touch targets:** adult 40px minimum, child **64px** minimum.
 
+**Sound.** Like motion, sound carries meaning only (`frontend/src/sound.ts`, synthesised, no files).
+- Short (< 0.5 s), soft, warm tones: pop (tap), click (record start/stop), chime (reading scored,
+  retry right), sparkle (new letters), plop (hop to the next stone), a 4-note tune (river crossed).
+- **Never a "wrong" sound.** A miss is silent, exactly like the visuals.
+- **Silent while the microphone records** (the effect would be recorded and confuse speech-to-text).
+- A mute toggle for parents and classrooms, remembered on the device. Spoken praise and word audio are
+  not effects and are not muted by it.
+
 ---
 
 ## 5. Tailwind v4 tokens

@@ -1,6 +1,7 @@
 import { Check, Volume2 } from 'lucide-react'
 import { useState } from 'react'
 import { api, type CloseResult, type Language } from '../api'
+import { sfx } from '../sound'
 import { unitGlyph } from '../units'
 
 type Card = { unit: string; example: string; practising: boolean }
@@ -60,7 +61,10 @@ export function LetterPractice({
             <button
               type="button"
               aria-pressed={!!said[c.unit]}
-              onClick={() => setSaid((s) => ({ ...s, [c.unit]: !s[c.unit] }))}
+              onClick={() => {
+                if (!said[c.unit]) sfx.pop()
+                setSaid((s) => ({ ...s, [c.unit]: !s[c.unit] }))
+              }}
               className={`flex size-12 items-center justify-center rounded-full border-2 ${
                 said[c.unit] ? 'border-correct bg-correct text-on-primary' : 'border-line-strong text-ink-4'
               }`}

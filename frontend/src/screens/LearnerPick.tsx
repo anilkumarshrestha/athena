@@ -1,6 +1,8 @@
+import { Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api, type Language, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
+import { setSoundOn, sfx, soundOn } from '../sound'
 
 // First grapheme, not first code unit: क्षितिज → क्षि, not क.
 const segmenter = new Intl.Segmenter('ne', { granularity: 'grapheme' })
@@ -18,6 +20,7 @@ const CHUNKY = 'min-h-16 flex-1 rounded-xl border-b-4 text-child-label font-bold
 export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Language) => void }) {
   const [learners, setLearners] = useState<Learner[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [sound, setSound] = useState(soundOn())
 
   useEffect(() => {
     api.learners().then(setLearners).catch((e) => setError(String(e.message ?? e)))
@@ -30,6 +33,19 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
           <path d="M8 25 16 6l8 19M11.5 18h9" fill="none" className="stroke-crimson" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span className="text-child-title font-semibold">Athena</span>
+        <button
+          type="button"
+          aria-pressed={sound}
+          onClick={() => {
+            setSoundOn(!sound)
+            setSound(!sound)
+            if (!sound) sfx.pop()
+          }}
+          className="ml-auto flex min-h-10 items-center gap-2 rounded-md px-3 text-body text-ink-2 hover:bg-paper-sunken"
+        >
+          {sound ? <Volume2 size={20} /> : <VolumeX size={20} />}
+          {sound ? 'Sounds on' : 'Sounds off'}
+        </button>
       </div>
 
       {error && <p className="text-omitted">{error}</p>}
