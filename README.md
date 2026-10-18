@@ -23,7 +23,8 @@ stuck, and the next story grows with them.
    read, and turn green the moment you stop. Tap any word for help ("t for tent, a for apple").
 3. Tap **Sita** → **नेपाली**. Every word uses only letters Sita knows. Press **Show in English**
    under the story to read it (romanised + translated).
-4. On a child's page try **Teach the cat**: the cat reads with mistakes and you catch them.
+4. On a child's page try **Teach the cat** (the cat reads with mistakes and you catch them) and
+   **Clap the word** (tap the drum once for each part of a word, with music).
 5. Open **For grown-ups** (type the number words as digits), then a **Parent view**: the week,
    what is hard, why each story was written, ideas for home, time and content controls.
 
@@ -50,6 +51,7 @@ child, today, with exactly their letters, and proves it fits before showing it.
 | **Adaptive lessons** | Stories written for the child's letters, about their favourite animal/food/game. The child picks one of three. Story size follows their level. Maths word problems they can read. |
 | **Detect confusion, re-teach differently** | Live follow-along notices long pauses and repeated mistakes on one letter, then opens a help card on its own: hear it, see its parts, see a picture, tie the letter to a known word ("ख, खीरको ख"). It learns which way works best for each child. Never says "wrong". |
 | **Teach the cat** | A child-sized Feynman technique: the cat reads with mistakes chosen from this child's own confusions, and the child catches them. |
+| **Clap the word, with music** | Phonological awareness through rhythm: the child taps once for each part of a word (सी·ता, rab·bit), over a soft music bed. The first word shows itself first. Beats are counted in code. Music by Lyria, made once and shipped. |
 | **Mastery over time** | A letter is mastered after three good sessions and goes back to practice after two misses. New letters come in the order that unlocks the most new words (2.8× more readable words at 40 letters than the textbook order), respecting a skill graph (a conjunct needs both its letters). |
 | **Parents** | This week, letters learned, struggle alerts, mistake patterns, why each story was written, home activities, daily time limit, content controls, every story and reading reviewable. |
 | **Safe and motivating** | Every story screened for child safety; first name only; no audio kept; stars and a daily goal, no streak pressure; private families; a grown-up question in front of grown-up pages. |
@@ -93,7 +95,7 @@ child, today, with exactly their letters, and proves it fits before showing it.
   cached and shared by all children.
 - **Native-speaker review** of generated Nepali (honorifics, gender agreement, idiom) and the fixes
   it led to: [eval/human_review.md](eval/human_review.md).
-- 179 automated tests (`pytest`), including a strict fake Firestore.
+- 182 automated tests (`pytest`), including a strict fake Firestore.
 
 ## Built on Google Cloud and Gemini
 
@@ -104,6 +106,7 @@ child, today, with exactly their letters, and proves it fits before showing it.
 | Safety screen, maths meaning check, English gloss | **Gemini 3.1 Flash-Lite** |
 | Illustrations, word pictures, avatars | **Gemini 3.1 Flash Image** |
 | Voice (Nepali has no Cloud TTS voice) | **Gemini TTS**, language-coded (`ne-NP`, `en-US`) |
+| Music (jingles, background beds) | **Lyria** on Vertex AI, generated once and shipped |
 | Scoring a reading | **Cloud Speech-to-Text v2, Chirp 3** with phrase hints |
 | Live follow-along | **Cloud Speech-to-Text** streaming over a WebSocket |
 | Hosting | **Cloud Run** (API, WebSocket and the React app in one container), scales to zero |
@@ -195,7 +198,7 @@ A Vertex key only works with `GOOGLE_GENAI_USE_VERTEXAI=true` (otherwise `403 AP
 | `/app` | Who's reading today? |
 | `/child/<id>` | A child's home: reading, maths, Teach the cat |
 | `/new` | Onboarding (one question per screen), then `/check/<id>/<lang>` (letter game) |
-| `/read/<id>/<ne\|en>`, `/maths/<id>/<lang>`, `/teach/<id>/<lang>` | Activities |
+| `/read/<id>/<ne\|en>`, `/maths/<id>/<lang>`, `/teach/<id>/<lang>`, `/clap/<id>/<lang>` | Activities |
 | `/grownups` | For grown-ups (behind the grown-up question): parent and teacher views, account, family code |
 | `/parent/<id>`, `/mastery/<id>`, `/parent/<id>/story/<story>` | Parent view, teacher view, story review |
 | `/styleguide` | Components from [DESIGN.md](DESIGN.md) |
@@ -206,7 +209,7 @@ types: `cd frontend && npx openapi-typescript http://localhost:8077/openapi.json
 ### Tests and evaluation
 
 ```bash
-.venv/bin/pytest                                    # 179 tests, no network
+.venv/bin/pytest                                    # 182 tests, no network
 cd frontend && npm run build                        # type-checks the frontend
 .venv/bin/python -u eval/run_eval.py --n 50 --workers 2   # Eval A: 100 stories, ~20 min
 .venv/bin/python eval/maths_eval.py --n 20          # maths problems
@@ -223,7 +226,8 @@ story has a violation. Keep `--workers 2`: Vertex returns 429 above about two co
 | `scripts/generate.py ne_basic --name सीता` | One story from a preset, with the verifier log |
 | `scripts/make_avatars.py` | Draw the 15 avatar characters into `frontend/public/avatars` |
 | `scripts/warm_pictures.py` | Draw every letter-anchor picture ahead of time (`media/pictures`) |
-| `scripts/warm_sounds.py` | Synthesise fixed phrases (letter game, praise) into `media/sounds` |
+| `scripts/warm_sounds.py` | Synthesise fixed phrases (letter game, praise, instructions) into `media/sounds` |
+| `scripts/make_music.py` | Make the music once with Lyria into `frontend/public/music` |
 | `scripts/build_ne_seed.py`, `scripts/build_en_lexicon.py` | Rebuild the word data |
 | `scripts/deploy.sh` | Deploy to Cloud Run (Secret Manager, bucket, service account, Firestore) |
 
@@ -249,6 +253,7 @@ athena/
   mastery.py, progression.py, skills.py      mastery rule, letter order, skill graph
   maths.py, maths_progress.py                maths problems, levels, progress
   reteach.py, teach.py, why.py, gloss.py     help card, Teach the cat, "why this story", English gloss
+  clap.py          Clap the word: beats per akshara / syllable
   family.py, store.py, firestore_store.py, history.py, demo.py   families, persistence, sample week
   api.py           FastAPI app (API, WebSocket, serves frontend/dist)
 frontend/          React + TypeScript + Tailwind v4 (tokens from DESIGN.md)

@@ -46,7 +46,7 @@
   <text x="80" y="222" class="s">Who's reading? · own home</text>
   <text x="80" y="244" class="s">Read aloud, live highlight</text>
   <text x="80" y="266" class="s">Help card · Teach the cat</text>
-  <text x="80" y="288" class="s">Maths · letter game</text>
+  <text x="80" y="288" class="s">Maths · Clap the word</text>
   <text x="80" y="308" class="xs">mic → 16 kHz audio stream</text>
 
   <rect x="62" y="340" width="226" height="130" rx="14" fill="#D9E8FF" stroke="#1D6FE8" stroke-width="2"/>
@@ -177,25 +177,26 @@
   <text x="970" y="734" class="xs">patterns, "why this</text>
   <text x="970" y="750" class="xs">story": built from</text>
   <text x="970" y="766" class="xs">logged facts</text>
-  <text x="410" y="820" class="s">Voice: Gemini TTS (ne-NP, en-US) · fixed phrases and pictures shipped in the image</text>
+  <text x="410" y="820" class="s">Voice: Gemini TTS · music: Lyria · Clap the word (beats counted in code) · fixed sounds shipped</text>
 
   <!-- ============ google cloud ============ -->
   <rect x="1160" y="90" width="400" height="770" rx="18" fill="#FFFFFF" stroke="#8FB4D0" stroke-width="2"/>
   <text x="1182" y="124" class="h">Google Cloud</text>
 
-  <rect x="1182" y="144" width="356" height="196" rx="14" class="ai"/>
-  <text x="1200" y="172" class="h2">Vertex AI · Gemini</text>
+  <rect x="1182" y="144" width="356" height="200" rx="14" class="ai"/>
+  <text x="1200" y="172" class="h2">Vertex AI · Gemini + Lyria</text>
   <text x="1200" y="198" class="s">3.8 Flash: story writer, maths words</text>
   <text x="1200" y="222" class="s">Agent Development Kit (ADK) agent</text>
   <text x="1200" y="246" class="s">3.1 Flash-Lite: safety, maths meaning,</text>
   <text x="1200" y="266" class="s">  English gloss for grown-ups</text>
   <text x="1200" y="290" class="s">3.1 Flash Image: pictures, avatars</text>
   <text x="1200" y="314" class="s">TTS: Nepali + English voice</text>
+  <text x="1200" y="336" class="s">Lyria: music (jingles, background)</text>
 
-  <rect x="1182" y="356" width="356" height="92" rx="14" class="ai"/>
-  <text x="1200" y="384" class="h2">Cloud Speech-to-Text</text>
-  <text x="1200" y="410" class="s">v2 Chirp 3 + phrase hints (score)</text>
-  <text x="1200" y="432" class="s">streaming (live follow-along)</text>
+  <rect x="1182" y="358" width="356" height="92" rx="14" class="ai"/>
+  <text x="1200" y="386" class="h2">Cloud Speech-to-Text</text>
+  <text x="1200" y="412" class="s">v2 Chirp 3 + phrase hints (score)</text>
+  <text x="1200" y="434" class="s">streaming (live follow-along)</text>
 
   <rect x="1182" y="464" width="356" height="92" rx="14" class="data"/>
   <text x="1200" y="492" class="h2">Firestore</text>
