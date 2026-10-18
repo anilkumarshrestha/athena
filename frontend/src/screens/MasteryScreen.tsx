@@ -28,7 +28,7 @@ export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack
         onClick={onBack}
         className="mb-6 flex items-center gap-2 text-body text-ink-2 hover:text-ink"
       >
-        <ArrowLeft size={20} strokeWidth={1.75} /> Learners
+        <ArrowLeft size={20} strokeWidth={1.75} /> Grown-ups
       </button>
 
       {error && <p className="text-omitted">{error}</p>}

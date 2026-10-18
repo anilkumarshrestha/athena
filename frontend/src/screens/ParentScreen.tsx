@@ -4,7 +4,6 @@ import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { ContentControls } from '../components/ContentControls'
-import { FamilyCode } from '../components/FamilyCode'
 import { LevelStars, knownCount } from '../components/LevelStars'
 import { MathsProgress } from '../components/MathsProgress'
 import { ProfileInsights } from '../components/ProfileInsights'
@@ -55,7 +54,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
   return (
     <main className="mx-auto max-w-[960px] px-4 py-8 font-ui md:px-8">
       <button type="button" onClick={onBack} className="mb-6 flex items-center gap-2 text-body text-ink-2 hover:text-ink">
-        <ArrowLeft size={20} strokeWidth={1.75} /> Learners
+        <ArrowLeft size={20} strokeWidth={1.75} /> Grown-ups
       </button>
       <h1 className="m-0 mb-1 text-display font-semibold">
         {name.ne} <span className="text-ink-3">· {name.en}</span>
@@ -171,7 +170,6 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
       )}
 
       <ContentControls learnerId={learnerId} initial={d.learner.controls} />
-      <FamilyCode />
 
       {/* Time control */}
       <section className="mb-8 rounded-xl border-2 border-line bg-card p-4">

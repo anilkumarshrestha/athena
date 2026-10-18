@@ -9,6 +9,8 @@ import { MathsScreen } from './screens/MathsScreen'
 import { ParentScreen } from './screens/ParentScreen'
 import { StoryReview } from './screens/StoryReview'
 import { StoryScreen } from './screens/StoryScreen'
+import { ChildHome } from './screens/ChildHome'
+import { GrownUps } from './screens/GrownUps'
 import { Landing, type LandingStep } from './screens/Landing'
 import { Styleguide } from './screens/Styleguide'
 import { TeachScreen } from './screens/TeachScreen'
@@ -16,6 +18,8 @@ import { back, go, interceptLinks } from './nav'
 
 type Route =
   | { name: 'pick' }
+  | { name: 'child'; learnerId: string }
+  | { name: 'grownups' }
   | { name: 'styleguide' }
   | { name: 'new' }
   | { name: 'check'; learnerId: string; lang: Language }
@@ -35,6 +39,9 @@ function parse(path: string): Route {
   if (p === '/start') return { name: 'landing', step: 'account' }
   if (p === '/start/child') return { name: 'landing', step: 'learner' }
   if (p === '/app') return { name: 'pick' }
+  if (p === '/grownups') return { name: 'grownups' }
+  const ch = p.match(/^\/child\/([\w-]+)$/)
+  if (ch) return { name: 'child', learnerId: ch[1] }
   if (p === '/styleguide') return { name: 'styleguide' }
   if (p === '/new') return { name: 'new' }
   const ck = p.match(/^\/check\/([\w-]+)\/(ne|en)$/)
@@ -91,31 +98,33 @@ export default function App() {
         onDone={() =>
           api
             .learner(route.learnerId)
-            .then((l) => go(route.lang === 'ne' && (l.profile.languages ?? 'both') !== 'ne' ? `/check/${route.learnerId}/en` : '/app'))
-            .catch(() => go('/app'))
+            .then((l) => go(route.lang === 'ne' && (l.profile.languages ?? 'both') !== 'ne' ? `/check/${route.learnerId}/en` : `/child/${route.learnerId}`))
+            .catch(() => go(`/child/${route.learnerId}`))
         }
       />
     )
   if (route.name === 'review')
-    return <ParentGate onBack={() => go('/app')}><StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => go(`/parent/${route.learnerId}`)} /></ParentGate>
-  const home = () => go('/app')
+    return <ParentGate onBack={() => go('/grownups')}><StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => go(`/parent/${route.learnerId}`)} /></ParentGate>
+  const grownups = () => go('/grownups')
+  if (route.name === 'grownups') return <ParentGate onBack={() => go('/app')}><GrownUps onBack={() => go('/app')} /></ParentGate>
+  if (route.name === 'child') return <ChildHome key={route.learnerId} learnerId={route.learnerId} onBack={() => go('/app')} />
   if (route.name === 'parent')
-    return <ParentGate onBack={home}><ParentScreen learnerId={route.learnerId} onBack={home} /></ParentGate>
+    return <ParentGate onBack={grownups}><ParentScreen learnerId={route.learnerId} onBack={grownups} /></ParentGate>
   if (route.name === 'mastery')
-    return <ParentGate onBack={home}><MasteryScreen learnerId={route.learnerId} onBack={home} /></ParentGate>
+    return <ParentGate onBack={grownups}><MasteryScreen learnerId={route.learnerId} onBack={grownups} /></ParentGate>
   if (route.name === 'teach')
-    return <TeachScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => go('/app')} />
+    return <TeachScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => go(`/child/${route.learnerId}`)} />
   if (route.name === 'maths')
-    return <MathsScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => go('/app')} />
+    return <MathsScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => go(`/child/${route.learnerId}`)} />
   if (route.name === 'story') {
     return (
       <StoryScreen
         key={`${route.learnerId}/${route.lang}`}
         learnerId={route.learnerId}
         lang={route.lang}
-        onBack={() => go('/app')}
+        onBack={() => go(`/child/${route.learnerId}`)}
       />
     )
   }
-  return <LearnerPick onPick={(learnerId, lang) => go(`/read/${learnerId}/${lang}`)} />
+  return <LearnerPick />
 }
