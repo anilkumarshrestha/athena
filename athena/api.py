@@ -890,6 +890,7 @@ async def live_follow(ws: WebSocket, story_id: str) -> None:
         s.language,
         on_text=lambda text: loop.call_soon_threadsafe(out.put_nowait, ("text", text)),
         on_done=lambda err: loop.call_soon_threadsafe(out.put_nowait, ("done", err)),
+        phrases=sorted(set(tokens(s.language, " ".join(s.result.sentences)))),
     )
     session.start()
 

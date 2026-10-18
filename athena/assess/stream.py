@@ -1,8 +1,11 @@
-"""Streaming speech-to-text for live follow-along (Cloud Speech-to-Text v2, model "long").
+"""Streaming speech-to-text for live follow-along (Cloud Speech-to-Text v1, default model).
 
-Chirp 3 streams only whole sentences; "long" streams word-level interim results for
-ne-NP and en-US (probe 18 Oct), which is what a moving highlight needs. Final scoring
-still uses Chirp 3 + hints on the full recording. Audio is relayed, never stored.
+Latency probe, 18 Oct (time until each word of a 5 s Nepali sentence was reached):
+  v2 chirp_3   whole sentences only
+  v2 long      first words after ~3.0 s, then bursts
+  v1 default   + story words as phrase hints: first word 0.5-0.7 s, ~0.4 s per word, none missed
+Hints are fine here: the live view only guides, it never scores (hints can hide errors).
+Final scoring still uses Chirp 3 on the full recording. Audio is relayed, never stored.
 
 Input: 16 kHz mono LINEAR16 chunks. The gRPC call runs on its own thread; transcripts
 are pushed to `on_text` (called from that thread).
@@ -20,7 +23,7 @@ from athena.config import settings
 log = logging.getLogger("athena")
 
 LANG_CODE = {"ne": "ne-NP", "en": "en-US"}
-MODEL = "long"
+HINT_BOOST = 15.0
 SAMPLE_RATE = 16000
 MAX_SECONDS = 180  # a story read takes under a minute; stream limit is 5 min
 MAX_BYTES = SAMPLE_RATE * 2 * MAX_SECONDS
@@ -33,15 +36,24 @@ def _speech():
     global _client
     with _client_lock:
         if _client is None:
-            from google.cloud.speech_v2 import SpeechClient
+            from google.cloud import speech_v1
 
-            _client = SpeechClient(client_options=ClientOptions(api_endpoint="speech.googleapis.com"))
+            _client = speech_v1.SpeechClient(
+                client_options=ClientOptions(quota_project_id=settings().google_cloud_project or None)
+            )
     return _client
 
 
 class StreamSession:
-    def __init__(self, language: str, on_text: Callable[[str], None], on_done: Callable[[str | None], None]) -> None:
+    def __init__(
+        self,
+        language: str,
+        on_text: Callable[[str], None],
+        on_done: Callable[[str | None], None],
+        phrases: list[str] | None = None,
+    ) -> None:
         self.language = language
+        self.phrases = phrases or []
         self.on_text = on_text
         self.on_done = on_done  # called once with an error message, or None
         self.audio: queue.Queue[bytes | None] = queue.Queue()
@@ -62,28 +74,29 @@ class StreamSession:
     def close(self) -> None:
         self.audio.put(None)
 
-    def _requests(self):
-        from google.cloud.speech_v2.types import cloud_speech as cs
+    def _config(self):
+        from google.cloud import speech_v1 as sp
 
-        config = cs.StreamingRecognitionConfig(
-            config=cs.RecognitionConfig(
-                explicit_decoding_config=cs.ExplicitDecodingConfig(
-                    encoding="LINEAR16", sample_rate_hertz=SAMPLE_RATE, audio_channel_count=1
-                ),
-                language_codes=[LANG_CODE[self.language]],
-                model=MODEL,
+        return sp.StreamingRecognitionConfig(
+            config=sp.RecognitionConfig(
+                encoding=sp.RecognitionConfig.AudioEncoding.LINEAR16,
+                sample_rate_hertz=SAMPLE_RATE,
+                language_code=LANG_CODE[self.language],
+                speech_contexts=[sp.SpeechContext(phrases=self.phrases[:500], boost=HINT_BOOST)] if self.phrases else [],
             ),
-            streaming_features=cs.StreamingRecognitionFeatures(interim_results=True),
+            interim_results=True,
         )
-        recognizer = f"projects/{settings().google_cloud_project}/locations/global/recognizers/_"
-        yield cs.StreamingRecognizeRequest(recognizer=recognizer, streaming_config=config)
+
+    def _requests(self):
+        from google.cloud import speech_v1 as sp
+
         while (chunk := self.audio.get()) is not None:
-            yield cs.StreamingRecognizeRequest(audio=chunk)
+            yield sp.StreamingRecognizeRequest(audio_content=chunk)
 
     def _run(self) -> None:
         committed: list[str] = []
         try:
-            for resp in _speech().streaming_recognize(requests=self._requests()):
+            for resp in _speech().streaming_recognize(config=self._config(), requests=self._requests()):
                 interim = []
                 for r in resp.results:
                     if not r.alternatives:
