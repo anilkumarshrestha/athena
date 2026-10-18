@@ -173,7 +173,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
           <h2 className="mb-3 text-h2 font-semibold">कथाहरू · Stories</h2>
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             {history.map((h) => (
-              <a key={h.story_id} href={`#/parent/${learnerId}/story/${h.story_id}`}
+              <a key={h.story_id} href={`/parent/${learnerId}/story/${h.story_id}`}
                 className="flex gap-3 rounded-xl border-2 border-b-4 border-line bg-card p-3 hover:bg-paper-sunken">
                 <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-paper-sunken">
                   {h.image_url && <img src={h.image_url} alt="" className="size-full object-cover" />}

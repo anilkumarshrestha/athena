@@ -9,8 +9,10 @@ import { MathsScreen } from './screens/MathsScreen'
 import { ParentScreen } from './screens/ParentScreen'
 import { StoryReview } from './screens/StoryReview'
 import { StoryScreen } from './screens/StoryScreen'
+import { Landing } from './screens/Landing'
 import { Styleguide } from './screens/Styleguide'
 import { TeachScreen } from './screens/TeachScreen'
+import { go, interceptLinks } from './nav'
 
 type Route =
   | { name: 'pick' }
@@ -23,42 +25,58 @@ type Route =
   | { name: 'story'; learnerId: string; lang: Language }
   | { name: 'maths'; learnerId: string; lang: Language }
   | { name: 'teach'; learnerId: string; lang: Language }
+  | { name: 'landing' }
 
-// Hash routes: #/  #/new  #/check/<learner>/<ne|en>  #/styleguide  #/mastery/<learner>  #/read/<learner>/<ne|en>
-function parse(hash: string): Route {
-  if (hash === '#/styleguide') return { name: 'styleguide' }
-  if (hash === '#/new') return { name: 'new' }
-  const ck = hash.match(/^#\/check\/([\w-]+)\/(ne|en)$/)
+// Routes (clean paths, nav.ts): /  /app  /new  /check/<learner>/<ne|en>  /styleguide  /mastery/<learner>
+//   /parent/<learner>[/story/<id>]  /read/<learner>/<ne|en>  /maths/<learner>/<ne|en>  /teach/<learner>/<ne|en>
+function parse(path: string): Route {
+  const p = path.replace(/\/+$/, '') || '/'
+  if (p === '/') return { name: 'landing' }
+  if (p === '/app') return { name: 'pick' }
+  if (p === '/styleguide') return { name: 'styleguide' }
+  if (p === '/new') return { name: 'new' }
+  const ck = p.match(/^\/check\/([\w-]+)\/(ne|en)$/)
   if (ck) return { name: 'check', learnerId: ck[1], lang: ck[2] as Language }
-  const mm = hash.match(/^#\/mastery\/([\w-]+)$/)
+  const mm = p.match(/^\/mastery\/([\w-]+)$/)
   if (mm) return { name: 'mastery', learnerId: mm[1] }
-  const rv = hash.match(/^#\/parent\/([\w-]+)\/story\/([\w-]+)$/)
+  const rv = p.match(/^\/parent\/([\w-]+)\/story\/([\w-]+)$/)
   if (rv) return { name: 'review', learnerId: rv[1], storyId: rv[2] }
-  const pm = hash.match(/^#\/parent\/([\w-]+)$/)
+  const pm = p.match(/^\/parent\/([\w-]+)$/)
   if (pm) return { name: 'parent', learnerId: pm[1] }
-  const mt = hash.match(/^#\/maths\/([\w-]+)\/(ne|en)$/)
+  const mt = p.match(/^\/maths\/([\w-]+)\/(ne|en)$/)
   if (mt) return { name: 'maths', learnerId: mt[1], lang: mt[2] as Language }
-  const tc = hash.match(/^#\/teach\/([\w-]+)\/(ne|en)$/)
+  const tc = p.match(/^\/teach\/([\w-]+)\/(ne|en)$/)
   if (tc) return { name: 'teach', learnerId: tc[1], lang: tc[2] as Language }
-  const m = hash.match(/^#\/read\/([\w-]+)\/(ne|en)$/)
-  return m ? { name: 'story', learnerId: m[1], lang: m[2] as Language } : { name: 'pick' }
+  const m = p.match(/^\/read\/([\w-]+)\/(ne|en)$/)
+  return m ? { name: 'story', learnerId: m[1], lang: m[2] as Language } : { name: 'landing' }
 }
 
+// Old links (/#/parent/x) still work: moved to the clean path once, before the first render.
+if (location.hash.startsWith('#/')) history.replaceState(null, '', location.hash.slice(1))
+
 export default function App() {
-  const [route, setRoute] = useState<Route>(() => parse(location.hash))
+  const [route, setRoute] = useState<Route>(() => parse(location.pathname))
 
   useEffect(() => {
-    const onHash = () => setRoute(parse(location.hash))
-    addEventListener('hashchange', onHash)
-    return () => removeEventListener('hashchange', onHash)
+    const onNav = () => {
+      setRoute(parse(location.pathname))
+      scrollTo(0, 0)
+    }
+    addEventListener('popstate', onNav)
+    const stop = interceptLinks()
+    return () => {
+      removeEventListener('popstate', onNav)
+      stop()
+    }
   }, [])
 
+  if (route.name === 'landing') return <Landing />
   if (route.name === 'styleguide') return <Styleguide />
   if (route.name === 'new')
     return (
       <AddLearner
-        onDone={(id, langs) => (location.hash = `#/check/${id}/${langs === 'en' ? 'en' : 'ne'}`)}
-        onBack={() => (location.hash = '#/')}
+        onDone={(id, langs) => go(`/check/${id}/${langs === 'en' ? 'en' : 'ne'}`)}
+        onBack={() => go('/app')}
       />
     )
   if (route.name === 'check')
@@ -71,31 +89,31 @@ export default function App() {
         onDone={() =>
           api
             .learner(route.learnerId)
-            .then((l) => (location.hash = route.lang === 'ne' && (l.profile.languages ?? 'both') !== 'ne' ? `#/check/${route.learnerId}/en` : '#/'))
-            .catch(() => (location.hash = '#/'))
+            .then((l) => go(route.lang === 'ne' && (l.profile.languages ?? 'both') !== 'ne' ? `/check/${route.learnerId}/en` : '/app'))
+            .catch(() => go('/app'))
         }
       />
     )
   if (route.name === 'review')
-    return <ParentGate onBack={() => (location.hash = '#/')}><StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => (location.hash = `#/parent/${route.learnerId}`)} /></ParentGate>
-  const home = () => (location.hash = '#/')
+    return <ParentGate onBack={() => go('/app')}><StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => go(`/parent/${route.learnerId}`)} /></ParentGate>
+  const home = () => go('/app')
   if (route.name === 'parent')
     return <ParentGate onBack={home}><ParentScreen learnerId={route.learnerId} onBack={home} /></ParentGate>
   if (route.name === 'mastery')
     return <ParentGate onBack={home}><MasteryScreen learnerId={route.learnerId} onBack={home} /></ParentGate>
   if (route.name === 'teach')
-    return <TeachScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => (location.hash = '#/')} />
+    return <TeachScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => go('/app')} />
   if (route.name === 'maths')
-    return <MathsScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => (location.hash = '#/')} />
+    return <MathsScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => go('/app')} />
   if (route.name === 'story') {
     return (
       <StoryScreen
         key={`${route.learnerId}/${route.lang}`}
         learnerId={route.learnerId}
         lang={route.lang}
-        onBack={() => (location.hash = '#/')}
+        onBack={() => go('/app')}
       />
     )
   }
-  return <LearnerPick onPick={(learnerId, lang) => (location.hash = `#/read/${learnerId}/${lang}`)} />
+  return <LearnerPick onPick={(learnerId, lang) => go(`/read/${learnerId}/${lang}`)} />
 }

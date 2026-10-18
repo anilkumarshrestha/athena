@@ -103,7 +103,7 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
               {(['ne', 'en'] as const).filter((ml) => learns(l, ml)).map((ml) => (
                 <a
                   key={ml}
-                  href={`#/maths/${l.id}/${ml}`}
+                  href={`/maths/${l.id}/${ml}`}
                   className={`flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-b-4 border-line-strong bg-card ${ml === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-label font-bold text-ink transition-transform duration-150 active:translate-y-1`}
                 >
                   {ml === 'ne' ? 'गणित' : 'Maths'} <span className="font-mono text-small font-semibold text-ink-3">{ml === 'ne' ? '१+२' : '1+2'}</span>
@@ -116,7 +116,7 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
               {(['ne', 'en'] as const).filter((ml) => learns(l, ml)).map((ml) => (
                 <a
                   key={ml}
-                  href={`#/teach/${l.id}/${ml}`}
+                  href={`/teach/${l.id}/${ml}`}
                   className={`flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-b-4 border-sun-edge bg-sun-soft ${ml === 'ne' ? 'font-story-ne' : 'font-story-en'} text-small font-bold text-ink transition-transform duration-150 active:translate-y-1`}
                 >
                   <img src={`/api/pictures/ne/${buddyNe(l)}`} alt="" className="size-8 rounded-full object-cover" />
@@ -126,10 +126,10 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
             </div>
             )}
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
-              <a href={`#/parent/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
+              <a href={`/parent/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
                 Parent view
               </a>
-              <a href={`#/mastery/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
+              <a href={`/mastery/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
                 Teacher view: mastery
               </a>
             </div>
@@ -137,7 +137,7 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
           )
         })}
         <a
-          href="#/new"
+          href="/new"
           className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary bg-card text-primary transition-colors duration-150 hover:bg-primary-soft"
         >
           <span className="font-story-ne text-child-title font-bold">+ नयाँ साथी</span>

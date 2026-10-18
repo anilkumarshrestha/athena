@@ -55,6 +55,7 @@ def test_google_sign_in_keeps_progress_across_devices(monkeypatch):
     monkeypatch.setattr(store, "accounts", {})
     monkeypatch.setattr(store, "put_account", lambda sub, data: store.accounts.__setitem__(sub, data))
     a, b = client(), client()
+    monkeypatch.setattr(settings(), "google_oauth_client_id", "")  # independent of the local .env
     assert a.post("/api/auth/google", json={"credential": "x" * 30}).status_code == 404  # not set up
     monkeypatch.setattr(settings(), "google_oauth_client_id", "test-client")
 

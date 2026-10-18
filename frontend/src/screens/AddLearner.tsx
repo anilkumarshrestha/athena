@@ -221,7 +221,10 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string, lan
                 className={`relative flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-b-4 p-3 text-center transition-colors duration-150 active:translate-y-1 ${
                   on ? 'border-primary bg-primary-soft' : 'border-line-strong bg-card hover:bg-paper-sunken'}`}>
                 {on && <Check size={22} className="absolute right-2 top-2 text-primary" />}
-                {t.pic && <img src={t.pic} alt="" className="size-20 rounded-xl object-cover" />}
+                {t.pic && (
+                  <img src={t.pic} alt="" className="size-20 rounded-xl object-cover"
+                    onError={(e) => (e.currentTarget.style.visibility = 'hidden')} /> // picture not drawn yet: the words still say it
+                )}
                 {t.icon && <span className="flex size-20 items-center justify-center text-ink-2">{t.icon}</span>}
                 <span className="font-story-ne text-child-label font-bold">{t.ne}</span>
                 <span className="text-small text-ink-3">{t.en}</span>
