@@ -57,6 +57,13 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] History: every story + per-word reading per learner (state/stories/*.jsonl, no audio), parent story review #/parent/<id>/story/<sid>
 - [ ] Pilot data export for eval D (per-word error profiles from state/stories)
 
+- [x] Safety check before display (blocklist + Flash-Lite), unsafe -> verified template
+- [x] ADK writer engine (agent must pass verifier tool; WRITER_ENGINE=adk), benchmarked vs loop
+- [x] Live follow-along (STT v1 streaming + hints, WebSocket), >60 s recordings chunked
+- [x] Instant Next (prefetch after reading, re-verified), pre-spoken words, 30x smaller pictures
+- [x] Profile insights (groups, mistake patterns, pace, parent note) + game-like card check (listen-and-tap, early stop)
+- [ ] Deploy (evening): Dockerfile w/ ffmpeg, otel/api-core pin conflict, WebSocket timeout, Secret Manager
+
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
 - [ ] Gemma not served on Vertex as plain API → Model Garden GPU endpoint or Flash-Lite as cheap tier (H10)
