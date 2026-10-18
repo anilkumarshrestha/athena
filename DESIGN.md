@@ -427,7 +427,7 @@ Progress for the card check (placement game): the child's favourite animal cross
 | Learner pick | Child | Avatar tiles (`lg` radius, 120px), name in `child-title` |
 | Story / read | Child | `StoryCard`, `WordToken` |
 | Result | Child | `StoryCard` with outcomes + a compact strip of `lg` `UnitChip`s that changed |
-| Mastery | Adult | `MasteryGrid` (ne/en tabs) + `MathsProgress` with `detail` (every recent problem, the child's taps, outcome as icon + word) |
+| Mastery | Adult | `MasteryGrid` (ne/en tabs) + `SkillGraph` (next units, units waiting with each prerequisite as icon + "known"/"not yet", maths chain of status cards: icon + word) + `MathsProgress` with `detail` (every recent problem, the child's taps, outcome as icon + word) |
 | Teach the cat | Child | Cat avatar (`sun` ring) + speech bubble (`sun-soft`), story of `WordToken`s (caught = `self_corrected`, shown = `substituted`, shape not colour alone), "cat reads" button, found counter. Maths: the cat's answer bubble, then ✓ / ✗ tiles (icon + word) |
 | Parent | Adult | Stat row, `UnitChip`s, `MathsProgress` (week stats, struggle callout, mistake kinds with a home tip), `ContentControls` (on/off cards with a check mark and the word On/Off; theme chips ticked to avoid) |
 | Generation detail | Adult | `VerifierLog` + illustration thumb + cost/latency stats |

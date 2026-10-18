@@ -4,6 +4,7 @@ import { api, type Language, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { MasteryGrid } from '../components/MasteryGrid'
 import { MathsProgress } from '../components/MathsProgress'
+import { SkillGraph } from '../components/SkillGraph'
 
 // Adult view (DESIGN.md §7 "Mastery"): the learner's units per language.
 export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack: () => void }) {
@@ -75,6 +76,10 @@ export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack
 
           <div className="rounded-md border border-line bg-card p-4">
             <MasteryGrid lang={lang} mastered={mastered} practicing={practicing} />
+          </div>
+
+          <div className="mt-8">
+            <SkillGraph learnerId={learner.id} lang={lang} />
           </div>
 
           <div className="mt-8">

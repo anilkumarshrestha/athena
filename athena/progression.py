@@ -105,11 +105,15 @@ def next_units(language: str, units: dict[str, UnitState], k: int = 2) -> list[s
         starter = [s for s in STARTER[language] if s not in known][:k]
         if starter:
             return starter
+    from athena.skills import missing
+
     unseen = [s for s in SEQUENCE[language] if s not in units or units[s].state == "unseen"]
     picked: list[str] = []
     for _ in range(k):
         have = known | set(picked)
         options = [s for s in unseen if s not in picked]
+        # The skill graph first: a unit waits until what it builds on is known (athena/skills.py).
+        options = [s for s in options if not missing(language, s, have)] or options
         # Skip units that would not unlock any new word yet (ई, ऊ early on); look at the
         # next WINDOW of the teaching order that do, and take the most valuable.
         useful = [s for s in options if unlock_value(language, have, s) > 0][:WINDOW]

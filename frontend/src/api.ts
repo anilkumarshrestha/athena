@@ -81,6 +81,8 @@ export const api = {
     fetch(`/api/learners/${id}/stories/${storyId}`).then(json<components['schemas']['HistoryStoryOut']>),
   insights: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/insights/${lang}`).then(json<components['schemas']['InsightsOut']>),
+  skills: (id: string, lang: Language) =>
+    fetch(`/api/learners/${id}/skills/${lang}`).then(json<components['schemas']['SkillGraphOut']>),
   mathsProgress: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/maths/${lang}`).then(json<components['schemas']['MathsProgressOut']>),
   summary: (id: string, lang: Language) => fetch(`/api/learners/${id}/summary/${lang}`).then(json<{ ne: string; en: string }>),

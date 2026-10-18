@@ -1565,6 +1565,31 @@ def teach_tap(tid: str, req: TeachTap) -> TeachTapOut:
                        word=m["word"] if m else None)
 
 
+class SkillGraphOut(BaseModel):
+    language: Language
+    next: list[dict]  # [{unit, needs: [{unit, known}]}]: introduced next, prerequisites all known
+    waiting: list[dict]  # [{unit, needs: [{unit, known}]}]: held back by a prerequisite
+    maths: list[dict]  # [{id, label_en, label_ne, needs, problems, first_try, status}]
+
+
+@app.get("/api/learners/{learner_id}/skills/{language}", response_model=SkillGraphOut)
+def learner_skills(learner_id: str, language: Language) -> SkillGraphOut:
+    """The skill graph for the teacher view: what comes next and what waits on what."""
+    from athena.skills import maths_skills, prerequisites, waiting
+
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    units = learner.units[language]
+    nxt = next_units(language, units)
+    return SkillGraphOut(
+        language=language,
+        next=[{"unit": u, "needs": [{"unit": p, "known": True} for p in prerequisites(language, u)]} for u in nxt],
+        waiting=[w for w in waiting(language, units) if w["unit"] not in nxt],
+        maths=maths_skills(store.history.maths(learner.id), language, _maths_level(learner, language)),
+    )
+
+
 class PartOut(BaseModel):
     text: str
     units: list[str]

@@ -85,7 +85,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] 7. Content controls: maths on/off, pictures on/off, themes to avoid (fixed list); planner + learner card respect them
 - [x] 8. Story-based re-teach: letter mnemonic ("ख, खसीको ख"); maths step-by-step ("start with 3, count 2 more: 4, 5")
 - [ ] 9. Interests in maths: prefer favourite animal/food when readable
-- [ ] 10. Explicit skill graph: prerequisites (matra needs a consonant, conjunct needs both letters; maths +5 -> +10 -> -10 -> 20), shown in teacher view
+- [x] 10. Explicit skill graph: prerequisites (matra needs a consonant, conjunct needs both letters; maths +5 -> +10 -> -10 -> 20), shown in teacher view
 
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
