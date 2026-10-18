@@ -261,12 +261,14 @@ create_limit = RateLimit(per_ip=10, global_=60)
 class CardOut(BaseModel):
     id: str
     text: str
+    options: list[str] = []  # listen cards: tiles to tap
 
 
 class TierOut(BaseModel):
     number: int
     name: str
     always: bool
+    kind: str
     cards: list[CardOut]
 
 
@@ -305,10 +307,25 @@ def get_diagnostic(learner_id: str, language: Language) -> DiagnosticOut:
         language=language,
         pass_rate=PASS,
         tiers=[
-            TierOut(number=t.number, name=t.name, always=t.always, cards=[CardOut(id=c.id, text=c.text) for c in t.cards])
+            TierOut(number=t.number, name=t.name, always=t.always, kind=t.kind,
+                    cards=[CardOut(id=c.id, text=c.text, options=list(c.options)) for c in t.cards])
             for t in tiers
         ],
     )
+
+
+sound_limit = RateLimit(per_ip=60, global_=300)
+
+
+@app.get("/api/diagnostic/{language}/sound/{text}", dependencies=[Depends(sound_limit)])
+def diagnostic_sound(language: Language, text: str) -> Response:
+    """Spoken letter for a listen-and-tap card. Only the diagnostic's own letters."""
+    from athena.diagnostic import _EN_SET1, _EN_SET2, _NE_T1, _NE_T2
+
+    allowed_texts = set(_NE_T1 + _NE_T2) if language == "ne" else set(_EN_SET1 + _EN_SET2)
+    if text not in allowed_texts:
+        raise HTTPException(404, "not a diagnostic letter")
+    return Response(tts.speak_word(language, text), media_type="audio/wav", headers={"Cache-Control": "public, max-age=604800"})
 
 
 @app.post("/api/learners/{learner_id}/placement", response_model=PlacementOut)

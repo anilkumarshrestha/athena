@@ -26,6 +26,7 @@ class Card:
     id: str
     text: str
     tests: tuple[str, ...]  # units the card checks
+    options: tuple[str, ...] = ()  # listen cards: tiles to tap, the answer among them
 
 
 @dataclass(frozen=True)
@@ -36,10 +37,12 @@ class Tier:
     cards: tuple[Card, ...]
     always: bool = False  # asked even after an earlier tier stops the check (tricky words)
     level_if_passed: int = 1
+    kind: str = "read"  # "read": child reads, adult marks · "listen": child hears + taps, self-scored
 
 
 @dataclass
 class Placement:
+    recognized: set[str] = field(default_factory=set)  # found by sound, not yet read
     mastered: set[str] = field(default_factory=set)
     practicing: list[str] = field(default_factory=list)
     level: int = 1
@@ -51,6 +54,20 @@ def _ne_units(word: str) -> tuple[str, ...]:
     for u in decompose(word):
         out.extend(s for s in sorted(u.signatures()) if s not in out)
     return tuple(out)
+
+
+LISTEN_CARDS = 4
+
+
+def _listen_tier(rng: random.Random, prefix: str, letters: list[str], sig: str) -> Tier:
+    """Hear a letter, tap it among 3 tiles. Works for children who cannot read yet."""
+    targets = rng.sample(letters, LISTEN_CARDS)
+    cards = []
+    for i, t in enumerate(targets):
+        options = [t, *rng.sample([x for x in letters if x != t], 2)]
+        rng.shuffle(options)
+        cards.append(Card(f"{prefix}{i}", t, (f"{sig}:{t}",), tuple(options)))
+    return Tier(0, "listen and find", (), tuple(cards), always=True, kind="listen")
 
 
 # --- Nepali ------------------------------------------------------------------------
@@ -73,12 +90,13 @@ def _ne_tiers(rng: random.Random) -> list[Tier]:
     t3_inv = tuple(sorted({s for t in _NE_T3 for s in matra(t)}))
     t5_inv = tuple(sorted({s for t in _NE_T5 for s in conj(t)}))
     return [
-        Tier(1, "letters", tuple(f"c:{c}" for c in _NE_T1), cards("n1-", _NE_T1, 6, letter)),
-        Tier(2, "more letters", tuple(f"c:{c}" for c in _NE_T2), cards("n2-", _NE_T2, 6, letter)),
-        Tier(3, "vowel signs", t3_inv, cards("n3-", _NE_T3, 6, matra)),
+        _listen_tier(rng, "n0-", _NE_T1, "c"),
+        Tier(1, "letters", tuple(f"c:{c}" for c in _NE_T1), cards("n1-", _NE_T1, 5, letter)),
+        Tier(2, "more letters", tuple(f"c:{c}" for c in _NE_T2), cards("n2-", _NE_T2, 5, letter)),
+        Tier(3, "vowel signs", t3_inv, cards("n3-", _NE_T3, 5, matra)),
         # Words use earlier units; passing them shows the child blends. They test their units.
-        Tier(4, "words", (), cards("n4-", _NE_T4, 5, _ne_units), level_if_passed=2),
-        Tier(5, "joined letters", t5_inv, cards("n5-", _NE_T5, 5, conj), level_if_passed=3),
+        Tier(4, "words", (), cards("n4-", _NE_T4, 4, _ne_units), level_if_passed=2),
+        Tier(5, "joined letters", t5_inv, cards("n5-", _NE_T5, 4, conj), level_if_passed=3),
     ]
 
 
@@ -108,11 +126,12 @@ def _en_tiers(rng: random.Random) -> list[Tier]:
 
     g = lambda t: (f"g:{t}",)  # noqa: E731
     return [
-        Tier(1, "first sounds", tuple(f"g:{x}" for x in _EN_SET1), cards("e1-", _EN_SET1, 6, g)),
-        Tier(2, "more sounds", tuple(f"g:{x}" for x in _EN_SET2), cards("e2-", _EN_SET2, 6, g)),
+        _listen_tier(rng, "e0-", _EN_SET1 + "m d g o".split(), "g"),
+        Tier(1, "first sounds", tuple(f"g:{x}" for x in _EN_SET1), cards("e1-", _EN_SET1, 5, g)),
+        Tier(2, "more sounds", tuple(f"g:{x}" for x in _EN_SET2), cards("e2-", _EN_SET2, 5, g)),
         Tier(3, "two letters, one sound", tuple(f"g:{x}" for x in _EN_DIGRAPHS), cards("e3-", _EN_DIGRAPHS, 5, g)),
-        Tier(4, "short words", (), cards("e4-", _EN_CVC, 5, gtests), level_if_passed=2),
-        Tier(5, "vowel teams", _EN_P3_TEAMS, cards("e5-", _EN_TEAMS, 5, gtests), level_if_passed=3),
+        Tier(4, "short words", (), cards("e4-", _EN_CVC, 4, gtests), level_if_passed=2),
+        Tier(5, "vowel teams", _EN_P3_TEAMS, cards("e5-", _EN_TEAMS, 4, gtests), level_if_passed=3),
         Tier(6, "tricky words", (), cards("e6-", _EN_TRICKY, 4, lambda t: (f"w:{t}",)), always=True),
     ]
 
@@ -127,6 +146,9 @@ def place(language: str, tiers: list[Tier], responses: dict[str, bool]) -> Place
     missed: list[str] = []
     stopped = False
     for tier in tiers:
+        if tier.kind == "listen":
+            p.recognized.update(u for c in tier.cards if responses.get(c.id) for u in c.tests)
+            continue
         if stopped and not tier.always:
             continue
         asked = [c for c in tier.cards if c.id in responses]
@@ -165,11 +187,12 @@ def place(language: str, tiers: list[Tier], responses: dict[str, bool]) -> Place
     units = {u: UnitState("mastered") for u in p.mastered}
     pool += [u for u in next_units(language, units, k=MAX_PRACTICING) if u not in pool]
     if not pool:  # read nothing and nothing unlocks yet: start at the very beginning
-        pool = list(tiers[0].inventory)
+        pool = list(next(t for t in tiers if t.kind == "read").inventory)
     value = {u: unlock_value(language, known, u) for u in pool}
     if not p.mastered or not any(value.values()):  # knows nothing yet: begin at the beginning (अ आ / s a)
-        pool = [u for u in tiers[0].inventory if u not in p.mastered] or pool
+        pool = [u for u in next(t for t in tiers if t.kind == "read").inventory if u not in p.mastered] or pool
     else:
-        pool.sort(key=lambda u: value.get(u, 0), reverse=True)
+        # Letters the child already finds by sound are the quickest to learn to read.
+        pool.sort(key=lambda u: (u in p.recognized and u not in p.mastered, value.get(u, 0)), reverse=True)
     p.practicing = pool[:MAX_PRACTICING]
     return p

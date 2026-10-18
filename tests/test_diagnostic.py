@@ -8,6 +8,8 @@ def answer(lang, correct_tiers, partial=None, seed=1):
     d = diagnostic(lang, seed=seed)
     responses = {}
     for t in d:
+        if t.kind == "listen":
+            continue
         if t.number in correct_tiers:
             responses |= {c.id: True for c in t.cards}
         elif t.number == partial:
@@ -50,9 +52,9 @@ def test_passed_tier_masters_untested_units_too():
 def test_partial_tier_masters_only_cards_read():
     d, r = answer("ne", correct_tiers={1}, partial=2)
     p = place("ne", d, r)
-    first = d[1].cards[0]
-    assert set(first.tests) <= p.mastered
-    assert not set(d[1].cards[1].tests) <= p.mastered
+    t2 = next(t for t in d if t.number == 2)
+    assert set(t2.cards[0].tests) <= p.mastered
+    assert not set(t2.cards[1].tests) <= p.mastered
 
 
 def test_strong_reader_reaches_level_three():
@@ -64,8 +66,9 @@ def test_strong_reader_reaches_level_three():
 
 def test_english_tricky_words_scored_separately():
     d = diagnostic("en", seed=2)
-    tricky = next(t for t in d if t.always)
-    r = {c.id: True for c in d[0].cards} | {c.id: False for c in d[1].cards} | {c.id: True for c in tricky.cards}
+    tricky = next(t for t in d if t.always and t.kind == "read")
+    t1, t2 = (next(t for t in d if t.number == n) for n in (1, 2))
+    r = {c.id: True for c in t1.cards} | {c.id: False for c in t2.cards} | {c.id: True for c in tricky.cards}
     p = place("en", d, r)
     assert all(f"w:{c.text.lower()}" in p.mastered for c in tricky.cards)
     assert {"g:s", "g:a", "g:t"} <= p.mastered
@@ -79,3 +82,15 @@ def test_near_beginner_practises_starter_units_not_one_letter_words():
 
     units = {u: UnitState("mastered") for u in ("c:इ", "c:न", "c:स")}
     assert next_units("ne", units, k=2) == ["c:क", "m:ा"]
+
+
+def test_listen_tier_first_self_scored_and_prioritises_recognised_letters():
+    d = diagnostic("ne", seed=4)
+    listen = d[0]
+    assert listen.kind == "listen" and len(listen.cards) == 4
+    assert all(c.text in c.options and len(c.options) == 3 for c in listen.cards)
+    # Recognised by sound but read nothing: start with a recognised letter
+    r = {c.id: True for c in listen.cards} | {c.id: False for c in d[1].cards}
+    p = place("ne", d, r)
+    assert not p.mastered  # recognition is not mastery
+    assert p.recognized == {u for c in listen.cards for u in c.tests}
