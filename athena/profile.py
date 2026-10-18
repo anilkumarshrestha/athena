@@ -27,6 +27,29 @@ BUDDIES: dict[str, tuple[str, str]] = {
 }
 
 
+# The child's own picture (learner card, onboarding): cartoon animals, pictured nouns.
+AvatarId = Literal["cat", "dog", "rabbit", "elephant", "monkey", "bear", "butterfly", "fish", "duck", "yak", "goat", "bird"]
+AVATARS: dict[str, tuple[str, str]] = {
+    "cat": ("बिरालो", "Cat"), "dog": ("कुकुर", "Dog"), "rabbit": ("खरायो", "Rabbit"), "elephant": ("हात्ती", "Elephant"),
+    "monkey": ("बाँदर", "Monkey"), "bear": ("भालु", "Bear"), "butterfly": ("पुतली", "Butterfly"), "fish": ("माछा", "Fish"),
+    "duck": ("हाँस", "Duck"), "yak": ("याक", "Yak"), "goat": ("बाख्रा", "Goat"), "bird": ("चरा", "Bird"),
+}
+
+
+def avatar_of(learner_id: str, chosen: str | None) -> str:
+    """The chosen avatar, or a default picked steadily from the id (same every visit)."""
+    if chosen in AVATARS:
+        return chosen
+    import hashlib
+
+    ids = sorted(AVATARS)
+    return ids[int(hashlib.sha256(learner_id.encode()).hexdigest(), 16) % len(ids)]
+
+
+def avatar_url(learner_id: str, chosen: str | None) -> str:
+    return f"/api/pictures/ne/{AVATARS[avatar_of(learner_id, chosen)][0]}"
+
+
 def buddy(profile: dict) -> tuple[str, str]:
     return BUDDIES.get(profile.get("buddy", "cat"), BUDDIES["cat"])
 

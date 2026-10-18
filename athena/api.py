@@ -34,8 +34,8 @@ from athena.mastery import Change, UnitState, allowed, apply_session, practice_t
 from athena.progression import MAX_PRACTICING, next_level, next_units, should_introduce
 from athena.models import Language
 from athena.ratelimit import RateLimit
-from athena.profile import (SETTINGS, ActivityId, AgeId, AnimalId, BuddyId, FoodId, GenderId, GoalId, LanguagesId,
-                            SettingId, StartId, buddy, personal_themes)
+from athena.profile import (SETTINGS, ActivityId, AgeId, AnimalId, AvatarId, BuddyId, FoodId, GenderId, GoalId,
+                            LanguagesId, SettingId, StartId, avatar_of, avatar_url, buddy, personal_themes)
 from athena.store import Learner, Story, new_learner, store
 from athena.verifier.nepali import DecomposeError, decompose, normalize
 
@@ -63,7 +63,8 @@ class UnitOut(BaseModel):
 class LearnerOut(BaseModel):
     id: str
     name: dict[str, str]
-    avatar: str
+    avatar: str  # cartoon animal id (athena/profile.py AVATARS)
+    avatar_url: str
     mastery: dict[str, list[str]]  # units stories may use now
     units: dict[str, list[UnitOut]]
     level: dict[str, int]
@@ -91,6 +92,7 @@ class LearnerCreate(BaseModel):
     activity: ActivityId | None = None
     buddy: BuddyId = "cat"
     daily_goal: GoalId = "10"
+    avatar: AvatarId | None = None  # the child's own picture; a steady default if not chosen
 
     @field_validator("name_ne")
     @classmethod
@@ -199,7 +201,8 @@ def learner_out(learner: Learner) -> LearnerOut:
     return LearnerOut(
         id=learner.id,
         name=learner.name,
-        avatar=learner.avatar,
+        avatar=avatar_of(learner.id, learner.avatar),
+        avatar_url=avatar_url(learner.id, learner.avatar),
         mastery={lang: sorted(units) for lang, units in learner.mastery.items()},
         units={
             lang: [UnitOut(unit=sig, **u.__dict__) for sig, u in sorted(units.items())]
@@ -488,7 +491,7 @@ def create_learner(req: LearnerCreate) -> LearnerOut:
     if req.activity:
         profile["activity"] = req.activity
     learner = new_learner(req.name_ne, req.name_en.strip(), profile, req.start)
-    learner.avatar = req.buddy  # the reading buddy is the child's picture on the card
+    learner.avatar = avatar_of(learner.id, req.avatar)
     store.put_learner(learner)
     return learner_out(learner)
 
@@ -875,6 +878,21 @@ class DashboardOut(BaseModel):
     daily_minutes: int
     practicing: dict[str, list[str]]
     recent: list[dict]  # last sessions, newest first
+
+
+class AvatarIn(BaseModel):
+    avatar: AvatarId
+
+
+@app.put("/api/learners/{learner_id}/avatar", response_model=LearnerOut)
+def set_avatar(learner_id: str, req: AvatarIn) -> LearnerOut:
+    """Change the child's picture (fixed choices only)."""
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    learner.avatar = req.avatar
+    store.save()
+    return learner_out(learner)
 
 
 class ControlsIn(BaseModel):

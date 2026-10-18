@@ -5,10 +5,6 @@ import { DotLoader } from '../components/DotLoader'
 import { JoinFamily } from '../components/FamilyCode'
 import { setSoundOn, sfx, soundOn } from '../sound'
 
-// First grapheme, not first code unit: क्षितिज → क्षि, not क.
-const segmenter = new Intl.Segmenter('ne', { granularity: 'grapheme' })
-const initial = (s?: string) => (s ? segmenter.segment(s)[Symbol.iterator]().next().value?.segment : undefined)
-
 // Decorative child accents, cycled by index. Full class strings so Tailwind sees them.
 const ACCENTS = [
   { tile: 'bg-sky-soft border-sky', avatar: 'bg-sky text-on-primary', btn: 'bg-sky border-sky-edge text-on-primary' },
@@ -63,10 +59,10 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
           return (
           <div key={l.id} className={`rounded-xl border-2 p-6 ${a.tile}`}>
             <div className="mb-6 flex items-center gap-4">
-              <div className={`relative flex size-30 shrink-0 items-center justify-center rounded-full font-story-ne text-story-xl ${a.avatar}`}>
-                {initial(l.name.ne)}
-                {/* the reading buddy chosen in onboarding */}
-                <img src={`/api/pictures/ne/${buddyNe(l)}`} alt="" className="absolute -bottom-1 -right-1 size-12 rounded-full border-4 border-card object-cover" />
+              {/* the child's own cartoon picture: found without reading */}
+              <div className={`size-30 shrink-0 overflow-hidden rounded-full border-4 border-card ${a.avatar}`}>
+                <img src={l.avatar_url} alt="" className="size-full object-cover"
+                  onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="font-story-ne text-child-title font-bold">{l.name.ne}</div>

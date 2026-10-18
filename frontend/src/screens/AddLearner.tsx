@@ -70,6 +70,21 @@ const BUDDIES: Tile<NonNullable<Create['buddy']>>[] = [
   { id: 'bird', ne: 'चरा', en: 'Bird', pic: pic('चरा') },
   { id: 'rabbit', ne: 'खरायो', en: 'Rabbit', pic: pic('खरायो') },
 ]
+// The child's own picture (athena/profile.py AVATARS): cartoon animals in the app's style.
+const AVATARS: Tile<NonNullable<Create['avatar']>>[] = [
+  { id: 'cat', ne: 'बिरालो', en: 'Cat', pic: pic('बिरालो') },
+  { id: 'dog', ne: 'कुकुर', en: 'Dog', pic: pic('कुकुर') },
+  { id: 'rabbit', ne: 'खरायो', en: 'Rabbit', pic: pic('खरायो') },
+  { id: 'elephant', ne: 'हात्ती', en: 'Elephant', pic: pic('हात्ती') },
+  { id: 'monkey', ne: 'बाँदर', en: 'Monkey', pic: pic('बाँदर') },
+  { id: 'bear', ne: 'भालु', en: 'Bear', pic: pic('भालु') },
+  { id: 'butterfly', ne: 'पुतली', en: 'Butterfly', pic: pic('पुतली') },
+  { id: 'fish', ne: 'माछा', en: 'Fish', pic: pic('माछा') },
+  { id: 'duck', ne: 'हाँस', en: 'Duck', pic: pic('हाँस') },
+  { id: 'yak', ne: 'याक', en: 'Yak', pic: pic('याक') },
+  { id: 'goat', ne: 'बाख्रा', en: 'Goat', pic: pic('बाख्रा') },
+  { id: 'bird', ne: 'चरा', en: 'Bird', pic: pic('चरा') },
+]
 const GOALS: Tile<NonNullable<Create['daily_goal']>>[] = [
   { id: '5', ne: '५ मिनेट · सजिलो', en: '5 min · Easy' },
   { id: '10', ne: '१० मिनेट · नियमित', en: '10 min · Regular' },
@@ -80,13 +95,14 @@ type Answers = {
   nameNe: string; nameEn: string
   gender?: Create['gender']; age?: Create['age']; languages?: Create['languages']
   animal?: Create['favorite_animal']; food?: Create['favorite_food']; activity?: Create['activity']
-  setting?: Create['setting']; buddy?: Create['buddy']; goal?: Create['daily_goal']
+  setting?: Create['setting']; buddy?: Create['buddy']; goal?: Create['daily_goal']; avatar?: Create['avatar']
 }
 
 type Step = { key: keyof Answers | 'hello' | 'name' | 'done'; ne: string; en: string }
 const STEPS: Step[] = [
   { key: 'hello', ne: 'नमस्ते! म तिम्रो पढ्ने साथी। सँगै पढौँ!', en: "Hi! I'm your reading buddy. Let's read together!" },
   { key: 'name', ne: 'तिम्रो नाम के हो?', en: "What's your name?" },
+  { key: 'avatar', ne: 'तिम्रो चित्र छान!', en: 'Pick your picture!' },
   { key: 'gender', ne: 'तिमी छोरा कि छोरी?', en: 'Are you a boy or a girl?' },
   { key: 'age', ne: 'तिमी कति वर्षको भयौ?', en: 'How old are you?' },
   { key: 'languages', ne: 'कुन भाषा पढ्न सिक्ने?', en: 'Which language will you learn to read?' },
@@ -99,12 +115,13 @@ const STEPS: Step[] = [
   { key: 'done', ne: 'सबै तयार! अब तिमीले कुन अक्षर चिन्छौ, हेरौँ।', en: "All set! Now let's see which letters you know." },
 ]
 const TILES: Partial<Record<Step['key'], Tile<string>[]>> = {
-  gender: GENDERS, age: AGES, languages: LANGS, animal: ANIMALS, food: FOODS,
+  avatar: AVATARS, gender: GENDERS, age: AGES, languages: LANGS, animal: ANIMALS, food: FOODS,
   activity: ACTIVITIES, setting: SETTINGS, buddy: BUDDIES, goal: GOALS,
 }
 // grown-up notes, small, under the question
 const NOTE: Partial<Record<Step['key'], string>> = {
   hello: 'A grown-up helps set this up: about a minute. First name only; every answer is a fixed choice.',
+  avatar: "It shows on the child's card, so they can find themselves without reading.",
   gender: 'Nepali verbs change with it (राम गयो, सीता गइन्), so stories read right.',
   age: 'The youngest start with the shortest stories.',
   animal: 'Stories will often be about it.',
@@ -149,6 +166,7 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string, lan
         setting: a.setting ?? 'hills',
         buddy: a.buddy ?? 'cat',
         daily_goal: a.goal ?? '10',
+        avatar: a.avatar ?? null, // none chosen: the server gives a steady default
         start: 'beginner', // the card check right after sets the real starting point
       })
       sfx.sparkle()
@@ -243,6 +261,9 @@ export function AddLearner({ onDone, onBack }: { onDone: (learnerId: string, lan
 
       {step.key === 'done' && (
         <>
+          {a.avatar && (
+            <img src={AVATARS.find((x) => x.id === a.avatar)?.pic} alt="" className="mx-auto mb-4 block size-28 rounded-full border-4 border-primary bg-paper-sunken object-cover" />
+          )}
           <ul className="m-0 mb-6 grid list-none grid-cols-2 gap-2 p-0 text-small text-ink-2 sm:grid-cols-3">
             {[
               ['नाम', `${a.nameNe} · ${a.nameEn}`],

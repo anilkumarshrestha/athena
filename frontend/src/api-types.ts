@@ -278,6 +278,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learners/{learner_id}/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Avatar
+         * @description Change the child's picture (fixed choices only).
+         */
+        put: operations["set_avatar_api_learners__learner_id__avatar_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/themes": {
         parameters: {
             query?: never;
@@ -946,6 +966,14 @@ export interface components {
             /** Model */
             model: string;
         };
+        /** AvatarIn */
+        AvatarIn: {
+            /**
+             * Avatar
+             * @enum {string}
+             */
+            avatar: "cat" | "dog" | "rabbit" | "elephant" | "monkey" | "bear" | "butterfly" | "fish" | "duck" | "yak" | "goat" | "bird";
+        };
         /** Body_read_session_api_session_read_post */
         Body_read_session_api_session_read_post: {
             /** Story Id */
@@ -1285,6 +1313,8 @@ export interface components {
              * @enum {string}
              */
             daily_goal: "5" | "10" | "15";
+            /** Avatar */
+            avatar?: ("cat" | "dog" | "rabbit" | "elephant" | "monkey" | "bear" | "butterfly" | "fish" | "duck" | "yak" | "goat" | "bird") | null;
         };
         /** LearnerOut */
         LearnerOut: {
@@ -1296,6 +1326,8 @@ export interface components {
             };
             /** Avatar */
             avatar: string;
+            /** Avatar Url */
+            avatar_url: string;
             /** Mastery */
             mastery: {
                 [key: string]: string[];
@@ -2317,6 +2349,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_avatar_api_learners__learner_id__avatar_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvatarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerOut"];
                 };
             };
             /** @description Validation Error */
