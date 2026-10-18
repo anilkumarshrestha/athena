@@ -27,12 +27,16 @@ BUDDIES: dict[str, tuple[str, str]] = {
 }
 
 
-# The child's own picture (learner card, onboarding): cartoon animals, pictured nouns.
-AvatarId = Literal["cat", "dog", "rabbit", "elephant", "monkey", "bear", "butterfly", "fish", "duck", "yak", "goat", "bird"]
+# The child's own picture (learner card, onboarding): 15 cartoon characters drawn once by
+# scripts/make_avatars.py and shipped as static files (frontend/public/avatars/<id>.jpg).
+AvatarId = Literal["unicorn", "frog", "panda", "fox", "red_panda", "crocodile", "gorilla", "whale", "tiger", "hippo",
+                   "octopus", "rabbit", "hen", "monkey", "giraffe"]
 AVATARS: dict[str, tuple[str, str]] = {
-    "cat": ("बिरालो", "Cat"), "dog": ("कुकुर", "Dog"), "rabbit": ("खरायो", "Rabbit"), "elephant": ("हात्ती", "Elephant"),
-    "monkey": ("बाँदर", "Monkey"), "bear": ("भालु", "Bear"), "butterfly": ("पुतली", "Butterfly"), "fish": ("माछा", "Fish"),
-    "duck": ("हाँस", "Duck"), "yak": ("याक", "Yak"), "goat": ("बाख्रा", "Goat"), "bird": ("चरा", "Bird"),
+    "unicorn": ("युनिकर्न", "Unicorn"), "frog": ("भ्यागुतो", "Frog"), "panda": ("पान्डा", "Panda"),
+    "fox": ("फ्याउरो", "Fox"), "red_panda": ("हाब्रे", "Red panda"), "crocodile": ("गोही", "Crocodile"),
+    "gorilla": ("गोरिल्ला", "Gorilla"), "whale": ("ह्वेल", "Whale"), "tiger": ("बाघ", "Tiger"),
+    "hippo": ("हिप्पो", "Hippo"), "octopus": ("अक्टोपस", "Octopus"), "rabbit": ("खरायो", "Rabbit"),
+    "hen": ("कुखुरा", "Hen"), "monkey": ("बाँदर", "Monkey"), "giraffe": ("जिराफ", "Giraffe"),
 }
 
 
@@ -47,7 +51,7 @@ def avatar_of(learner_id: str, chosen: str | None) -> str:
 
 
 def avatar_url(learner_id: str, chosen: str | None) -> str:
-    return f"/api/pictures/ne/{AVATARS[avatar_of(learner_id, chosen)][0]}"
+    return f"/avatars/{avatar_of(learner_id, chosen)}.jpg"
 
 
 def buddy(profile: dict) -> tuple[str, str]:

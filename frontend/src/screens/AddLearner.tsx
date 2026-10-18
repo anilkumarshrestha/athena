@@ -70,20 +70,24 @@ const BUDDIES: Tile<NonNullable<Create['buddy']>>[] = [
   { id: 'bird', ne: 'चरा', en: 'Bird', pic: pic('चरा') },
   { id: 'rabbit', ne: 'खरायो', en: 'Rabbit', pic: pic('खरायो') },
 ]
-// The child's own picture (athena/profile.py AVATARS): cartoon animals in the app's style.
+// The child's own picture (athena/profile.py AVATARS): 15 cartoon characters, static files.
+const av = (id: string) => `/avatars/${id}.jpg`
 const AVATARS: Tile<NonNullable<Create['avatar']>>[] = [
-  { id: 'cat', ne: 'बिरालो', en: 'Cat', pic: pic('बिरालो') },
-  { id: 'dog', ne: 'कुकुर', en: 'Dog', pic: pic('कुकुर') },
-  { id: 'rabbit', ne: 'खरायो', en: 'Rabbit', pic: pic('खरायो') },
-  { id: 'elephant', ne: 'हात्ती', en: 'Elephant', pic: pic('हात्ती') },
-  { id: 'monkey', ne: 'बाँदर', en: 'Monkey', pic: pic('बाँदर') },
-  { id: 'bear', ne: 'भालु', en: 'Bear', pic: pic('भालु') },
-  { id: 'butterfly', ne: 'पुतली', en: 'Butterfly', pic: pic('पुतली') },
-  { id: 'fish', ne: 'माछा', en: 'Fish', pic: pic('माछा') },
-  { id: 'duck', ne: 'हाँस', en: 'Duck', pic: pic('हाँस') },
-  { id: 'yak', ne: 'याक', en: 'Yak', pic: pic('याक') },
-  { id: 'goat', ne: 'बाख्रा', en: 'Goat', pic: pic('बाख्रा') },
-  { id: 'bird', ne: 'चरा', en: 'Bird', pic: pic('चरा') },
+  { id: 'unicorn', ne: 'युनिकर्न', en: 'Unicorn', pic: av('unicorn') },
+  { id: 'frog', ne: 'भ्यागुतो', en: 'Frog', pic: av('frog') },
+  { id: 'panda', ne: 'पान्डा', en: 'Panda', pic: av('panda') },
+  { id: 'fox', ne: 'फ्याउरो', en: 'Fox', pic: av('fox') },
+  { id: 'red_panda', ne: 'हाब्रे', en: 'Red panda', pic: av('red_panda') },
+  { id: 'crocodile', ne: 'गोही', en: 'Crocodile', pic: av('crocodile') },
+  { id: 'gorilla', ne: 'गोरिल्ला', en: 'Gorilla', pic: av('gorilla') },
+  { id: 'whale', ne: 'ह्वेल', en: 'Whale', pic: av('whale') },
+  { id: 'tiger', ne: 'बाघ', en: 'Tiger', pic: av('tiger') },
+  { id: 'hippo', ne: 'हिप्पो', en: 'Hippo', pic: av('hippo') },
+  { id: 'octopus', ne: 'अक्टोपस', en: 'Octopus', pic: av('octopus') },
+  { id: 'rabbit', ne: 'खरायो', en: 'Rabbit', pic: av('rabbit') },
+  { id: 'hen', ne: 'कुखुरा', en: 'Hen', pic: av('hen') },
+  { id: 'monkey', ne: 'बाँदर', en: 'Monkey', pic: av('monkey') },
+  { id: 'giraffe', ne: 'जिराफ', en: 'Giraffe', pic: av('giraffe') },
 ]
 const GOALS: Tile<NonNullable<Create['daily_goal']>>[] = [
   { id: '5', ne: '५ मिनेट · सजिलो', en: '5 min · Easy' },

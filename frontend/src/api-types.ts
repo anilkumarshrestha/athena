@@ -972,7 +972,7 @@ export interface components {
              * Avatar
              * @enum {string}
              */
-            avatar: "cat" | "dog" | "rabbit" | "elephant" | "monkey" | "bear" | "butterfly" | "fish" | "duck" | "yak" | "goat" | "bird";
+            avatar: "unicorn" | "frog" | "panda" | "fox" | "red_panda" | "crocodile" | "gorilla" | "whale" | "tiger" | "hippo" | "octopus" | "rabbit" | "hen" | "monkey" | "giraffe";
         };
         /** Body_read_session_api_session_read_post */
         Body_read_session_api_session_read_post: {
@@ -1314,7 +1314,7 @@ export interface components {
              */
             daily_goal: "5" | "10" | "15";
             /** Avatar */
-            avatar?: ("cat" | "dog" | "rabbit" | "elephant" | "monkey" | "bear" | "butterfly" | "fish" | "duck" | "yak" | "goat" | "bird") | null;
+            avatar?: ("unicorn" | "frog" | "panda" | "fox" | "red_panda" | "crocodile" | "gorilla" | "whale" | "tiger" | "hippo" | "octopus" | "rabbit" | "hen" | "monkey" | "giraffe") | null;
         };
         /** LearnerOut */
         LearnerOut: {
