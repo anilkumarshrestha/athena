@@ -56,6 +56,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/diagnostic/{language}/sound/{text}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Diagnostic Sound
+         * @description Spoken letter for a listen-and-tap card. Only the diagnostic's own letters.
+         */
+        get: operations["diagnostic_sound_api_diagnostic__language__sound__text__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learners/{learner_id}/placement": {
         parameters: {
             query?: never;
@@ -521,6 +541,11 @@ export interface components {
             id: string;
             /** Text */
             text: string;
+            /**
+             * Options
+             * @default []
+             */
+            options: string[];
         };
         /** ChangeOut */
         ChangeOut: {
@@ -945,6 +970,8 @@ export interface components {
             name: string;
             /** Always */
             always: boolean;
+            /** Kind */
+            kind: string;
             /** Cards */
             cards: components["schemas"]["CardOut"][];
         };
@@ -1116,6 +1143,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DiagnosticOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    diagnostic_sound_api_diagnostic__language__sound__text__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                language: "ne" | "en";
+                text: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

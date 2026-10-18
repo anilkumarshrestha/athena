@@ -23,6 +23,7 @@ export const api = {
   learner: (id: string) => fetch(`/api/learners/${id}`).then(json<Learner>),
   diagnostic: (learnerId: string, lang: Language) =>
     fetch(`/api/learners/${learnerId}/diagnostic/${lang}`).then(json<components['schemas']['DiagnosticOut']>),
+  diagnosticSoundUrl: (lang: Language, text: string) => `/api/diagnostic/${lang}/sound/${encodeURIComponent(text)}`,
   placement: (learnerId: string, language: Language, responses: Record<string, boolean>) =>
     fetch(`/api/learners/${learnerId}/placement`, {
       method: 'POST',
