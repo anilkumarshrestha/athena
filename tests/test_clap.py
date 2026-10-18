@@ -24,6 +24,7 @@ def test_round_uses_only_readable_words():
     readable = set(decodable_words("ne", units))
     assert 4 <= len(words) <= 6 and all(w["word"] in readable for w in words)
     assert all(len(w["beats"]) >= 1 for w in words)
+    assert len(words[0]["beats"]) == 2  # the demonstrated first word shows the idea
 
 
 def test_clap_api_counts_taps(own):

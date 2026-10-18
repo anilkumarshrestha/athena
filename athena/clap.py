@@ -99,7 +99,8 @@ def round_words(language: str, units: frozenset[str], rng: random.Random, n: int
         b = beats(language, w)
         if b and 1 <= len(b) <= 4:
             pool.setdefault(len(b), []).append((w, b))
-    plan = [1, 2, 2, 3, 2, 3] if language == "ne" else [1, 2, 1, 2, 2, 3]
+    # the first word is demonstrated: two parts show the idea best (a one-part word shows nothing)
+    plan = [2, 1, 2, 3, 2, 3] if language == "ne" else [2, 1, 2, 1, 2, 3]
     out, used = [], set()
     for k in plan[:n]:
         options = [x for x in pool.get(k, []) if x[0] not in used] or \
