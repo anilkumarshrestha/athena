@@ -462,12 +462,19 @@ def _publish(learner: Learner, language: Language, result, image_future) -> Stor
             store.set_image(story.id, "failed", None, None)
 
     image_future.add_done_callback(_done)
-    _pool.submit(_prespeak, language, result.sentences)  # tapped words then play instantly
+    _pool.submit(_prespeak, language, result.sentences)  # tapped words + "read to me" play instantly
     return story
 
 
 def _prespeak(language: str, sentences: list[str]) -> None:
-    """Synthesise every word of a story into the TTS cache (cheap; shared by all children)."""
+    """Synthesise the story's narration (sentences + word timings) and every word into the TTS
+    cache, so "read to me" and word taps are instant (cheap; shared by all children)."""
+    from athena.narration import narrate
+
+    try:
+        narrate(language, sentences)
+    except Exception:  # noqa: BLE001 - built on demand instead
+        log.warning("narration prebuild failed")
     for word in dict.fromkeys(tokens(language, " ".join(sentences))):
         try:
             tts.speak_word(language, word)
@@ -938,6 +945,51 @@ def learner_summary(learner_id: str, language: Language) -> dict:
     }
     version = len([x for x in learner.sessions if x["lang"] == language])
     return coach.summary(learner.id, language, learner.name[language], facts, version)
+
+
+class NarrationWord(BaseModel):
+    index: int
+    start: float
+    end: float
+
+
+class NarrationSentence(BaseModel):
+    text: str
+    audio_url: str
+    words: list[NarrationWord]
+
+
+narrate_limit = RateLimit(per_ip=20, global_=100)
+
+
+@app.get("/api/stories/{story_id}/narration", response_model=list[NarrationSentence], dependencies=[Depends(narrate_limit)])
+def story_narration(story_id: str) -> list[NarrationSentence]:
+    """"Read to me": the story read aloud per sentence, with word timings for karaoke."""
+    from athena.narration import narrate
+
+    s = store.get_story(story_id)
+    if not s:
+        raise HTTPException(404, "story not found")
+    try:
+        parts = narrate(s.language, s.result.sentences)
+    except Exception:  # noqa: BLE001
+        log.exception("narration failed")
+        raise HTTPException(503, "reading aloud is not available right now") from None
+    return [
+        NarrationSentence(text=p["text"], audio_url=f"/api/narration/{p['audio_key']}", words=p["words"]) for p in parts
+    ]
+
+
+@app.get("/api/narration/{key}")
+def narration_audio(key: str) -> Response:
+    from athena.narration import audio_path
+
+    if not re.fullmatch(r"[0-9a-f]{24}", key):
+        raise HTTPException(404, "not found")
+    path = audio_path(key)
+    if not path:
+        raise HTTPException(404, "not found")
+    return Response(path.read_bytes(), media_type="audio/wav", headers={"Cache-Control": "public, max-age=604800, immutable"})
 
 
 class PartOut(BaseModel):

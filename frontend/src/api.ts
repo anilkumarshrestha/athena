@@ -43,6 +43,8 @@ export const api = {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ language, results }),
     }).then(json<CloseResult>),
+  narration: (storyId: string) =>
+    fetch(`/api/stories/${storyId}/narration`).then(json<components['schemas']['NarrationSentence'][]>),
   praiseUrl: (lang: Language, tier: 'great' | 'good' | 'try') => `/api/praise/${lang}/${tier}`,
   history: (id: string) => fetch(`/api/learners/${id}/stories`).then(json<components['schemas']['HistoryItemOut'][]>),
   historyStory: (id: string, storyId: string) =>

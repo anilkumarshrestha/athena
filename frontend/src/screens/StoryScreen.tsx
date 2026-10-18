@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Moon } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Moon, Square, Volume2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, type CloseResult, type Language, type ReadResult, type Story } from '../api'
 import { ReadingLog } from '../components/ReadingLog'
@@ -9,6 +9,7 @@ import { VerifierLog } from '../components/VerifierLog'
 import { UnitChip } from '../components/UnitChip'
 import type { Outcome } from '../components/WordToken'
 import { useLiveFollow } from '../hooks/useLiveFollow'
+import { useNarration } from '../hooks/useNarration'
 import { useRecorder } from '../hooks/useRecorder'
 import { sfx } from '../sound'
 
@@ -31,6 +32,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [checking, setChecking] = useState(false)
   const recorder = useRecorder()
   const live = useLiveFollow(story?.id || undefined)
+  const narration = useNarration(story?.id || undefined)
   const reqId = useRef(0)
 
   const load = useCallback(() => {
@@ -72,6 +74,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const onRecord = async () => {
     if (!story) return
     if (recorder.state !== 'recording') {
+      narration.stop() // never read aloud into the microphone
       setReading(null)
       sfx.click()
       await new Promise((r) => setTimeout(r, 120)) // let the click finish before the mic opens
@@ -170,25 +173,47 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
             )
           }
           outcomes={outcomes}
-          live={recorder.state === 'recording' ? { heard: live.heard, next: live.next } : undefined}
+          live={
+            recorder.state === 'recording'
+              ? { heard: live.heard, next: live.next }
+              : narration.playing
+                ? { heard: new Set<number>(), next: narration.word } // being read TO the child: glow only
+                : undefined
+          }
           footer={
-            <>
+            // 3 columns so nothing overlaps at phone width: read-to-me | mic | next
+            <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-3">
+              {story && recorder.state !== 'recording' && !checking ? (
+                <button
+                  type="button"
+                  onClick={narration.playing ? narration.stop : narration.play}
+                  aria-label={narration.playing ? 'Stop reading to me' : 'Read to me'}
+                  className="flex min-h-16 min-w-16 items-center justify-center gap-2 justify-self-start rounded-xl border-2 border-b-4 border-sky-edge bg-sky-soft px-3 text-child-label font-bold text-ink active:translate-y-1"
+                >
+                  {narration.playing ? <Square size={26} fill="currentColor" /> : <Volume2 size={28} strokeWidth={2} />}
+                  <span className={`hidden sm:inline ${lang === 'ne' ? 'font-story-ne' : 'font-story-en'}`}>{lang === 'ne' ? 'सुनाऊ' : 'Read to me'}</span>
+                </button>
+              ) : (
+                <span />
+              )}
               <RecordButton
                 state={checking ? 'checking' : recorder.state === 'recording' ? 'recording' : 'idle'}
                 disabled={!story}
                 onClick={onRecord}
               />
-              {story && recorder.state !== 'recording' && !checking && (
+              {story && recorder.state !== 'recording' && !checking ? (
                 <button
                   type="button"
                   onClick={load}
-                  className="absolute right-8 flex min-h-16 items-center gap-2 rounded-lg px-4 text-child-label font-semibold text-primary transition-colors duration-150 hover:bg-primary-soft"
+                  className="flex min-h-16 items-center gap-1 justify-self-end rounded-lg px-2 text-child-label font-semibold text-primary transition-colors duration-150 hover:bg-primary-soft"
                 >
                   {lang === 'ne' ? 'अर्को' : 'Next'}
                   <ArrowRight size={32} strokeWidth={1.75} />
                 </button>
+              ) : (
+                <span />
               )}
-            </>
+            </div>
           }
         />
       )}
