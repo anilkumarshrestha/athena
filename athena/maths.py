@@ -172,7 +172,7 @@ def _prompt(p: Problem, plan: StoryPlan, feedback: list[str]) -> str:
         if p.op == "+"
         else "then some go AWAY (eaten, given away by the child, run off): the amount gets SMALLER"
     )
-    text = f"""Write a tiny maths word problem in {lang} for a child aged 5-8 in Nepal.
+    text = f"""Write a tiny maths word problem in {lang} for a child aged 4-10 in Nepal.
 Child's name: {plan.learner_name} (spell it exactly; attach case endings: {plan.learner_name}ले, {plan.learner_name}सँग, {plan.learner_name}का). Thing being counted: {p.noun}.
 {_gender_line(plan) if p.language == "ne" else ""}
 Use exactly these numbers, in this order, and no other numbers: first {a}, then {b}.

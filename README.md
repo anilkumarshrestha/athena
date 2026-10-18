@@ -1,6 +1,6 @@
 # Athena
 
-A reading tutor for Nepali children (ages 5–8) learning to decode **Nepali and English**.
+A reading tutor for children aged 4–10, starting with Nepali children learning to decode **Nepali and English**.
 Athena generates illustrated stories that use **only** the letters, vowel signs and
 conjuncts a child has already mastered. The model writes the story; a deterministic
 verifier checks every word, so no story ever reaches a child with a unit they cannot read yet.

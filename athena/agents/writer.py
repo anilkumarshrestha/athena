@@ -66,7 +66,7 @@ Nepali grammar and idiom (a native speaker will read this):
         key_line += f"Key words for this theme (the child can read these; use them): {' '.join(plan.key_words)}\n"
     if plan.avoid_words:
         key_line += f"Do NOT write these even though they are natural (the child cannot read them yet): {' '.join(plan.avoid_words)}\n"
-    prompt = f"""You write decodable reading stories for a {lang} beginner reader aged 5-8 in Nepal.
+    prompt = f"""You write decodable reading stories for a {lang} beginner reader aged 4-10 in Nepal.
 
 Child's name: {plan.learner_name} (always allowed; spell it EXACTLY like this. In Nepali you may attach case endings: {plan.learner_name}ले, {plan.learner_name}को, {plan.learner_name}लाई, {plan.learner_name}मा, {plan.learner_name}सँग)
 Theme: {plan.theme}

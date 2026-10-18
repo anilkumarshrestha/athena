@@ -1292,7 +1292,7 @@ export interface components {
              */
             start: "beginner" | "some" | "reads";
             /** Age */
-            age?: ("4" | "5" | "6" | "7" | "8") | null;
+            age?: ("4" | "5" | "6" | "7" | "8" | "9" | "10") | null;
             /**
              * Languages
              * @default both

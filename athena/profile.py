@@ -14,7 +14,7 @@ FoodId = Literal["dal_bhat", "momo", "roti", "mango", "banana", "milk", "corn", 
 SettingId = Literal["hills", "terai", "mountains", "city"]
 StartId = Literal["beginner", "some", "reads"]
 GenderId = Literal["boy", "girl", "unspecified"]  # Nepali past-tense verbs agree with gender
-AgeId = Literal["4", "5", "6", "7", "8"]  # 8 = 8 or older
+AgeId = Literal["4", "5", "6", "7", "8", "9", "10"]  # 10 = 10 or older; ages 4-10
 LanguagesId = Literal["ne", "en", "both"]  # what the child is learning to read
 ActivityId = Literal["kite", "football", "dancing", "drawing", "singing", "cycling"]
 BuddyId = Literal["cat", "dog", "goat", "bird", "rabbit"]  # the reading buddy: avatar + "teach the ..."

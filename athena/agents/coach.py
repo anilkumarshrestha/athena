@@ -47,7 +47,7 @@ def activities(learner_id: str, language: str, name: str, allowed: frozenset[str
         return _cache[key]
     words = practice_words(language, allowed, practicing)
     focus = ", ".join(u.split(":", 1)[1] for u in practicing) or "the letters they know"
-    prompt = f"""You help parents in Nepal support a 5-8 year old learning to read {"Nepali" if language == "ne" else "English"}.
+    prompt = f"""You help parents in Nepal support a 4-10 year old learning to read {"Nepali" if language == "ne" else "English"}.
 Child: {name}. Likes: {interests}. Practising now: {focus}.
 Words the child can already read that use these: {" ".join(words) or "(few yet)"}
 

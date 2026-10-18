@@ -2,7 +2,7 @@ import { Lock } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 // Grown-up question (like Duolingo ABC's parent gate): four numbers spelled out in English
-// capitals ("ONE, THREE, FOUR, FOUR"), typed as digits (1344). A child learning to read can
+// capitals ("ONE, THREE, FOUR, FOUR"), typed as digits (1344). A child learning to read (4-10) can
 // not do it yet; a grown-up can in seconds. Before the parent view, teacher view, story review.
 // Child-proofing, not security: the server's family check keeps families apart
 // (athena/family.py). Remembered for 10 minutes in this tab.

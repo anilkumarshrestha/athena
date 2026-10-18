@@ -22,7 +22,8 @@ const GENDERS: Tile<NonNullable<Create['gender']>>[] = [
 ]
 const AGES: Tile<NonNullable<Create['age']>>[] = [
   { id: '4', ne: '४', en: '4' }, { id: '5', ne: '५', en: '5' }, { id: '6', ne: '६', en: '6' },
-  { id: '7', ne: '७', en: '7' }, { id: '8', ne: '८+', en: '8+' },
+  { id: '7', ne: '७', en: '7' }, { id: '8', ne: '८', en: '8' }, { id: '9', ne: '९', en: '9' },
+  { id: '10', ne: '१०+', en: '10+' },
 ]
 const LANGS: Tile<NonNullable<Create['languages']>>[] = [
   { id: 'ne', ne: 'नेपाली', en: 'Nepali' },

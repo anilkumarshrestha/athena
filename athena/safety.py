@@ -4,7 +4,7 @@ Two stages, cheapest first:
   1. blocklist (code): violence, death, fear, weapons, alcohol/tobacco, insults,
      matched on word stems so case endings are caught (भूतले, killed).
   2. model screen: a small, fast model (Gemini Flash-Lite) classifies the whole
-     story for a 5-8 year old: catches what words alone miss ("left alone at night").
+     story for a 4-10 year old: catches what words alone miss ("left alone at night").
 
 Fails closed: if the model screen errors, the story is treated as unsafe and the
 caller serves a curated template instead. Vertex AI safety filters stay on as well.
@@ -64,7 +64,7 @@ def _model_screen(language: str, text: str) -> tuple[bool, str]:
         lambda: genai_client().models.generate_content(
             model=settings().safety_model,
             contents=(
-                f"You check stories for children aged 5-8 in Nepal before they are shown. Story ({lang}):\n\n"
+                f"You check stories for children aged 4-10 in Nepal before they are shown. Story ({lang}):\n\n"
                 f"{text}\n\nUnsafe if it has violence, injury, death, fear or horror, danger to the child, "
                 "adult themes, insults, alcohol or tobacco, or anything a parent would not want a young "
                 "child to read. Everyday sadness resolved kindly is fine. Answer with safe and a short reason."
