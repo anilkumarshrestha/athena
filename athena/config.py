@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     safety_model: str = "gemini-3.1-flash-lite"  # fast screen; Gemma is not a plain API on Vertex
     image_model: str = "gemini-3.1-flash-image"
     writer_thinking_level: str = "low"
+    writer_engine: str = "loop"  # "loop": code feedback loop · "adk": ADK agent with verifier tool
     media_bucket: str = ""
     state_dir: str = str(Path(__file__).resolve().parent.parent / "state")  # learners.json
     request_timeout_ms: int = 30_000  # normal calls 2-15s; cut runaway thinking and retry

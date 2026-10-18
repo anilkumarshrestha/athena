@@ -13,11 +13,12 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
 from pathlib import Path
 
-from athena.agents import writer
+from athena.agents import adk_writer, writer
+from athena.config import settings
 from athena import safety
 from athena.fallback import template_story
 from athena.lexicon import decodable_words, verifier_for
-from athena.models import Attempt, GenerationResult, StoryPlan, ViolationOut
+from athena.models import Attempt, GenerationResult, StoryDraft, StoryPlan, ViolationOut
 from athena.progression import LEVELS
 from athena.verifier.shape import check_shape
 
@@ -55,7 +56,40 @@ def generate(
     draft = None
     outcome = None
 
+    def code_check(title: str, sentences: list[str]) -> list[ViolationOut]:
+        """The same gate for both engines: letters the child can read + story shape."""
+        result = verifier.verify("\n".join([title, *sentences]))
+        shape = check_shape(plan.language, [title, *sentences], limits, names)
+        return _violations(result) + [
+            ViolationOut(word=v.word, word_index=v.word_index, unit=None, reason=v.reason) for v in shape
+        ]
+
+    engine = settings().writer_engine
+    if engine == "adk":
+        # ADK agent: drafts, calls the verifier tool, code ends the turn on acceptance.
+        try:
+            fut = _calls.submit(adk_writer.write_with_tool, plan, code_check)
+            accepted, checks, usage, latency = fut.result(timeout=budget_s)
+        except Exception as e:  # noqa: BLE001 - timeout / model error: verified fallback below
+            accepted, checks, usage, latency = None, [], writer.Usage(), int((time.perf_counter() - t0) * 1000)
+            attempts.append(Attempt(n=1, prompt="adk", title="", sentences=[], latency_ms=latency, usage=usage,
+                                    violations=[ViolationOut(word="", word_index=-1, unit=None, reason=f"agent: {type(e).__name__}")]))
+        per = latency // max(1, len(checks))
+        for i, c in enumerate(checks, 1):
+            attempts.append(Attempt(n=i, prompt="adk:verify_story", title=c["title"], sentences=c["sentences"],
+                                    violations=c["violations"], latency_ms=per,
+                                    usage=usage if i == 1 else writer.Usage(model=usage.model)))
+        if checks:
+            last = checks[-1]
+            draft = accepted or StoryDraft(title=last["title"], sentences=last["sentences"], scene=plan.theme)
+        if accepted:
+            final_check = verifier.verify("\n".join([accepted.title, *accepted.sentences]))
+            outcome = "first_pass" if len(checks) == 1 else "regenerated"
+            title, sentences, units = accepted.title, accepted.sentences, final_check.units_used
+
     for n in range(1, MAX_ATTEMPTS + 1):
+        if engine == "adk":
+            break  # the agent made its own attempts
         timeout_ms = None
         if budget_s is not None:
             remaining_ms = int((budget_s - (time.perf_counter() - t0)) * 1000)
@@ -172,7 +206,7 @@ def generate(
         sentences=sentences,
         scene=draft.scene if draft else plan.theme,
         units_used=sorted(units),
-        first_pass_violations=len(attempts[0].violations),
+        first_pass_violations=len(attempts[0].violations) if attempts else 0,
         final_violation_count=len(final.violations),
         total_latency_ms=int((time.perf_counter() - t0) * 1000),
         safety=safety_info,
