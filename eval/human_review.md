@@ -61,7 +61,7 @@ siblings and animals take plain forms.
 **Actions:** writer prompt states the rule with examples; templates add honorific elder sentences
 ("आमा खेत जानुभयो", "हजुरआमा घरमा हुनुहुन्छ"); test asserts no elder sentence ends in a plain verb.
 
-## 4 — kiran / placed with 3 letters
+## 4 — kiran (pseudonym) / placed with 3 letters
 
 ```
 म ऊ किरण

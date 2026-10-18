@@ -103,10 +103,38 @@ def _meaning(language: str, sentences: list[str]) -> str:
     return m.meaning
 
 
-def _check(p: Problem, sentences: list[str], verifier) -> list[str]:
+NE_CASE = ("सँग", "सित", "लाई", "ले", "को", "का", "की", "मा")
+
+
+def _near(a: str, b: str) -> bool:
+    """One letter apart (a misspelt name: सीतो for सीता)."""
+    if a == b or abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) == len(b):
+        return sum(x != y for x, y in zip(a, b)) == 1
+    short, long_ = sorted((a, b), key=len)
+    return any(long_[:i] + long_[i + 1:] == short for i in range(len(long_)))
+
+
+def _name_problems(name: str, text: str) -> list[str]:
+    """Nepali: the child's name spelt exactly, case endings attached (सीताले, not सीता ले)."""
+    out = []
+    words = re.findall(r"[^\s।?!,.]+", text)
+    for i, w in enumerate(words):
+        if w == name and i + 1 < len(words) and words[i + 1] in NE_CASE:
+            out.append(f"write '{name}{words[i + 1]}' as one word, not '{name} {words[i + 1]}'")
+        stem = next((w[: -len(c)] for c in NE_CASE if w.endswith(c) and len(w) > len(c)), w)
+        if stem != name and _near(stem, name):
+            out.append(f"'{w}': spell the name exactly '{name}'")
+    return out
+
+
+def _check(p: Problem, sentences: list[str], verifier, name: str = "") -> list[str]:
     """Problems with a draft, as short reasons (empty = accepted). Code decides."""
     problems = []
     text = " ".join(sentences)
+    if p.language == "ne" and name:
+        problems += _name_problems(name, text)
     r = verifier.verify(text)
     problems += [f"'{v.word}' uses {v.unit.split(':', 1)[1] if v.unit else v.reason}" for v in r.violations]
     if numbers_in(text) != [p.a, p.b]:
@@ -119,6 +147,14 @@ def _check(p: Problem, sentences: list[str], verifier) -> list[str]:
     return problems
 
 
+def _gender_line(plan: StoryPlan) -> str:
+    n = plan.learner_name
+    return {
+        "boy": f"{n} is a BOY: his verbs are masculine ({n}ले दियो, {n}ले खायो).",
+        "girl": f"{n} is a GIRL: her verbs are feminine ({n}ले दिइन्, {n}ले खाइन्), never दियो/खायो.",
+    }.get(plan.child_gender, f"{n}'s gender is not given: do not make {n} the subject of a past-tense verb.")
+
+
 def _prompt(p: Problem, plan: StoryPlan, feedback: list[str]) -> str:
     lang = "Nepali (Devanagari, digits as ०-९)" if p.language == "ne" else "simple English (digits 0-9)"
     a, b = (to_ne(p.a), to_ne(p.b)) if p.language == "ne" else (str(p.a), str(p.b))
@@ -128,11 +164,13 @@ def _prompt(p: Problem, plan: StoryPlan, feedback: list[str]) -> str:
         else "then some go AWAY (eaten, given away by the child, run off): the amount gets SMALLER"
     )
     text = f"""Write a tiny maths word problem in {lang} for a child aged 5-8 in Nepal.
-Child's name: {plan.learner_name}. Thing being counted: {p.noun}.
+Child's name: {plan.learner_name} (spell it exactly; attach case endings: {plan.learner_name}ले, {plan.learner_name}सँग, {plan.learner_name}का). Thing being counted: {p.noun}.
+{_gender_line(plan) if p.language == "ne" else ""}
 Use exactly these numbers, in this order, and no other numbers: first {a}, then {b}.
 Story: {plan.learner_name} (or someone in the family) has {a} {p.noun}, {action}: {b}.
 2 or 3 very short sentences. The LAST sentence asks the question ("कति … ?" / "How many … ?").
 Never write the answer. Warm and everyday. Polite honorific verbs for elders (आमाले दिनुभयो).
+{"The answer is more than one, so the question takes the PLURAL verb: 'कति केरा छन्?', 'कति चरा भए?' (never छ? / भयो?)." if p.language == "ne" and p.answer > 1 else ""}
 
 Every word must be readable for this child. Word bank: {" ".join(plan.word_bank[:120])}
 {_units_line(plan)}"""
@@ -152,10 +190,10 @@ def _ne_templates(p: Problem, name: str, gender: str) -> list[list[str]]:
     A, B, N = to_ne(p.a), to_ne(p.b), p.noun
     pl_a = p.a > 1
     have = [f"{name}सँग {A} वटा {N} {'छन्' if pl_a else 'छ'}।", f"{name}सँग {A} {N} {'छन्' if pl_a else 'छ'}।",
-            f"{name}को {A} वटा {N} {'थिए' if pl_a else 'थियो'}।", f"{name}को {A} {N} {'थिए' if pl_a else 'थियो'}।"]
+            f"{name}{'का' if pl_a else 'को'} {A} वटा {N} {'थिए' if pl_a else 'थियो'}।", f"{name}{'का' if pl_a else 'को'} {A} {N} {'थिए' if pl_a else 'थियो'}।"]
     if p.op == "+":
         act = [f"आमाले {B} {N} दिनुभयो।", f"बुबाले {B} {N} दिनुभयो।", f"बाबाले {B} {N} दिनुभयो।"]
-        ask = [f"अब {name}सँग कति {N} छन्?", f"अब {name}को कति {N} भए?", f"अब कति {N} भए?"]
+        ask = [f"अब {name}सँग कति {N} छन्?", f"अब {name}का कति {N} भए?", f"अब कति {N} भए?"]
     else:
         pl_b = p.b > 1
         if N in NE_FOOD:
@@ -185,7 +223,7 @@ def _template(p: Problem, plan: StoryPlan, verifier) -> list[str] | None:
             if p.op == "+"
             else [f"{name} has {p.a} {n(p.a)}.", f"{p.b} ran off.", "How many?"],
         ]
-    return next((o for o in options if not _check(p, o, verifier)), None)
+    return next((o for o in options if not _check(p, o, verifier, name)), None)
 
 
 def quick_problem(plan: StoryPlan, seed: int | None = None) -> Problem | None:
@@ -240,7 +278,7 @@ def make_problem(plan: StoryPlan, seed: int | None = None) -> Problem:
         except Exception as e:  # noqa: BLE001
             p.attempts.append({"sentences": [], "problems": [f"model error: {type(e).__name__}"]})
             continue
-        feedback = _check(p, draft.sentences, verifier)
+        feedback = _check(p, draft.sentences, verifier, plan.learner_name)
         if not feedback:
             want = "adds" if p.op == "+" else "takes_away"
             try:
@@ -250,7 +288,8 @@ def make_problem(plan: StoryPlan, seed: int | None = None) -> Problem:
                 feedback = ["meaning could not be checked"]
         p.attempts.append({"sentences": draft.sentences, "problems": feedback})
         if not feedback:
-            p.sentences, p.source = draft.sentences, "model"
+            # "थियो ।" -> "थियो।": no space before the full stop or question mark
+            p.sentences, p.source = [re.sub(r"\s+([।?!.])", r"\1", x).strip() for x in draft.sentences], "model"
             return p
     if t := _template(p, plan, verifier):
         p.sentences, p.source = t, "template"

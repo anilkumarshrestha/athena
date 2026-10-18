@@ -427,7 +427,8 @@ Progress for the card check (placement game): the child's favourite animal cross
 | Learner pick | Child | Avatar tiles (`lg` radius, 120px), name in `child-title` |
 | Story / read | Child | `StoryCard`, `WordToken` |
 | Result | Child | `StoryCard` with outcomes + a compact strip of `lg` `UnitChip`s that changed |
-| Mastery | Adult | `MasteryGrid` (ne/en tabs) |
+| Mastery | Adult | `MasteryGrid` (ne/en tabs) + `MathsProgress` with `detail` (every recent problem, the child's taps, outcome as icon + word) |
+| Parent | Adult | Stat row, `UnitChip`s, `MathsProgress` (week stats, struggle callout, mistake kinds with a home tip) |
 | Generation detail | Adult | `VerifierLog` + illustration thumb + cost/latency stats |
 | Teacher | Adult | Learner × unit heatmap table built from `sm` `UnitChip`s, sticky first column |
 | Eval | Adult | Stat row + two-series bar chart (§2 dataviz) |

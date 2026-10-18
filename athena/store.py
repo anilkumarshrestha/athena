@@ -36,6 +36,8 @@ class Learner:
     history: dict[str, list[float]] = field(default_factory=lambda: {"ne": [], "en": []})  # accuracy per session
     sessions: list[dict] = field(default_factory=list)  # closed reading sessions (athena/dashboard.py)
     settings: dict[str, int] = field(default_factory=lambda: {"daily_minutes": 0})  # parent controls; 0 = no limit
+    # maths difficulty, per language, separate from reading (athena/maths_progress.py)
+    maths: dict[str, dict] = field(default_factory=lambda: {"ne": {"level": 1, "recent": []}, "en": {"level": 1, "recent": []}})
 
     @property
     def mastery(self) -> dict[str, frozenset[str]]:
@@ -72,6 +74,7 @@ def learner_from_dict(d: dict) -> Learner:
         history=d.get("history", {"ne": [], "en": []}),
         sessions=d.get("sessions", []),
         settings=d.get("settings", {"daily_minutes": 0}),
+        maths=d.get("maths", {"ne": {"level": 1, "recent": []}, "en": {"level": 1, "recent": []}}),
     )
 
 

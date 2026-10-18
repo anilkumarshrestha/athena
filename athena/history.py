@@ -5,6 +5,7 @@
     {"type": "image",   "story_id", "image_id"}
     {"type": "reading", "story_id", "at", "transcript", "engine", "wcpm", "words_correct", "words", "insertions"}
     {"type": "close",   "story_id", "at", "accuracy", "level_before", "level_after", "changes"}
+    {"type": "maths", ...} / {"type": "maths_answer", ...}   see athena/maths_progress.py
 
 Append-only: a crash can lose at most the last line, never earlier history. No audio is
 ever stored (PLAN §11). "transcript" is what speech-to-text heard from the child reading
@@ -54,6 +55,12 @@ class History:
     def stories(self, learner_id: str) -> list[dict]:
         """Story records with their readings and outcome, newest first."""
         return fold(self._events(learner_id))
+
+    def maths(self, learner_id: str) -> list[dict]:
+        """Maths problems with the child's answers, newest first."""
+        from athena.maths_progress import fold_maths
+
+        return fold_maths(self._events(learner_id))
 
     def story(self, learner_id: str, story_id: str) -> dict | None:
         return next((r for r in self.stories(learner_id) if r["story_id"] == story_id), None)

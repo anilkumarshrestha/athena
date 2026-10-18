@@ -81,12 +81,17 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
                 English
               </button>
             </div>
-            <a
-              href={`#/maths/${l.id}/ne`}
-              className="mt-3 flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 border-b-4 border-line-strong bg-card font-story-ne text-child-label font-bold text-ink transition-transform duration-150 active:translate-y-1"
-            >
-              गणित <span className="font-story-en text-small font-semibold text-ink-3">· Maths</span>
-            </a>
+            <div className="mt-3 flex gap-3">
+              {(['ne', 'en'] as const).map((ml) => (
+                <a
+                  key={ml}
+                  href={`#/maths/${l.id}/${ml}`}
+                  className={`flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-b-4 border-line-strong bg-card ${ml === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-label font-bold text-ink transition-transform duration-150 active:translate-y-1`}
+                >
+                  {ml === 'ne' ? 'गणित' : 'Maths'} <span className="font-mono text-small font-semibold text-ink-3">{ml === 'ne' ? '१+२' : '1+2'}</span>
+                </a>
+              ))}
+            </div>
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
               <a href={`#/parent/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
                 Parent view

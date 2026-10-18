@@ -66,6 +66,7 @@ class LearnerOut(BaseModel):
     recent_accuracy: dict[str, list[float]]  # last 5 sessions, oldest first
     profile: dict[str, str]
     settings: dict[str, int]
+    maths_level: dict[str, int]
 
 
 class LearnerCreate(BaseModel):
@@ -195,6 +196,7 @@ def learner_out(learner: Learner) -> LearnerOut:
         recent_accuracy={lang: [round(a, 2) for a in h[-5:]] for lang, h in learner.history.items()},
         profile=learner.profile,
         settings=learner.settings,
+        maths_level={lang: st.get("level", 1) for lang, st in learner.maths.items()},
     )
 
 
@@ -614,8 +616,14 @@ def read_session(
 
 
 def _used_today(learner: Learner) -> int:
+    """Reading + maths minutes today (the parent's limit covers both)."""
+    from athena.dashboard import _same_day
+    from athena.maths_progress import maths_seconds_today
+
+    now = time.time()
     open_started = [s.created_at for s in store.stories.values() if s.learner_id == learner.id and s.changes is None]
-    return used_minutes_today(learner.sessions, open_started, time.time())
+    maths_s = maths_seconds_today(store.history.maths(learner.id), now, _same_day)
+    return used_minutes_today(learner.sessions, open_started, now) + round(maths_s / 60)
 
 
 @app.post("/api/session/close", response_model=CloseOut)
@@ -1090,19 +1098,46 @@ class MathsResult(BaseModel):
     correct: bool
     tries: int
     answer: int | None  # revealed when found, or after 2 tries ("let's count together")
+    level_change: Literal["up", "down"] | None = None  # maths level moved after this problem
 
 
-_maths: dict[str, dict] = {}
+_maths: dict[str, dict] = {}  # open problems; rebuilt from history after a restart
+_maths_lock = threading.Lock()
+MATHS_KEEP_S = 2 * 3600  # open problems older than this are dropped from memory
 maths_limit = RateLimit(per_ip=10, global_=60)
 
 
 _maths_next: dict[tuple[str, str], tuple[int, object]] = {}  # (learner, lang) -> (level, Future[Problem])
 
 
+def _maths_level(learner: Learner, language: Language) -> int:
+    return learner.maths.setdefault(language, {"level": 1, "recent": []})["level"]
+
+
 def _maths_plan(learner: Learner, language: Language):
     units = learner.units[language]
-    return plan(language, allowed(units), learner.name[language], level=learner.level[language],
+    return plan(language, allowed(units), learner.name[language], level=_maths_level(learner, language),
                 child_gender=learner.profile.get("gender", "unspecified"))
+
+
+def _maths_get(pid: str) -> dict | None:
+    """An open problem: from memory, else rebuilt from the learner's history (Cloud Run may
+    have restarted or scaled to zero since it was shown). The pid carries the learner id."""
+    from athena.maths import Problem
+
+    if m := _maths.get(pid):
+        return m
+    learner_id = pid.rsplit("-", 1)[0]
+    if "-" not in pid or not store.get_learner(learner_id):
+        return None
+    r = next((r for r in store.history.maths(learner_id) if r["id"] == pid), None)
+    if not r:
+        return None
+    prob = Problem(r["lang"], r["a"], r["b"], r["op"], noun="", sentences=r["sentences"], source=r["source"])
+    m = {"learner": learner_id, "problem": prob, "tries": len(r["answers"]), "solved": r["solved"], "at": r["at"]}
+    with _maths_lock:
+        _maths[pid] = m
+    return m
 
 
 @app.post("/api/maths/start", response_model=MathsOut, dependencies=[Depends(maths_limit)])
@@ -1117,7 +1152,10 @@ def maths_start(req: MathsStart) -> MathsOut:
     learner = store.get_learner(req.learner_id)
     if not learner:
         raise HTTPException(404, "learner not found")
-    key, level = (learner.id, req.language), learner.level[req.language]
+    limit = learner.settings.get("daily_minutes", 0)
+    if limit and _used_today(learner) >= limit:
+        raise HTTPException(403, "daily_limit")  # same friendly stop as stories
+    key, level = (learner.id, req.language), _maths_level(learner, req.language)
     prob = None
     entry = _maths_next.pop(key, None)
     if entry and entry[0] == level and entry[1].done() and not entry[1].exception():
@@ -1126,15 +1164,19 @@ def maths_start(req: MathsStart) -> MathsOut:
         prob = quick_problem(_maths_plan(learner, req.language)) or make_problem(_maths_plan(learner, req.language))
     _maths_next[key] = (level, _pool.submit(make_problem, _maths_plan(learner, req.language)))
 
-    pid = _uuid.uuid4().hex[:12]
+    pid = f"{learner.id}-{_uuid.uuid4().hex[:12]}"
     rng = _random.Random()
     choices = {prob.answer}
     while len(choices) < 4:
         choices.add(max(0, prob.answer + rng.choice([-2, -1, 1, 2, 3])))
-    _maths[pid] = {"learner": learner.id, "problem": prob, "tries": 0, "solved": False}
-    store.history.append(learner.id, {"type": "maths", "story_id": pid, "at": time.time(), "lang": req.language,
+    now = time.time()
+    with _maths_lock:
+        for old in [k for k, v in _maths.items() if now - v["at"] > MATHS_KEEP_S]:
+            del _maths[old]
+        _maths[pid] = {"learner": learner.id, "problem": prob, "tries": 0, "solved": False, "at": now}
+    store.history.append(learner.id, {"type": "maths", "story_id": pid, "at": now, "lang": req.language,
                                       "sentences": prob.sentences, "a": prob.a, "b": prob.b, "op": prob.op,
-                                      "source": prob.source})
+                                      "source": prob.source, "level": level})
     noun = picture_noun(req.language, prob.noun)
     return MathsOut(
         id=pid, language=req.language, sentences=prob.sentences, display=display_words(req.language, prob.sentences),
@@ -1145,7 +1187,9 @@ def maths_start(req: MathsStart) -> MathsOut:
 
 @app.post("/api/maths/{pid}/answer", response_model=MathsResult)
 def maths_answer(pid: str, req: MathsAnswer) -> MathsResult:
-    m = _maths.get(pid)
+    from athena.maths_progress import next_maths_level
+
+    m = _maths_get(pid)
     if not m:
         raise HTTPException(404, "problem not found")
     m["tries"] += 1
@@ -1154,19 +1198,83 @@ def maths_answer(pid: str, req: MathsAnswer) -> MathsResult:
         m["solved"] = True
     store.history.append(m["learner"], {"type": "maths_answer", "story_id": pid, "at": time.time(),
                                         "answer": req.answer, "correct": correct, "try": m["tries"]})
+    change = None
+    learner = store.get_learner(m["learner"])
+    if learner and m["tries"] == 1:  # the level follows first tries only
+        lang = m["problem"].language
+        state = learner.maths.setdefault(lang, {"level": 1, "recent": []})
+        state["recent"] = (state["recent"] + [correct])[-10:]
+        new = next_maths_level(state["level"], state["recent"])
+        if new != state["level"]:
+            change = "up" if new > state["level"] else "down"
+            state["level"], state["recent"] = new, []
+            _maths_next.pop((learner.id, lang), None)  # prepared at the old level
+        store.save()
     reveal = correct or m["tries"] >= 2
-    return MathsResult(correct=correct, tries=m["tries"], answer=m["problem"].answer if reveal else None)
+    return MathsResult(correct=correct, tries=m["tries"], answer=m["problem"].answer if reveal else None,
+                       level_change=change)
 
 
 @app.get("/api/maths/{pid}/audio", dependencies=[Depends(narrate_limit)])
 def maths_audio(pid: str) -> Response:
     """The problem read aloud (its own text only; cached)."""
-    m = _maths.get(pid)
+    m = _maths_get(pid)
     if not m:
         raise HTTPException(404, "problem not found")
     prob = m["problem"]
     return Response(tts.speak_word(prob.language, " ".join(prob.sentences)), media_type="audio/wav",
                     headers={"Cache-Control": "public, max-age=86400"})
+
+
+class MathsWeekOut(BaseModel):
+    problems: int
+    answered: int
+    solved: int
+    first_try: float | None
+    per_day: list[int]
+
+
+class MathsOpOut(BaseModel):
+    problems: int
+    first_try: float | None
+
+
+class MathsProblemOut(BaseModel):
+    id: str
+    at: float
+    sentences: list[str]
+    a: int
+    b: int
+    op: str
+    answer: int
+    answers: list[int]  # what the child tapped, in order
+    solved: bool
+    first_try: bool
+
+
+class MathsProgressOut(BaseModel):
+    lang: Language
+    level: int  # maths level 1-3 (athena.maths.LEVELS)
+    total: int
+    week: MathsWeekOut
+    all_first_try: float | None
+    by_op: dict[str, MathsOpOut]  # "+" / "-"
+    struggling: list[str]  # ops with a low first-try rate
+    mistakes: dict[str, int]  # off_by_one, wrong_operation
+    largest_solved: int | None
+    recent: list[MathsProblemOut]
+
+
+@app.get("/api/learners/{learner_id}/maths/{language}", response_model=MathsProgressOut)
+def learner_maths(learner_id: str, language: Language) -> MathsProgressOut:
+    """Maths progress for the parent and teacher views. Computed from the child's taps."""
+    from athena.maths_progress import summarize_maths
+
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    return MathsProgressOut(**summarize_maths(store.history.maths(learner_id), language, time.time(),
+                                              level=_maths_level(learner, language)))
 
 
 class PartOut(BaseModel):

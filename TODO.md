@@ -23,10 +23,18 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - Types: `npx openapi-typescript http://localhost:8077/openapi.json -o src/api-types.ts`
 
 ## Deferred — deploy (user will trigger)
-- [ ] Dockerfile (multi-stage: node build → python)
-- [ ] Secret Manager for GEMINI_API_KEY; private GCS bucket for media
-- [ ] Cloud Run: min-instances=1, max-instances=1 (in-memory store), startup warm-up call (cold first request ~14s)
+- [x] Dockerfile (multi-stage: node build → python, ffmpeg, non-root), container e2e 11/11
+- [x] scripts/deploy.sh: Secret Manager key, private GCS bucket, service account roles, Firestore env (not run yet)
+- [ ] Run deploy.sh (MIN_INSTANCES=1 on demo days, 0 otherwise)
 - [ ] **GATE: verified illustrated story on public URL**
+
+## Submission (due 2026-10-18 23:00)
+- [ ] README for judges: how to test (demo learners, walkthrough, Chrome mic permission, known limits/quotas), guarantees (verifier, safety, code-computed maths, eval numbers), speed (prefetch, budget, STT v1 vs Chirp, Flash vs Flash-Lite, picture cache), architecture diagram, Google services, safety + privacy
+- [ ] Screenshots
+- [ ] Fill pptx deck from presentation/DECK_PLAN.md
+- [ ] Public GitHub repo (user go-ahead; re-check no secrets / project ID)
+- [ ] Video script + recording
+- [ ] Ask: video length, team name, image quota increase
 
 ## Next
 - [x] H6 Eval harness: verdict line, retries, cost. Full runs 100/100 SUCCESS, 0 shipped (eval/results/)
@@ -63,13 +71,15 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] Instant Next (prefetch after reading, re-verified), pre-spoken words, 30x smaller pictures
 - [x] Profile insights (groups, mistake patterns, pace, parent note) + game-like card check (listen-and-tap, early stop)
 - [x] Read to me (karaoke), child picks the story (3 tiles, prepared one ready), gender agreement, maths word problems
+- [x] Maths: own level per language (4/5 first tries up, 3 misses down), English entry, daily limit covers maths, answers survive restarts (pid carries learner, rebuilt from history), parent + teacher maths sections, eval/maths_eval.py
+- [ ] You: review ~10 Nepali maths problems (templates + model) in eval/results/maths-*.jsonl
 - [ ] Deploy (evening): Dockerfile w/ ffmpeg, otel/api-core pin conflict, WebSocket timeout, Secret Manager
 
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
 - [ ] Gemma not served on Vertex as plain API → Model Garden GPU endpoint or Flash-Lite as cheap tier (H10)
 - [x] ~~Move generation to Vertex AI~~ done (AQ. Vertex key)
-- [ ] Firestore store (in-memory needs `max-instances=1` until then)
+- [x] Firestore store (STORE_BACKEND=firestore; round trip tested against real DB)
 - [ ] Writer quality on tiny Nepali sets: pruned sentences can be ungrammatical (eval B)
 - [ ] Grapheme mastery is spelling-level (ow cow/snow, oo moon/book): README limitation
 - [ ] STT phrase hints may mask real child errors: eval C with/without hints

@@ -431,7 +431,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Maths Start */
+        /**
+         * Maths Start
+         * @description A problem now: the one prepared in the background if ready, else an instant code-built
+         *     one. Then the next model-written problem is prepared while the child solves this one.
+         */
         post: operations["maths_start_api_maths_start_post"];
         delete?: never;
         options?: never;
@@ -468,6 +472,26 @@ export interface paths {
          * @description The problem read aloud (its own text only; cached).
          */
         get: operations["maths_audio_api_maths__pid__audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/maths/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Learner Maths
+         * @description Maths progress for the parent and teacher views. Computed from the child's taps.
+         */
+        get: operations["learner_maths_api_learners__learner_id__maths__language__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -905,6 +929,10 @@ export interface components {
             settings: {
                 [key: string]: number;
             };
+            /** Maths Level */
+            maths_level: {
+                [key: string]: number;
+            };
         };
         /** LetterCheckIn */
         LetterCheckIn: {
@@ -922,6 +950,13 @@ export interface components {
         MathsAnswer: {
             /** Answer */
             answer: number;
+        };
+        /** MathsOpOut */
+        MathsOpOut: {
+            /** Problems */
+            problems: number;
+            /** First Try */
+            first_try: number | null;
         };
         /** MathsOut */
         MathsOut: {
@@ -949,6 +984,58 @@ export interface components {
             /** Source */
             source: string;
         };
+        /** MathsProblemOut */
+        MathsProblemOut: {
+            /** Id */
+            id: string;
+            /** At */
+            at: number;
+            /** Sentences */
+            sentences: string[];
+            /** A */
+            a: number;
+            /** B */
+            b: number;
+            /** Op */
+            op: string;
+            /** Answer */
+            answer: number;
+            /** Answers */
+            answers: number[];
+            /** Solved */
+            solved: boolean;
+            /** First Try */
+            first_try: boolean;
+        };
+        /** MathsProgressOut */
+        MathsProgressOut: {
+            /**
+             * Lang
+             * @enum {string}
+             */
+            lang: "ne" | "en";
+            /** Level */
+            level: number;
+            /** Total */
+            total: number;
+            week: components["schemas"]["MathsWeekOut"];
+            /** All First Try */
+            all_first_try: number | null;
+            /** By Op */
+            by_op: {
+                [key: string]: components["schemas"]["MathsOpOut"];
+            };
+            /** Struggling */
+            struggling: string[];
+            /** Mistakes */
+            mistakes: {
+                [key: string]: number;
+            };
+            /** Largest Solved */
+            largest_solved: number | null;
+            /** Recent */
+            recent: components["schemas"]["MathsProblemOut"][];
+        };
         /** MathsResult */
         MathsResult: {
             /** Correct */
@@ -957,6 +1044,8 @@ export interface components {
             tries: number;
             /** Answer */
             answer: number | null;
+            /** Level Change */
+            level_change?: ("up" | "down") | null;
         };
         /** MathsStart */
         MathsStart: {
@@ -967,6 +1056,19 @@ export interface components {
              * @enum {string}
              */
             language: "ne" | "en";
+        };
+        /** MathsWeekOut */
+        MathsWeekOut: {
+            /** Problems */
+            problems: number;
+            /** Answered */
+            answered: number;
+            /** Solved */
+            solved: number;
+            /** First Try */
+            first_try: number | null;
+            /** Per Day */
+            per_day: number[];
         };
         /** NarrationSentence */
         NarrationSentence: {
@@ -2087,6 +2189,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    learner_maths_api_learners__learner_id__maths__language__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MathsProgressOut"];
                 };
             };
             /** @description Validation Error */

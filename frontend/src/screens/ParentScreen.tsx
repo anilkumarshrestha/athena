@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
+import { MathsProgress } from '../components/MathsProgress'
 import { ProfileInsights } from '../components/ProfileInsights'
 import { UnitChip } from '../components/UnitChip'
 import { unitGlyph } from '../units'
@@ -106,6 +107,8 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
           </div>
         </section>
       )}
+
+      <MathsProgress learnerId={learnerId} lang={lang} name={name} />
 
       {/* Home activities */}
       <h2 className="mb-1 text-h2 font-semibold">घरमा अभ्यास · At home</h2>

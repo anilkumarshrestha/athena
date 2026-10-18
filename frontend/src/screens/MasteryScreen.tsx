@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { api, type Language, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { MasteryGrid } from '../components/MasteryGrid'
+import { MathsProgress } from '../components/MathsProgress'
 
 // Adult view (DESIGN.md §7 "Mastery"): the learner's units per language.
 export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack: () => void }) {
@@ -74,6 +75,10 @@ export function MasteryScreen({ learnerId, onBack }: { learnerId: string; onBack
 
           <div className="rounded-md border border-line bg-card p-4">
             <MasteryGrid lang={lang} mastered={mastered} practicing={practicing} />
+          </div>
+
+          <div className="mt-8">
+            <MathsProgress learnerId={learner.id} lang={lang} name={learner.name} detail />
           </div>
 
           <div className="mt-12 border-t border-line pt-6">

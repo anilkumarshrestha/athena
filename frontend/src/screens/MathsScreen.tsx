@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Volume2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Moon, Sparkles, Volume2 } from 'lucide-react'
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
@@ -21,6 +21,7 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [tried, setTried] = useState<number[]>([])
   const [solved, setSolved] = useState<number | null>(null)
   const [counting, setCounting] = useState(0) // pictures counted so far in "count together"
+  const [levelUp, setLevelUp] = useState(false) // bigger numbers from the next problem
   const isNe = lang === 'ne'
   const font = isNe ? 'font-story-ne' : 'font-story-en'
 
@@ -29,6 +30,7 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setTried([])
     setSolved(null)
     setCounting(0)
+    setError(null)
     api.mathsStart(learnerId, lang).then(setM).catch((e) => setError(String(e.message ?? e)))
   }, [learnerId, lang])
   useEffect(load, [load])
@@ -41,6 +43,7 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const answer = async (n: number) => {
     if (!m || solved !== null || tried.includes(n)) return
     const r = await api.mathsAnswer(m.id, n)
+    setLevelUp(r.level_change === 'up') // a step down is never announced to the child
     if (r.correct) {
       setSolved(n)
       sfx.chime()
@@ -59,7 +62,13 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
       <button type="button" onClick={onBack} aria-label="Back" className="mb-4 flex size-16 items-center justify-center rounded-full text-ink-2 hover:bg-paper-sunken">
         <ArrowLeft size={32} strokeWidth={1.75} />
       </button>
-      {error && <p className="text-omitted">{error}</p>}
+      {error === 'daily_limit' ? (
+        <section className="flex flex-col items-center gap-4 rounded-2xl border-2 border-b-4 border-line bg-card p-12 text-center">
+          <Moon size={64} strokeWidth={1.5} className="text-primary" />
+          <p className="m-0 font-story-ne text-child-title font-bold">आजलाई यति नै! भोलि फेरि खेलौँ।</p>
+          <p className="m-0 font-story-en text-child-label text-ink-2">That's all for today. Let's play again tomorrow!</p>
+        </section>
+      ) : error ? <p className="text-omitted">{error}</p> : null}
       {!m && !error && <div className="flex justify-center p-12"><DotLoader label="Making a problem" /></div>}
 
       {m && (
@@ -124,6 +133,11 @@ export function MathsScreen({ learnerId, lang, onBack }: { learnerId: string; la
 
           <div aria-live="polite" className={`mt-5 min-h-10 text-center ${font} text-child-label font-semibold`}>
             {solved !== null && <span className="text-correct">{isNe ? 'धेरै राम्रो!' : 'Well done!'}</span>}
+            {solved !== null && levelUp && (
+              <span className="mt-2 flex items-center justify-center gap-2 text-ink">
+                <Sparkles size={24} className="text-sun" /> {isNe ? 'अब ठूला अङ्क!' : 'Bigger numbers next!'}
+              </span>
+            )}
             {solved === null && tried.length > 0 && (
               <button type="button" onClick={() => countTogether(pictures)} className="text-ink-2 underline underline-offset-4">
                 {isNe ? 'सँगै गनौँ!' : "Let's count together!"}

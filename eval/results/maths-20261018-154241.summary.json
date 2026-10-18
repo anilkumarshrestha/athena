@@ -1,0 +1,66 @@
+{
+  "stamp": "20261018-154241",
+  "errors": 0,
+  "ne": {
+    "n": 20,
+    "source": {
+      "model": 18,
+      "template": 2
+    },
+    "model_rate": 0.9,
+    "first_draft_rate": 0.5,
+    "rejections": {
+      "singular_verb": 11,
+      "unreadable_word": 6
+    },
+    "shipped_failing_checks": 0,
+    "quick_template_available": 1.0,
+    "latency_ms_p50": 15108,
+    "latency_ms_p90": 64100,
+    "answers": {
+      "2": 4,
+      "3": 2,
+      "4": 3,
+      "5": 2,
+      "6": 2,
+      "8": 2,
+      "10": 1,
+      "12": 1,
+      "13": 1,
+      "15": 1,
+      "18": 1
+    }
+  },
+  "en": {
+    "n": 20,
+    "source": {
+      "model": 17,
+      "template": 3
+    },
+    "model_rate": 0.85,
+    "first_draft_rate": 0.55,
+    "rejections": {
+      "unreadable_word": 21,
+      "wrong_numbers": 2,
+      "meaning": 4,
+      "no_question": 4
+    },
+    "shipped_failing_checks": 0,
+    "quick_template_available": 1.0,
+    "latency_ms_p50": 5355,
+    "latency_ms_p90": 36775,
+    "answers": {
+      "2": 4,
+      "3": 2,
+      "4": 3,
+      "5": 2,
+      "6": 2,
+      "8": 2,
+      "10": 1,
+      "12": 1,
+      "13": 1,
+      "15": 1,
+      "18": 1
+    }
+  }
+}
