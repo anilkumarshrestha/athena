@@ -46,6 +46,9 @@ gcloud storage buckets add-iam-policy-binding "gs://${BUCKET}" --member="service
 gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA" --role=roles/speech.client --condition=None --quiet >/dev/null
 gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA" --role=roles/datastore.user --condition=None --quiet >/dev/null
 
+# "Sign in with Google": the public Web client id, from the shell or else from .env.
+GOOGLE_OAUTH_CLIENT_ID="${GOOGLE_OAUTH_CLIENT_ID:-$(.venv/bin/python -c 'from athena.config import settings; print(settings().google_oauth_client_id, end="")')}"
+
 # 4. Build from source with Cloud Build and deploy.
 #    Learners + story history in Firestore: they survive restarts and scale-to-zero.
 #    Max one instance: an open story and its prepared "next" live in that instance's memory.

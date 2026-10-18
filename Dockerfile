@@ -13,9 +13,10 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends ffmpeg \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY pyproject.toml ./
+COPY pyproject.toml constraints.txt ./
 COPY athena ./athena
-RUN pip install --no-cache-dir .
+# Pinned to the versions the tests passed with; retries for slow networks.
+RUN pip install --no-cache-dir --retries 10 --timeout 120 -c constraints.txt .
 COPY data ./data
 # Pre-drawn word pictures (illustrations only, no child data): a fresh deploy starts warm.
 COPY media/pictures ./media/pictures
