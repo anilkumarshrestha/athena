@@ -109,6 +109,7 @@ def plan(
     personal: list[Theme] | None = None,
     setting: str | None = None,
     child_gender: str = "unspecified",
+    avoid: frozenset[str] = frozenset(),
 ) -> StoryPlan:
     """personal: themes from the child's favourites, preferred when readable.
     setting: where the child lives, e.g. "a hill village in Nepal" (story + picture)."""
@@ -118,9 +119,10 @@ def plan(
         chosen = next((t for t in [*(personal or []), *THEMES] if t.text == theme), None) or _BY_TEXT.get(theme, Theme(theme))
     else:
         mine = [t for t in personal or [] if _resolve(t, language, mastery)[0]]
-        readable = [t for t in THEMES if _resolve(t, language, mastery)[0]]
+        allowed_themes = [t for t in THEMES if t.text not in avoid] or THEMES  # parent's "avoid" list
+        readable = [t for t in allowed_themes if _resolve(t, language, mastery)[0]]
         # Favourites most of the time; general themes keep it from getting repetitive.
-        chosen = rng.choice(mine) if mine and rng.random() < PERSONAL_SHARE else rng.choice(readable or THEMES)
+        chosen = rng.choice(mine) if mine and rng.random() < PERSONAL_SHARE else rng.choice(readable or allowed_themes)
     _, key_words, avoid_words = _resolve(chosen, language, mastery)
     theme_text = f"{chosen.text}, in {setting}" if setting else chosen.text
 

@@ -87,6 +87,13 @@ export const api = {
   dashboard: (id: string) => fetch(`/api/learners/${id}/dashboard`).then(json<components['schemas']['DashboardOut']>),
   activities: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/activities/${lang}`).then(json<components['schemas']['ActivitiesOut']>),
+  themes: () => fetch('/api/themes').then(json<components['schemas']['ThemeOptionOut'][]>),
+  setControls: (id: string, controls: components['schemas']['ControlsIn']) =>
+    fetch(`/api/learners/${id}/controls`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(controls),
+    }).then(json<Learner>),
   setDailyMinutes: (id: string, daily_minutes: 0 | 10 | 15 | 20 | 30) =>
     fetch(`/api/learners/${id}/settings`, {
       method: 'PUT',

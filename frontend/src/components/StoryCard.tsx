@@ -59,7 +59,7 @@ export function StoryCard({
       <div className="flex aspect-4/3 items-center justify-center overflow-hidden rounded-t-xl bg-sky-soft">
         {imageUrl ? (
           <img src={imageUrl} alt="" className="size-full object-cover" />
-        ) : imageStatus === 'failed' ? null : (
+        ) : imageStatus === 'failed' || imageStatus === 'off' ? null : (
           <DotLoader label="Drawing the picture" />
         )}
       </div>

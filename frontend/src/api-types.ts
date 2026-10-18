@@ -195,6 +195,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/themes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Theme Options
+         * @description The fixed theme list, for the parent's "themes to avoid" control.
+         */
+        get: operations["theme_options_api_themes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/controls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Controls */
+        put: operations["set_controls_api_learners__learner_id__controls_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learners/{learner_id}/settings": {
         parameters: {
             query?: never;
@@ -864,6 +901,29 @@ export interface components {
             /** Story Id */
             story_id: string;
         };
+        /**
+         * ControlsIn
+         * @description Fixed choices only: theme texts must come from the planner's list.
+         */
+        ControlsIn: {
+            /**
+             * Maths
+             * @default true
+             */
+            maths: boolean;
+            /**
+             * Teach
+             * @default true
+             */
+            teach: boolean;
+            /**
+             * Pictures
+             * @default true
+             */
+            pictures: boolean;
+            /** Avoid Themes */
+            avoid_themes?: string[];
+        };
         /** DashboardOut */
         DashboardOut: {
             learner: components["schemas"]["LearnerOut"];
@@ -1088,6 +1148,10 @@ export interface components {
             /** Maths Level */
             maths_level: {
                 [key: string]: number;
+            };
+            /** Controls */
+            controls: {
+                [key: string]: unknown;
             };
         };
         /** LetterCheckIn */
@@ -1479,6 +1543,15 @@ export interface components {
             left: number;
             /** Word */
             word: string | null;
+        };
+        /** ThemeOptionOut */
+        ThemeOptionOut: {
+            /** Theme */
+            theme: string;
+            /** Label Ne */
+            label_ne: string;
+            /** Label En */
+            label_en: string;
         };
         /** TierOut */
         TierOut: {
@@ -1921,6 +1994,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    theme_options_api_themes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThemeOptionOut"][];
+                };
+            };
+        };
+    };
+    set_controls_api_learners__learner_id__controls_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ControlsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerOut"];
                 };
             };
             /** @description Validation Error */

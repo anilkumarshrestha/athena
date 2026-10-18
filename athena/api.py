@@ -1,7 +1,7 @@
 """FastAPI app: JSON API under /api, built React app served from frontend/dist."""
 
 import logging
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 
 import asyncio
@@ -67,6 +67,7 @@ class LearnerOut(BaseModel):
     profile: dict[str, str]
     settings: dict[str, int]
     maths_level: dict[str, int]
+    controls: dict  # {"maths", "teach", "pictures": bool, "avoid_themes": [theme text]}
 
 
 class LearnerCreate(BaseModel):
@@ -198,6 +199,7 @@ def learner_out(learner: Learner) -> LearnerOut:
         profile=learner.profile,
         settings=learner.settings,
         maths_level={lang: st.get("level", 1) for lang, st in learner.maths.items()},
+        controls=learner.controls,
     )
 
 
@@ -438,10 +440,19 @@ def _compose(learner: Learner, language: Language, theme: str | None = None, eng
         personal=personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food")),
         setting=SETTINGS.get(learner.profile.get("setting", "")),
         child_gender=learner.profile.get("gender", "unspecified"),
+        avoid=frozenset(learner.controls.get("avoid_themes", [])),
     )
     # Image starts now from the theme; text is generated + verified meanwhile.
-    image_future = _pool.submit(illustrator.illustrate, p.theme)
+    if learner.controls.get("pictures", True):
+        image_future = _pool.submit(illustrator.illustrate, p.theme)
+    else:  # parent turned story pictures off: no image call at all
+        image_future = Future()
+        image_future.set_exception(PicturesOff())
     return generate(p, budget_s=budget_s, engine=engine), image_future
+
+
+class PicturesOff(Exception):
+    """The parent turned story pictures off: no illustration is made."""
 
 
 def _publish(learner: Learner, language: Language, result, image_future) -> Story:
@@ -470,6 +481,9 @@ def _publish(learner: Learner, language: Language, result, image_future) -> Stor
     )
 
     def _done(fut) -> None:
+        if isinstance(fut.exception(), PicturesOff):
+            store.set_image(story.id, "off", None, None)
+            return
         try:
             data, mime, _usage, ms = fut.result()
             image_id = media.save(data, mime)
@@ -547,6 +561,8 @@ def _take_prefetched(learner: Learner, language: Language, theme: str | None = N
         result, image_future = fut.result(timeout=PREFETCH_WAIT_S)
     except Exception:  # noqa: BLE001 - compose afresh
         return None
+    if base_theme(result.plan.theme) in learner.controls.get("avoid_themes", []):
+        return None  # the parent has since asked to avoid this theme
     if result.plan.level != learner.level[language] or result.outcome == "wordlist":
         return None
     name = learner.name[language]
@@ -742,6 +758,51 @@ class DashboardOut(BaseModel):
     daily_minutes: int
     practicing: dict[str, list[str]]
     recent: list[dict]  # last sessions, newest first
+
+
+class ControlsIn(BaseModel):
+    """Fixed choices only: theme texts must come from the planner's list."""
+
+    maths: bool = True
+    teach: bool = True
+    pictures: bool = True
+    avoid_themes: list[str] = Field(default_factory=list, max_length=20)
+
+    @field_validator("avoid_themes")
+    @classmethod
+    def _known(cls, v: list[str]) -> list[str]:
+        from athena.agents.planner import THEMES
+
+        known = {t.text for t in THEMES}
+        if any(x not in known for x in v):
+            raise ValueError("unknown theme")
+        return sorted(set(v))
+
+
+class ThemeOptionOut(BaseModel):
+    theme: str
+    label_ne: str
+    label_en: str
+
+
+@app.get("/api/themes", response_model=list[ThemeOptionOut])
+def theme_options() -> list[ThemeOptionOut]:
+    """The fixed theme list, for the parent's "themes to avoid" control."""
+    from athena.agents.planner import THEMES, tile_for
+
+    return [ThemeOptionOut(theme=t.text, label_ne=tile_for(t)[0], label_en=tile_for(t)[1]) for t in THEMES]
+
+
+@app.put("/api/learners/{learner_id}/controls", response_model=LearnerOut)
+def set_controls(learner_id: str, req: ControlsIn) -> LearnerOut:
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    learner.controls = req.model_dump()
+    _prefetch.pop((learner.id, "ne"), None)  # a prepared story may use a now-avoided theme or picture
+    _prefetch.pop((learner.id, "en"), None)
+    store.save()
+    return learner_out(learner)
 
 
 @app.put("/api/learners/{learner_id}/settings", response_model=LearnerOut)
@@ -1074,7 +1135,8 @@ def story_choices(learner_id: str, language: Language) -> list[ChoiceOut]:
     if len(decodable_words(language, units)) < MIN_STORY_WORDS:
         return []
     personal = personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food"))
-    themes = readable_themes(language, units, personal)
+    avoid = set(learner.controls.get("avoid_themes", []))
+    themes = [t for t in readable_themes(language, units, personal) if t.text not in avoid]
     ready_text = None
     entry = _prefetch.get((learner.id, language))
     if entry and entry[1].done() and not entry[1].exception():
@@ -1199,6 +1261,8 @@ def maths_start(req: MathsStart) -> MathsOut:
     learner = store.get_learner(req.learner_id)
     if not learner:
         raise HTTPException(404, "learner not found")
+    if not learner.controls.get("maths", True):
+        raise HTTPException(403, "maths_off")
     limit = learner.settings.get("daily_minutes", 0)
     if limit and _used_today(learner) >= limit:
         raise HTTPException(403, "daily_limit")  # same friendly stop as stories
@@ -1222,7 +1286,7 @@ def maths_start(req: MathsStart) -> MathsOut:
     done = store.history.maths(learner.id)
     n_lang = sum(1 for r in done if r["lang"] == req.language)
     cat = None
-    if n_lang % CAT_EVERY == CAT_EVERY - 1:  # every 4th problem the cat answers first
+    if learner.controls.get("teach", True) and n_lang % CAT_EVERY == CAT_EVERY - 1:  # every 4th: the cat answers first
         mistakes = summarize_maths(done, req.language, time.time())["mistakes"]
         cat = cat_answer(prob.a, prob.b, prob.op, mistakes, n_lang // CAT_EVERY, rng)
     choices = {prob.answer}
@@ -1418,6 +1482,8 @@ def teach_start(learner_id: str, language: Language) -> TeachOut:
     learner = store.get_learner(learner_id)
     if not learner:
         raise HTTPException(404, "learner not found")
+    if not learner.controls.get("teach", True):
+        raise HTTPException(403, "teach_off")
     limit = learner.settings.get("daily_minutes", 0)
     if limit and _used_today(learner) >= limit:
         raise HTTPException(403, "daily_limit")

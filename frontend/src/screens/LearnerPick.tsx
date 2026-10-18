@@ -81,6 +81,7 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
                 English
               </button>
             </div>
+            {l.controls.maths !== false && (
             <div className="mt-3 flex gap-3">
               {(['ne', 'en'] as const).map((ml) => (
                 <a
@@ -92,6 +93,8 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
                 </a>
               ))}
             </div>
+            )}
+            {l.controls.teach !== false && (
             <div className="mt-3 flex gap-3">
               {(['ne', 'en'] as const).map((ml) => (
                 <a
@@ -104,6 +107,7 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
                 </a>
               ))}
             </div>
+            )}
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
               <a href={`#/parent/${l.id}`} className="text-body text-ink-3 underline underline-offset-4 hover:text-ink-2">
                 Parent view
