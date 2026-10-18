@@ -94,3 +94,12 @@ def test_listen_tier_first_self_scored_and_prioritises_recognised_letters():
     p = place("ne", d, r)
     assert not p.mastered  # recognition is not mastery
     assert p.recognized == {u for c in listen.cards for u in c.tests}
+
+
+def test_english_letters_are_said_as_in_class():
+    from athena import tts
+
+    assert tts.letter_phrase("en", "a") == "a for apple"
+    assert tts.letter_phrase("en", "s") == "s for sun"
+    assert tts.letter_phrase("en", "ck").startswith("ck, as in ")  # never starts a word
+    assert tts.letter_phrase("ne", "ह").startswith("ह, ")

@@ -34,8 +34,9 @@ def example_word(language: str, unit: str) -> str | None:
         return f"क{glyph}" if unit.startswith("m:") else glyph
     if unit.startswith("w:"):
         return glyph
-    starts = sorted((n for n in EN_NOUNS if n.startswith(glyph)), key=len)
-    inside = sorted((n for n in EN_NOUNS if glyph in n), key=len)
+    # shortest first, then alphabetical: the same word on every run (sets have no order)
+    starts = sorted((n for n in EN_NOUNS if n.startswith(glyph)), key=lambda n: (len(n), n))
+    inside = sorted((n for n in EN_NOUNS if glyph in n), key=lambda n: (len(n), n))
     return (starts or inside or [glyph])[0]
 
 

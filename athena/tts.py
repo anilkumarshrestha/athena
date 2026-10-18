@@ -62,8 +62,10 @@ def speak_word(language: str, word: str) -> bytes:
 def letter_phrase(language: str, letter: str) -> str:
     """How a teacher says a letter so it cannot be misheard.
     Nepali: "ह, हातको ह" (the letter anchored in a familiar word, as in class: "क, कमलको क").
-    English: just the anchor word ("sun"); the child taps the letter it starts with. A TTS
-    reads a lone "s" as the letter name "ess", not the phonics sound."""
+    English: "a for apple", as English letters are taught in Nepali classrooms: the letter's
+    name, then a word that starts with its sound. (A true phonics sound needs recorded audio:
+    a TTS reads a lone "a" as its name, and the TTS model accepts no system instruction.)
+    Two-letter sounds that never start a word: "ck, as in duck"."""
     from athena.letters import example_word
 
     sig = ("c:" if language == "ne" else "g:") + letter
@@ -71,7 +73,10 @@ def letter_phrase(language: str, letter: str) -> str:
     if language == "ne":
         return f"{letter}, {word}को {letter}" if word and word != letter else letter
     # Phonics anchors: the word must START with the letter's short sound (not "cat" for a).
-    return EN_ANCHORS.get(letter) or word or letter
+    anchor = EN_ANCHORS.get(letter) or word
+    if not anchor or anchor == letter:
+        return letter
+    return f"{letter} for {anchor}" if anchor.startswith(letter) else f"{letter}, as in {anchor}"
 
 
 EN_ANCHORS = {
