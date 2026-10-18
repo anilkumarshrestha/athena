@@ -1,0 +1,224 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="IBM Plex Sans, Noto Sans, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1E2A4A"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#2A9239"/>
+    </marker>
+    <style>
+      .t { fill: #1E2A4A; }
+      .h { font-size: 22px; font-weight: 700; fill: #1E2A4A; }
+      .h2 { font-size: 17px; font-weight: 700; fill: #1E2A4A; }
+      .s { font-size: 14px; fill: #1E2A4A; }
+      .xs { font-size: 12.5px; fill: #3A4A6B; }
+      .ai { fill: #D6EEFF; stroke: #1C86D6; stroke-width: 2; }
+      .code { fill: #DDF6E0; stroke: #2A9239; stroke-width: 2; }
+      .data { fill: #FFF3BF; stroke: #D19F00; stroke-width: 2; }
+      .card { fill: #FFFFFF; stroke: #8FB4D0; stroke-width: 2; }
+      .frame { fill: none; stroke: #8FB4D0; stroke-width: 2; stroke-dasharray: 7 6; }
+      .gcp { fill: #FFFFFF; stroke: #1D6FE8; stroke-width: 2; }
+      .line { stroke: #1E2A4A; stroke-width: 2; fill: none; }
+      .lineG { stroke: #2A9239; stroke-width: 2; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#EAF6FF"/>
+
+  <!-- title -->
+  <text x="40" y="50" font-size="30" font-weight="700" class="t">Athena architecture</text>
+  <text x="40" y="76" font-size="17" fill="#3A4A6B">The model proposes, code decides: nothing reaches a child until code has checked it.</text>
+
+  <!-- legend -->
+  <g transform="translate(1040,30)">
+    <rect x="0" y="4" width="22" height="16" rx="4" class="ai"/><text x="30" y="17" class="s">AI proposes (Gemini)</text>
+    <rect x="200" y="4" width="22" height="16" rx="4" class="code"/><text x="230" y="17" class="s">Code decides</text>
+    <rect x="360" y="4" width="22" height="16" rx="4" class="data"/><text x="390" y="17" class="s">Data</text>
+  </g>
+
+  <!-- ============ users ============ -->
+  <rect x="40" y="90" width="270" height="770" rx="18" class="card"/>
+  <text x="62" y="124" class="h">Browser</text>
+  <text x="62" y="146" class="xs">React · Vite · Tailwind (TypeScript)</text>
+
+  <rect x="62" y="170" width="226" height="150" rx="14" fill="#FFF3BF" stroke="#D19F00" stroke-width="2"/>
+  <text x="80" y="198" class="h2">Child (4–10)</text>
+  <text x="80" y="222" class="s">Who's reading? · own home</text>
+  <text x="80" y="244" class="s">Read aloud, live highlight</text>
+  <text x="80" y="266" class="s">Help card · Teach the cat</text>
+  <text x="80" y="288" class="s">Maths · letter game</text>
+  <text x="80" y="308" class="xs">mic → 16 kHz audio stream</text>
+
+  <rect x="62" y="340" width="226" height="130" rx="14" fill="#D9E8FF" stroke="#1D6FE8" stroke-width="2"/>
+  <text x="80" y="368" class="h2">Parent · Teacher</text>
+  <text x="80" y="392" class="s">behind a grown-up question</text>
+  <text x="80" y="414" class="s">Week, struggles, why this</text>
+  <text x="80" y="436" class="s">story, home ideas, controls</text>
+  <text x="80" y="458" class="s">Skill graph · mastery grid</text>
+
+  <rect x="62" y="490" width="226" height="110" rx="14" fill="#FFFFFF" stroke="#8FB4D0" stroke-width="2"/>
+  <text x="80" y="518" class="h2">Family (no sign-up)</text>
+  <text x="80" y="542" class="s">signed HttpOnly cookie</text>
+  <text x="80" y="564" class="s">family code · optional</text>
+  <text x="80" y="586" class="s">Sign in with Google</text>
+
+  <text x="62" y="640" class="xs">English | नेपाली interface</text>
+  <text x="62" y="660" class="xs">Show in English (romanised +</text>
+  <text x="62" y="678" class="xs">translated) for grown-ups</text>
+
+  <!-- browser ↔ cloud run -->
+  <path d="M310 300 L372 300" class="line" marker-end="url(#arr)" marker-start="url(#arr)"/>
+  <text x="314" y="290" class="xs">HTTPS</text>
+  <path d="M310 600 L372 600" class="line" marker-end="url(#arr)" marker-start="url(#arr)"/>
+  <text x="313" y="590" font-size="10.5" fill="#3A4A6B">WebSocket</text>
+
+  <!-- ============ cloud run ============ -->
+  <rect x="372" y="90" width="760" height="770" rx="18" fill="#FFFFFF" stroke="#1D6FE8" stroke-width="3"/>
+  <text x="394" y="124" class="h">Cloud Run · FastAPI (one container, scales to zero)</text>
+  <text x="394" y="146" class="xs">API + WebSocket + the React app · every query scoped to the caller's family · rate limits</text>
+
+  <!-- story pipeline -->
+  <rect x="394" y="166" width="716" height="236" rx="14" class="frame"/>
+  <text x="410" y="190" class="h2">1 · A story for this child</text>
+
+  <rect x="410" y="206" width="146" height="96" rx="12" class="code"/>
+  <text x="424" y="232" class="h2">Planner</text>
+  <text x="424" y="254" class="xs">known letters +</text>
+  <text x="424" y="270" class="xs">practising, level,</text>
+  <text x="424" y="286" class="xs">favourite theme</text>
+
+  <rect x="582" y="206" width="146" height="96" rx="12" class="ai"/>
+  <text x="596" y="232" class="h2">Writer</text>
+  <text x="596" y="254" class="xs">Gemini 3.8 Flash</text>
+  <text x="596" y="270" class="xs">or ADK agent with</text>
+  <text x="596" y="286" class="xs">a verify tool</text>
+
+  <rect x="754" y="206" width="160" height="96" rx="12" class="code"/>
+  <text x="768" y="232" class="h2">Verifier</text>
+  <text x="768" y="254" class="xs">every word: only</text>
+  <text x="768" y="270" class="xs">known letters (akshara</text>
+  <text x="768" y="286" class="xs">/ phonics) + shape</text>
+
+  <rect x="940" y="206" width="154" height="96" rx="12" class="code"/>
+  <text x="954" y="232" class="h2">Safety</text>
+  <text x="954" y="254" class="xs">blocklist + Flash-</text>
+  <text x="954" y="270" class="xs">Lite screen, fails</text>
+  <text x="954" y="286" class="xs">closed → template</text>
+
+  <path d="M556 254 L580 254" class="line" marker-end="url(#arr)"/>
+  <path d="M728 254 L752 254" class="line" marker-end="url(#arr)"/>
+  <path d="M914 254 L938 254" class="line" marker-end="url(#arr)"/>
+  <path d="M834 302 C 834 340, 655 340, 655 304" class="lineG" marker-end="url(#arrG)"/>
+  <text x="664" y="352" class="xs" fill="#2A9239">rejected words fed back · up to 3 drafts · then verified fallback</text>
+  <text x="410" y="386" class="s">Picture: Gemini Flash Image (parallel) · next story prepared while the child reads results</text>
+
+  <!-- reading -->
+  <rect x="394" y="418" width="716" height="196" rx="14" class="frame"/>
+  <text x="410" y="442" class="h2">2 · Reading aloud and adapting</text>
+
+  <rect x="410" y="458" width="168" height="96" rx="12" class="ai"/>
+  <text x="424" y="484" class="h2">Listen</text>
+  <text x="424" y="506" class="xs">streaming STT: live</text>
+  <text x="424" y="522" class="xs">highlight (~0.2 s)</text>
+  <text x="424" y="538" class="xs">Chirp 3: final score</text>
+
+  <rect x="604" y="458" width="150" height="96" rx="12" class="code"/>
+  <text x="618" y="484" class="h2">Align</text>
+  <text x="618" y="506" class="xs">per word, audible</text>
+  <text x="618" y="522" class="xs">differences only;</text>
+  <text x="618" y="538" class="xs">pauses, mistakes</text>
+
+  <rect x="780" y="458" width="150" height="96" rx="12" class="code"/>
+  <text x="794" y="484" class="h2">Mastery</text>
+  <text x="794" y="506" class="xs">3 good sessions →</text>
+  <text x="794" y="522" class="xs">mastered; 2 misses</text>
+  <text x="794" y="538" class="xs">→ practise; level</text>
+
+  <rect x="956" y="458" width="138" height="96" rx="12" class="code"/>
+  <text x="970" y="484" class="h2">Next letters</text>
+  <text x="970" y="506" class="xs">most words</text>
+  <text x="970" y="522" class="xs">unlocked, skill</text>
+  <text x="970" y="538" class="xs">graph (2.8×)</text>
+
+  <path d="M578 506 L602 506" class="line" marker-end="url(#arr)"/>
+  <path d="M754 506 L778 506" class="line" marker-end="url(#arr)"/>
+  <path d="M930 506 L954 506" class="line" marker-end="url(#arr)"/>
+  <text x="410" y="580" class="s">Instant provisional result on Stop; the accurate score replaces it and alone changes mastery.</text>
+  <text x="410" y="602" class="s" fill="#2A9239">Mastery and next letters feed the planner: each story grows with the child.</text>
+
+  <!-- help -->
+  <rect x="394" y="630" width="716" height="210" rx="14" class="frame"/>
+  <text x="410" y="654" class="h2">3 · Help, practice, parents</text>
+
+  <rect x="410" y="670" width="168" height="110" rx="12" class="code"/>
+  <text x="424" y="696" class="h2">Re-teach</text>
+  <text x="424" y="718" class="xs">opens itself on</text>
+  <text x="424" y="734" class="xs">confusion; hear, parts,</text>
+  <text x="424" y="750" class="xs">picture, "ख, खीरको ख";</text>
+  <text x="424" y="766" class="xs">learns what works</text>
+
+  <rect x="604" y="670" width="150" height="110" rx="12" class="code"/>
+  <text x="618" y="696" class="h2">Teach the cat</text>
+  <text x="618" y="718" class="xs">cat's mistakes from</text>
+  <text x="618" y="734" class="xs">the child's own</text>
+  <text x="618" y="750" class="xs">confusions; child</text>
+  <text x="618" y="766" class="xs">catches them</text>
+
+  <rect x="780" y="670" width="150" height="110" rx="12" class="code"/>
+  <text x="794" y="696" class="h2">Maths</text>
+  <text x="794" y="718" class="xs">code picks numbers,</text>
+  <text x="794" y="734" class="xs">checks, computes</text>
+  <text x="794" y="750" class="xs">the answer; Gemini</text>
+  <text x="794" y="766" class="xs">writes the words</text>
+
+  <rect x="956" y="670" width="138" height="110" rx="12" class="code"/>
+  <text x="970" y="696" class="h2">Insights</text>
+  <text x="970" y="718" class="xs">week, struggles,</text>
+  <text x="970" y="734" class="xs">patterns, "why this</text>
+  <text x="970" y="750" class="xs">story": built from</text>
+  <text x="970" y="766" class="xs">logged facts</text>
+  <text x="410" y="820" class="s">Voice: Gemini TTS (ne-NP, en-US) · fixed phrases and pictures shipped in the image</text>
+
+  <!-- ============ google cloud ============ -->
+  <rect x="1160" y="90" width="400" height="770" rx="18" fill="#FFFFFF" stroke="#8FB4D0" stroke-width="2"/>
+  <text x="1182" y="124" class="h">Google Cloud</text>
+
+  <rect x="1182" y="144" width="356" height="196" rx="14" class="ai"/>
+  <text x="1200" y="172" class="h2">Vertex AI · Gemini</text>
+  <text x="1200" y="198" class="s">3.8 Flash: story writer, maths words</text>
+  <text x="1200" y="222" class="s">Agent Development Kit (ADK) agent</text>
+  <text x="1200" y="246" class="s">3.1 Flash-Lite: safety, maths meaning,</text>
+  <text x="1200" y="266" class="s">  English gloss for grown-ups</text>
+  <text x="1200" y="290" class="s">3.1 Flash Image: pictures, avatars</text>
+  <text x="1200" y="314" class="s">TTS: Nepali + English voice</text>
+
+  <rect x="1182" y="356" width="356" height="92" rx="14" class="ai"/>
+  <text x="1200" y="384" class="h2">Cloud Speech-to-Text</text>
+  <text x="1200" y="410" class="s">v2 Chirp 3 + phrase hints (score)</text>
+  <text x="1200" y="432" class="s">streaming (live follow-along)</text>
+
+  <rect x="1182" y="464" width="356" height="92" rx="14" class="data"/>
+  <text x="1200" y="492" class="h2">Firestore</text>
+  <text x="1200" y="518" class="s">families, learners, append-only</text>
+  <text x="1200" y="540" class="s">history (no audio ever stored)</text>
+
+  <rect x="1182" y="572" width="356" height="64" rx="14" class="data"/>
+  <text x="1200" y="600" class="h2">Cloud Storage</text>
+  <text x="1200" y="622" class="s">story pictures (private bucket)</text>
+
+  <rect x="1182" y="652" width="356" height="64" rx="14" class="gcp"/>
+  <text x="1200" y="680" class="h2">Secret Manager</text>
+  <text x="1200" y="702" class="s">Gemini key, cookie signing key</text>
+
+  <rect x="1182" y="732" width="356" height="108" rx="14" class="gcp"/>
+  <text x="1200" y="760" class="h2">Cloud Run · Cloud Build</text>
+  <text x="1200" y="784" class="s">build from source, asia-south1</text>
+  <text x="1200" y="806" class="s">Google Identity Services: sign-in</text>
+  <text x="1200" y="828" class="s">least-privilege service account</text>
+
+  <!-- cloud run ↔ services -->
+  <path d="M1110 242 L1180 242" class="line" marker-end="url(#arr)"/>
+  <path d="M1110 402 L1180 402" class="line" marker-end="url(#arr)"/>
+  <path d="M1110 510 L1180 510" class="line" marker-end="url(#arr)" marker-start="url(#arr)"/>
+  <path d="M1110 604 L1180 604" class="line" marker-end="url(#arr)"/>
+</svg>

@@ -112,17 +112,9 @@ child, today, with exactly their letters, and proves it fits before showing it.
 | Secrets | **Secret Manager** (Gemini key, cookie signing key) |
 | Sign-in (optional) | **Google Identity Services** |
 
-```mermaid
-flowchart LR
-  B[Browser<br/>React + Vite + Tailwind] -- /api, WebSocket --> R[Cloud Run: FastAPI]
-  R --> P[Planner<br/>code] --> W[Writer<br/>Gemini 3.8 Flash / ADK agent] --> V[Verifier<br/>code] --> S[Safety<br/>blocklist + Flash-Lite]
-  V -- violations --> W
-  R --> I[Illustrator<br/>Gemini Flash Image] --> GCS[(Cloud Storage)]
-  R --> STT[Speech-to-Text<br/>Chirp 3 + streaming] --> A[Align + mastery<br/>code]
-  R --> T[Gemini TTS]
-  R --> F[(Firestore<br/>families, learners, history)]
-  R --> SM[Secret Manager]
-```
+![Athena architecture: browser, Cloud Run service (story pipeline, reading and adapting, help and practice), Google Cloud services](docs/architecture.png)
+
+Source: [docs/architecture.svg](docs/architecture.svg).
 
 ## Safety and privacy
 
