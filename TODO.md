@@ -86,6 +86,10 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [x] 8. Story-based re-teach: letter mnemonic ("ख, खसीको ख"); maths step-by-step ("start with 3, count 2 more: 4, 5")
 - [ ] 9. Interests in maths: prefer favourite animal/food when readable
 - [x] 10. Explicit skill graph: prerequisites (matra needs a consonant, conjunct needs both letters; maths +5 -> +10 -> -10 -> 20), shown in teacher view
+- [x] Onboarding (Duolingo-ABC style, 12 screens): age, languages, favourite activity, reading buddy, daily goal
+- [x] Private families per browser (signed cookie), family code, grown-up question, Google sign-in (optional)
+- [ ] You: create a Web OAuth client (Console > APIs & Services > Credentials), origins http://localhost:3000 + the Cloud Run URL; set GOOGLE_OAUTH_CLIENT_ID in .env and for deploy
+- [ ] Item 6: spoken guidance for pre-readers (skipped for now)
 
 ## Tech debt / decisions pending
 - [ ] Vertex quota: 429s above ~2 concurrent on gemini-3.8-flash (asia-south1). Request increase before public demo
