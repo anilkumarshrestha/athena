@@ -1052,6 +1052,97 @@ def story_choices(learner_id: str, language: Language) -> list[ChoiceOut]:
     return out
 
 
+# --- maths: word problems the child can read; code picks numbers and checks answers ------
+
+class MathsStart(BaseModel):
+    learner_id: str
+    language: Language
+
+
+class MathsOut(BaseModel):
+    id: str
+    language: Language
+    sentences: list[str]
+    display: list[list[DisplayWord]]
+    a: int
+    b: int
+    op: str
+    picture_url: str | None  # what is counted, shown as a groups of pictures
+    choices: list[int]  # answer tiles (the answer is among them; the server keeps which)
+    source: str
+
+
+class MathsAnswer(BaseModel):
+    answer: int = Field(ge=0, le=100)
+
+
+class MathsResult(BaseModel):
+    correct: bool
+    tries: int
+    answer: int | None  # revealed when found, or after 2 tries ("let's count together")
+
+
+_maths: dict[str, dict] = {}
+maths_limit = RateLimit(per_ip=10, global_=60)
+
+
+@app.post("/api/maths/start", response_model=MathsOut, dependencies=[Depends(maths_limit)])
+def maths_start(req: MathsStart) -> MathsOut:
+    import random as _random
+    import uuid as _uuid
+
+    from athena.maths import make_problem, picture_noun
+
+    learner = store.get_learner(req.learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    units = learner.units[req.language]
+    p_plan = plan(req.language, allowed(units), learner.name[req.language], level=learner.level[req.language],
+                  child_gender=learner.profile.get("gender", "unspecified"))
+    prob = make_problem(p_plan)
+    pid = _uuid.uuid4().hex[:12]
+    rng = _random.Random()
+    choices = {prob.answer}
+    while len(choices) < 4:
+        choices.add(max(0, prob.answer + rng.choice([-2, -1, 1, 2, 3])))
+    _maths[pid] = {"learner": learner.id, "problem": prob, "tries": 0, "solved": False}
+    store.history.append(learner.id, {"type": "maths", "story_id": pid, "at": time.time(), "lang": req.language,
+                                      "sentences": prob.sentences, "a": prob.a, "b": prob.b, "op": prob.op,
+                                      "source": prob.source})
+    noun = picture_noun(req.language, prob.noun)
+    return MathsOut(
+        id=pid, language=req.language, sentences=prob.sentences, display=display_words(req.language, prob.sentences),
+        a=prob.a, b=prob.b, op=prob.op, picture_url=f"/api/pictures/ne/{noun}" if noun else None,
+        choices=sorted(choices), source=prob.source,
+    )
+
+
+@app.post("/api/maths/{pid}/answer", response_model=MathsResult)
+def maths_answer(pid: str, req: MathsAnswer) -> MathsResult:
+    m = _maths.get(pid)
+    if not m:
+        raise HTTPException(404, "problem not found")
+    m["tries"] += 1
+    correct = req.answer == m["problem"].answer  # code decides
+    if correct:
+        m["solved"] = True
+    store.history.append(m["learner"], {"type": "maths_answer", "story_id": pid, "at": time.time(),
+                                        "answer": req.answer, "correct": correct, "try": m["tries"]})
+    reveal = correct or m["tries"] >= 2
+    return MathsResult(correct=correct, tries=m["tries"], answer=m["problem"].answer if reveal else None)
+
+
+@app.get("/api/maths/{pid}/audio", dependencies=[Depends(narrate_limit)])
+def maths_audio(pid: str) -> Response:
+    """The problem read aloud (its own text only; cached)."""
+    m = _maths.get(pid)
+    if not m:
+        raise HTTPException(404, "problem not found")
+    prob = m["problem"]
+    return Response(tts.speak_word(prob.language, " ".join(prob.sentences)), media_type="audio/wav",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
 class PartOut(BaseModel):
     text: str
     units: list[str]

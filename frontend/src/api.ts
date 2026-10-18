@@ -45,6 +45,19 @@ export const api = {
     }).then(json<CloseResult>),
   narration: (storyId: string) =>
     fetch(`/api/stories/${storyId}/narration`).then(json<components['schemas']['NarrationSentence'][]>),
+  mathsStart: (learner_id: string, language: Language) =>
+    fetch('/api/maths/start', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ learner_id, language }),
+    }).then(json<components['schemas']['MathsOut']>),
+  mathsAnswer: (id: string, answer: number) =>
+    fetch(`/api/maths/${id}/answer`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ answer }),
+    }).then(json<components['schemas']['MathsResult']>),
+  mathsAudioUrl: (id: string) => `/api/maths/${id}/audio`,
   praiseUrl: (lang: Language, tier: 'great' | 'good' | 'try') => `/api/praise/${lang}/${tier}`,
   history: (id: string) => fetch(`/api/learners/${id}/stories`).then(json<components['schemas']['HistoryItemOut'][]>),
   historyStory: (id: string, storyId: string) =>

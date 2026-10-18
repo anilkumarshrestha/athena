@@ -4,6 +4,7 @@ import { AddLearner } from './screens/AddLearner'
 import { DiagnosticScreen } from './screens/DiagnosticScreen'
 import { LearnerPick } from './screens/LearnerPick'
 import { MasteryScreen } from './screens/MasteryScreen'
+import { MathsScreen } from './screens/MathsScreen'
 import { ParentScreen } from './screens/ParentScreen'
 import { StoryReview } from './screens/StoryReview'
 import { StoryScreen } from './screens/StoryScreen'
@@ -18,6 +19,7 @@ type Route =
   | { name: 'parent'; learnerId: string }
   | { name: 'review'; learnerId: string; storyId: string }
   | { name: 'story'; learnerId: string; lang: Language }
+  | { name: 'maths'; learnerId: string; lang: Language }
 
 // Hash routes: #/  #/new  #/check/<learner>/<ne|en>  #/styleguide  #/mastery/<learner>  #/read/<learner>/<ne|en>
 function parse(hash: string): Route {
@@ -31,6 +33,8 @@ function parse(hash: string): Route {
   if (rv) return { name: 'review', learnerId: rv[1], storyId: rv[2] }
   const pm = hash.match(/^#\/parent\/([\w-]+)$/)
   if (pm) return { name: 'parent', learnerId: pm[1] }
+  const mt = hash.match(/^#\/maths\/([\w-]+)\/(ne|en)$/)
+  if (mt) return { name: 'maths', learnerId: mt[1], lang: mt[2] as Language }
   const m = hash.match(/^#\/read\/([\w-]+)\/(ne|en)$/)
   return m ? { name: 'story', learnerId: m[1], lang: m[2] as Language } : { name: 'pick' }
 }
@@ -61,6 +65,8 @@ export default function App() {
     return <StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => (location.hash = `#/parent/${route.learnerId}`)} />
   if (route.name === 'parent') return <ParentScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
   if (route.name === 'mastery') return <MasteryScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
+  if (route.name === 'maths')
+    return <MathsScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => (location.hash = '#/')} />
   if (route.name === 'story') {
     return (
       <StoryScreen

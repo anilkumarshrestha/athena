@@ -422,6 +422,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/maths/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Maths Start */
+        post: operations["maths_start_api_maths_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/maths/{pid}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Maths Answer */
+        post: operations["maths_answer_api_maths__pid__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/maths/{pid}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Maths Audio
+         * @description The problem read aloud (its own text only; cached).
+         */
+        get: operations["maths_audio_api_maths__pid__audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}": {
         parameters: {
             query?: never;
@@ -863,6 +917,56 @@ export interface components {
             results: {
                 [key: string]: boolean;
             };
+        };
+        /** MathsAnswer */
+        MathsAnswer: {
+            /** Answer */
+            answer: number;
+        };
+        /** MathsOut */
+        MathsOut: {
+            /** Id */
+            id: string;
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "ne" | "en";
+            /** Sentences */
+            sentences: string[];
+            /** Display */
+            display: components["schemas"]["DisplayWord"][][];
+            /** A */
+            a: number;
+            /** B */
+            b: number;
+            /** Op */
+            op: string;
+            /** Picture Url */
+            picture_url: string | null;
+            /** Choices */
+            choices: number[];
+            /** Source */
+            source: string;
+        };
+        /** MathsResult */
+        MathsResult: {
+            /** Correct */
+            correct: boolean;
+            /** Tries */
+            tries: number;
+            /** Answer */
+            answer: number | null;
+        };
+        /** MathsStart */
+        MathsStart: {
+            /** Learner Id */
+            learner_id: string;
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "ne" | "en";
         };
         /** NarrationSentence */
         NarrationSentence: {
@@ -1884,6 +1988,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChoiceOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    maths_start_api_maths_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MathsStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MathsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    maths_answer_api_maths__pid__answer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MathsAnswer"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MathsResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    maths_audio_api_maths__pid__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
