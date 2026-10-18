@@ -3,7 +3,7 @@
 from athena.history import History
 
 
-def test_retry_logs_ways_and_reorders_the_card(tmp_path, monkeypatch):
+def test_retry_logs_ways_and_reorders_the_card(tmp_path, monkeypatch, own):
     from fastapi.testclient import TestClient
 
     import athena.api as api
@@ -17,6 +17,7 @@ def test_retry_logs_ways_and_reorders_the_card(tmp_path, monkeypatch):
     store.history.append(learner.id, {"type": "story", "story_id": story.id, "at": 1.0, "lang": "ne"})
     monkeypatch.setattr(api.stt, "transcribe", lambda *a, **k: stt.Transcript(text=heard[0], engine="test", latency_ms=1))
     c = TestClient(api.app)
+    own(c, learner)
 
     assert c.get(f"/api/stories/{story.id}/words/1").json()["styles"][0] == "hear"  # no evidence yet
     # hearing does not help this child; seeing the parts does

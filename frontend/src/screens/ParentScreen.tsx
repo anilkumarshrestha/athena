@@ -4,6 +4,7 @@ import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { ContentControls } from '../components/ContentControls'
+import { FamilyCode } from '../components/FamilyCode'
 import { MathsProgress } from '../components/MathsProgress'
 import { ProfileInsights } from '../components/ProfileInsights'
 import { UnitChip } from '../components/UnitChip'
@@ -147,6 +148,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
       )}
 
       <ContentControls learnerId={learnerId} initial={d.learner.controls} />
+      <FamilyCode />
 
       {/* Time control */}
       <section className="mb-8 rounded-xl border-2 border-line bg-card p-4">

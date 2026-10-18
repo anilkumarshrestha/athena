@@ -2,6 +2,7 @@ import { Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api, type Language, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
+import { JoinFamily } from '../components/FamilyCode'
 import { setSoundOn, sfx, soundOn } from '../sound'
 
 // First grapheme, not first code unit: क्षितिज → क्षि, not क.
@@ -142,6 +143,9 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
           <span className="font-story-ne text-child-title font-bold">+ नयाँ साथी</span>
           <span className="text-body text-ink-3">Add a learner</span>
         </a>
+      </div>
+      <div className="mt-8 flex justify-center">
+        <JoinFamily />
       </div>
     </main>
   )

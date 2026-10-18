@@ -42,7 +42,7 @@ def test_cat_maths_answer_uses_the_childs_mistake_and_is_sometimes_right():
     assert cat_answer(5, 2, "+", {"off_by_one": 3}, 2, rng) in (6, 8)
 
 
-def test_round_trip_through_the_api(tmp_path, monkeypatch):
+def test_round_trip_through_the_api(tmp_path, monkeypatch, own):
     from fastapi.testclient import TestClient
 
     import athena.api as api
@@ -51,6 +51,7 @@ def test_round_trip_through_the_api(tmp_path, monkeypatch):
     learner = store.get_learner("sita")
     monkeypatch.setattr(store, "history", History(tmp_path))
     c = TestClient(api.app)
+    own(c, learner)
     assert c.post(f"/api/learners/{learner.id}/teach/ne").status_code == 404  # nothing read yet
     store.history.append(learner.id, {"type": "story", "story_id": "s1", "at": 1.0, "lang": "ne", "title": "घर",
                                       "sentences": ["सीता घर गइन्।", "टोपी राम्रो छ।"]})

@@ -11,16 +11,20 @@ import json
 import os
 import threading
 import time
+import logging
 import uuid
 from dataclasses import dataclass, field
 from dataclasses import asdict
 from pathlib import Path
 from typing import Literal
 
+from athena import family as families
 from athena.history import History
 from athena.mastery import UnitState, allowed
 from athena.models import GenerationResult, Language
 from athena.presets import preset
+
+log = logging.getLogger("athena")
 
 ImageStatus = Literal["pending", "ready", "failed", "off"]  # off: parent turned story pictures off
 
@@ -41,6 +45,7 @@ class Learner:
     settings: dict[str, int] = field(default_factory=lambda: {"daily_minutes": 0})  # parent controls; 0 = no limit
     # parent content controls: activities on/off, story pictures, themes to avoid (fixed list)
     controls: dict = field(default_factory=lambda: dict(DEFAULT_CONTROLS))
+    family: str = ""  # who may see this child (athena/family.py); "" = not assigned yet
     # maths difficulty, per language, separate from reading (athena/maths_progress.py)
     maths: dict[str, dict] = field(default_factory=lambda: {"ne": {"level": 1, "recent": []}, "en": {"level": 1, "recent": []}})
 
@@ -81,6 +86,7 @@ def learner_from_dict(d: dict) -> Learner:
         settings=d.get("settings", {"daily_minutes": 0}),
         maths=d.get("maths", {"ne": {"level": 1, "recent": []}, "en": {"level": 1, "recent": []}}),
         controls={**DEFAULT_CONTROLS, **d.get("controls", {})},
+        family=d.get("family", ""),
     )
 
 
@@ -113,6 +119,8 @@ class MemoryStore:
             os.replace(tmp, self.path)
 
     def delete_learner(self, learner_id: str) -> bool:
+        if self.get_learner(learner_id) is None:  # unknown, or another family's child
+            return False
         with self._lock:
             gone = self.learners.pop(learner_id, None) is not None
             self.stories = {k: v for k, v in self.stories.items() if v.learner_id != learner_id}
@@ -122,15 +130,65 @@ class MemoryStore:
         return gone
 
     def list_learners(self) -> list[Learner]:
-        return list(self.learners.values())
+        """The current family's children (all of them outside a request: background work)."""
+        fam = families.current.get()
+        return [x for x in self.learners.values() if fam is None or x.family == fam]
 
     def get_learner(self, learner_id: str) -> Learner | None:
-        return self.learners.get(learner_id)
+        """None for another family's child: every endpoint then answers 404 (athena/family.py)."""
+        x = self.learners.get(learner_id)
+        fam = families.current.get()
+        return x if x is not None and (fam is None or x.family == fam) else None
 
     def put_learner(self, learner: Learner) -> None:
+        if not learner.family and (fam := families.current.get()):
+            learner.family = fam
         with self._lock:
             self.learners[learner.id] = learner
         self.save()
+
+    def family_learners(self, fid: str) -> list[Learner]:
+        return [x for x in self.learners.values() if x.family == fid]
+
+    def ensure_family(self) -> list[Learner]:
+        """A new family starts with its own copies of the demo children (Sita, Ram)."""
+        fam = families.current.get()
+        if fam is None:
+            return self.list_learners()
+        mine = self.family_learners(fam)
+        if mine:
+            return mine
+        copies = []
+        for t in self.family_learners(families.DEMO):
+            # same letters and level as the demo child; their own fresh history
+            c = learner_from_dict({**learner_to_dict(t), "id": uuid.uuid4().hex[:8], "family": fam,
+                                   "sessions": [], "history": {"ne": [], "en": []}})
+            copies.append(c)
+        with self._lock:
+            for c in copies:
+                self.learners[c.id] = c
+        self.save()
+        return copies
+
+    def adopt_unassigned(self) -> None:
+        """Learners from before families: the demo templates, and the rest into the legacy family."""
+        legacy = None
+        with self._lock:
+            for x in self.learners.values():
+                if x.family:
+                    continue
+                if x.id in DEMO_IDS:
+                    x.family = families.DEMO
+                else:
+                    legacy = legacy or families.legacy_family()
+                    x.family = legacy
+        if legacy:
+            self.save()
+            log.warning("learners from before families are in family code %s", families.pretty(legacy))
+
+    def get_story(self, story_id: str) -> Story | None:
+        s = self.stories.get(story_id)
+        return s if s is not None and self.get_learner(s.learner_id) is not None else None
 
     def add_story(self, learner_id: str, language: Language, result: GenerationResult) -> Story:
         story = Story(id=uuid.uuid4().hex[:12], learner_id=learner_id, language=language, result=result)
@@ -138,14 +196,14 @@ class MemoryStore:
             self.stories[story.id] = story
         return story
 
-    def get_story(self, story_id: str) -> Story | None:
-        return self.stories.get(story_id)
-
     def set_image(self, story_id: str, status: ImageStatus, image_id: str | None, latency_ms: int | None) -> None:
         with self._lock:
             s = self.stories.get(story_id)
             if s:
                 s.image_status, s.image_id, s.image_latency_ms = status, image_id, latency_ms
+
+
+DEMO_IDS = ("sita", "ram")
 
 
 def _seed(store: MemoryStore) -> None:
@@ -164,7 +222,8 @@ def _seed(store: MemoryStore) -> None:
             "sita": {"favorite_animal": "goat", "favorite_food": "dal_bhat", "setting": "hills", "gender": "girl"},
             "ram": {"favorite_animal": "yak", "favorite_food": "momo", "setting": "mountains", "gender": "boy"},
         }[lid]
-        store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units, level=level, profile=profile))
+        store.put_learner(Learner(id=lid, name=names, avatar=avatar, units=units, level=level, profile=profile,
+                                  family=families.DEMO))
 
 
 def new_learner(name_ne: str, name_en: str, profile: dict[str, str], start: str) -> Learner:
@@ -197,11 +256,13 @@ def _open_store() -> MemoryStore:
         st = open_firestore_store(s.firestore_prefix)
         if not st.learners:
             _seed(st)  # empty database: demo learners
+        st.adopt_unassigned()
         return st
     state = Path(s.state_dir)
     st = MemoryStore(state / "learners.json", History(state / "stories"))
     if not st.load():
         _seed(st)  # first run: demo learners, written to disk
+    st.adopt_unassigned()
     return st
 
 

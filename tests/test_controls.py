@@ -11,7 +11,7 @@ def test_planner_never_picks_an_avoided_theme():
     assert themes == {THEMES[0].text}
 
 
-def test_controls_api(monkeypatch):
+def test_controls_api(monkeypatch, own):
     from fastapi.testclient import TestClient
 
     import athena.api as api
@@ -21,6 +21,7 @@ def test_controls_api(monkeypatch):
     monkeypatch.setattr(learner, "controls", dict(learner.controls))
     monkeypatch.setattr(store, "save", lambda: None)
     c = TestClient(api.app)
+    own(c, learner)
     assert c.put(f"/api/learners/{learner.id}/controls", json={"avoid_themes": ["anything goes"]}).status_code == 422
     t = THEMES[0].text
     r = c.put(f"/api/learners/{learner.id}/controls", json={"maths": False, "teach": False, "pictures": False,

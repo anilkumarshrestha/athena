@@ -28,11 +28,51 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Learners */
+        /**
+         * List Learners
+         * @description This family's children. A new family first gets its own copies of the demo children.
+         */
         get: operations["list_learners_api_learners_get"];
         put?: never;
         /** Create Learner */
         post: operations["create_learner_api_learners_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Family */
+        get: operations["get_family_api_family_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Join Family
+         * @description Open the same family on this device with its code. Only an existing family can be joined.
+         */
+        post: operations["join_family_api_family_join_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1012,6 +1052,18 @@ export interface components {
             /** Indices */
             indices: number[];
         };
+        /** FamilyJoin */
+        FamilyJoin: {
+            /** Code */
+            code: string;
+        };
+        /** FamilyOut */
+        FamilyOut: {
+            /** Code */
+            code: string;
+            /** Learners */
+            learners: number;
+        };
         /** GroupOut */
         GroupOut: {
             /** Name */
@@ -1817,6 +1869,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearnerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_family_api_family_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyOut"];
+                };
+            };
+        };
+    };
+    join_family_api_family_join_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyJoin"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyOut"];
                 };
             };
             /** @description Validation Error */

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type Language } from './api'
+import { ParentGate } from './components/ParentGate'
 import { AddLearner } from './screens/AddLearner'
 import { DiagnosticScreen } from './screens/DiagnosticScreen'
 import { LearnerPick } from './screens/LearnerPick'
@@ -76,9 +77,12 @@ export default function App() {
       />
     )
   if (route.name === 'review')
-    return <StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => (location.hash = `#/parent/${route.learnerId}`)} />
-  if (route.name === 'parent') return <ParentScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
-  if (route.name === 'mastery') return <MasteryScreen learnerId={route.learnerId} onBack={() => (location.hash = '#/')} />
+    return <ParentGate onBack={() => (location.hash = '#/')}><StoryReview learnerId={route.learnerId} storyId={route.storyId} onBack={() => (location.hash = `#/parent/${route.learnerId}`)} /></ParentGate>
+  const home = () => (location.hash = '#/')
+  if (route.name === 'parent')
+    return <ParentGate onBack={home}><ParentScreen learnerId={route.learnerId} onBack={home} /></ParentGate>
+  if (route.name === 'mastery')
+    return <ParentGate onBack={home}><MasteryScreen learnerId={route.learnerId} onBack={home} /></ParentGate>
   if (route.name === 'teach')
     return <TeachScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => (location.hash = '#/')} />
   if (route.name === 'maths')

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import asyncio
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -17,6 +17,7 @@ import re
 import time
 from typing import Literal
 
+from athena import family as families
 from athena import media
 from athena.dashboard import summarize, used_minutes_today
 from athena.diagnostic import diagnostic, place
@@ -39,6 +40,7 @@ from athena.verifier.nepali import DecomposeError, decompose, normalize
 
 log = logging.getLogger("athena")
 app = FastAPI(title="Athena")
+app.add_middleware(families.FamilyMiddleware)  # every /api call belongs to one family (athena/family.py)
 _pool = ThreadPoolExecutor(max_workers=8)
 story_limit = RateLimit(per_ip=6, global_=40)
 STORY_BUDGET_S = 20  # a child should not wait longer; past it the verified fallback is served
@@ -265,9 +267,47 @@ def health() -> dict:
     return {"ok": True}
 
 
+family_limit = RateLimit(per_ip=20, global_=300, window_s=3600)  # new families (demo copies) per hour
+join_limit = RateLimit(per_ip=10, global_=100)
+MAX_LEARNERS_PER_FAMILY = 10
+
+
 @app.get("/api/learners", response_model=list[LearnerOut])
-def list_learners() -> list[LearnerOut]:
+def list_learners(request: Request) -> list[LearnerOut]:
+    """This family's children. A new family first gets its own copies of the demo children."""
+    if not store.list_learners():
+        try:
+            family_limit(request)  # copies cost storage: bounded per IP (crawlers, scripts)
+        except HTTPException:
+            return []
+        store.ensure_family()
     return [learner_out(x) for x in store.list_learners()]
+
+
+class FamilyOut(BaseModel):
+    code: str  # opens this family on another device; a secret, shown to grown-ups only
+    learners: int
+
+
+class FamilyJoin(BaseModel):
+    code: str = Field(min_length=16, max_length=24)
+
+
+@app.get("/api/family", response_model=FamilyOut)
+def get_family() -> FamilyOut:
+    fid = families.current.get()
+    return FamilyOut(code=families.pretty(fid), learners=len(store.list_learners()))
+
+
+@app.post("/api/family/join", response_model=FamilyOut, dependencies=[Depends(join_limit)])
+def join_family(req: FamilyJoin, request: Request, response: Response) -> FamilyOut:
+    """Open the same family on this device with its code. Only an existing family can be joined."""
+    fid = families.valid_code(req.code)
+    if not fid or not store.family_learners(fid):
+        raise HTTPException(404, "no family with this code")
+    secure = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
+    response.headers["set-cookie"] = families.cookie_header(fid, secure)
+    return FamilyOut(code=families.pretty(fid), learners=len(store.family_learners(fid)))
 
 
 create_limit = RateLimit(per_ip=10, global_=60)
@@ -375,6 +415,8 @@ def set_placement(learner_id: str, req: PlacementRequest) -> PlacementOut:
 
 @app.post("/api/learners", response_model=LearnerOut, status_code=201, dependencies=[Depends(create_limit)])
 def create_learner(req: LearnerCreate) -> LearnerOut:
+    if len(store.list_learners()) >= MAX_LEARNERS_PER_FAMILY:
+        raise HTTPException(409, "too many learners in this family")
     profile = {
         "favorite_animal": req.favorite_animal,
         "favorite_food": req.favorite_food,
@@ -928,10 +970,10 @@ def learner_stories(learner_id: str) -> list[HistoryItemOut]:
 def learner_story(learner_id: str, story_id: str) -> HistoryStoryOut:
     from athena.why import explain
 
-    r = store.history.story(learner_id, story_id)
+    learner = store.get_learner(learner_id)
+    r = store.history.story(learner_id, story_id) if learner else None
     if not r:
         raise HTTPException(404, "story not found")
-    learner = store.get_learner(learner_id)
     return HistoryStoryOut(
         story_id=r["story_id"],
         at=r["at"],
@@ -947,7 +989,7 @@ def learner_story(learner_id: str, story_id: str) -> HistoryStoryOut:
         readings=r["readings"],
         close=r.get("close"),
         reteach=r.get("reteach", []),
-        why=explain(r, learner.name, learner.profile) if learner else {"en": [], "ne": []},
+        why=explain(r, learner.name, learner.profile),
     )
 
 
@@ -1254,7 +1296,7 @@ def _maths_get(pid: str) -> dict | None:
     from athena.maths import Problem
 
     if m := _maths.get(pid):
-        return m
+        return m if store.get_learner(m["learner"]) else None  # another family's problem: not found
     learner_id = pid.rsplit("-", 1)[0]
     if "-" not in pid or not store.get_learner(learner_id):
         return None
@@ -1479,7 +1521,7 @@ teach_limit = RateLimit(per_ip=10, global_=60)
 def _teach_get(tid: str) -> dict | None:
     """An open round: from memory, else rebuilt from history (restart / scale to zero)."""
     if t := _teach.get(tid):
-        return t
+        return t if store.get_learner(t["learner"]) else None
     learner_id = tid.rsplit("-", 1)[0]
     if "-" not in tid or not store.get_learner(learner_id):
         return None

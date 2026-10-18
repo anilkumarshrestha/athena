@@ -75,7 +75,7 @@ def test_maths_time_counts_shown_to_last_tap_capped(tmp_path):
 
 
 @pytest.fixture
-def maths_api(tmp_path, monkeypatch):
+def maths_api(tmp_path, monkeypatch, own):
     import athena.api as api
     import athena.maths as maths
     from athena.store import new_learner, store
@@ -97,7 +97,9 @@ def maths_api(tmp_path, monkeypatch):
     monkeypatch.setattr(api._pool, "submit", lambda *a, **k: done)
     from fastapi.testclient import TestClient
 
-    yield TestClient(api.app), api, learner
+    client = TestClient(api.app)
+    own(client, learner)
+    yield client, api, learner
 
 
 def test_answer_survives_restart_and_level_rises(maths_api):

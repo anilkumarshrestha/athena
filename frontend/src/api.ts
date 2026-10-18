@@ -89,6 +89,13 @@ export const api = {
   dashboard: (id: string) => fetch(`/api/learners/${id}/dashboard`).then(json<components['schemas']['DashboardOut']>),
   activities: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/activities/${lang}`).then(json<components['schemas']['ActivitiesOut']>),
+  family: () => fetch('/api/family').then(json<components['schemas']['FamilyOut']>),
+  joinFamily: (code: string) =>
+    fetch('/api/family/join', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ code }),
+    }).then(json<components['schemas']['FamilyOut']>),
   themes: () => fetch('/api/themes').then(json<components['schemas']['ThemeOptionOut'][]>),
   setControls: (id: string, controls: components['schemas']['ControlsIn']) =>
     fetch(`/api/learners/${id}/controls`, {

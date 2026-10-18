@@ -24,6 +24,13 @@ gcloud secrets describe gemini-api-key >/dev/null 2>&1 || gcloud secrets create 
 .venv/bin/python -c 'from athena.config import settings; print(settings().gemini_api_key, end="")' \
   | gcloud secrets versions add gemini-api-key --data-file=- >/dev/null
 
+# 1b. Family cookie signing key (athena/family.py): created once, random, never printed.
+#     Kept across deploys so families stay signed in.
+if ! gcloud secrets describe family-secret >/dev/null 2>&1; then
+  gcloud secrets create family-secret --replication-policy=automatic
+  python3 -c 'import secrets; print(secrets.token_hex(32), end="")' | gcloud secrets versions add family-secret --data-file=- >/dev/null
+fi
+
 # 2. Private bucket for story illustrations (served through the API only). Word audio and
 #    word pictures stay in the instance cache, warm-started from the image.
 gcloud storage buckets describe "gs://${BUCKET}" >/dev/null 2>&1 || \
@@ -33,6 +40,7 @@ gcloud storage buckets describe "gs://${BUCKET}" >/dev/null 2>&1 || \
 gcloud iam service-accounts describe "$SA" >/dev/null 2>&1 || \
   gcloud iam service-accounts create athena-run --display-name="Athena Cloud Run"
 gcloud secrets add-iam-policy-binding gemini-api-key --member="serviceAccount:$SA" --role=roles/secretmanager.secretAccessor --quiet >/dev/null
+gcloud secrets add-iam-policy-binding family-secret --member="serviceAccount:$SA" --role=roles/secretmanager.secretAccessor --quiet >/dev/null
 gcloud storage buckets add-iam-policy-binding "gs://${BUCKET}" --member="serviceAccount:$SA" --role=roles/storage.objectAdmin --quiet >/dev/null
 gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA" --role=roles/speech.client --condition=None --quiet >/dev/null
 gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA" --role=roles/datastore.user --condition=None --quiet >/dev/null
@@ -45,7 +53,7 @@ gcloud run deploy "$SERVICE" \
   --source . \
   --region "$REGION" \
   --service-account "$SA" \
-  --set-secrets "GEMINI_API_KEY=gemini-api-key:latest" \
+  --set-secrets "GEMINI_API_KEY=gemini-api-key:latest,FAMILY_SECRET=family-secret:latest" \
   --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=${PROJECT},MEDIA_BUCKET=${BUCKET},STORE_BACKEND=firestore" \
   --min-instances "$MIN_INSTANCES" --max-instances 1 \
   --cpu 2 --memory 2Gi --timeout 900 --session-affinity \
