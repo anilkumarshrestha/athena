@@ -56,7 +56,6 @@ export const api = {
       body: JSON.stringify({ daily_minutes }),
     }).then(json<Learner>),
   wordAudioUrl: (storyId: string, index: number) => `/api/stories/${storyId}/words/${index}/audio`,
-  wordPictureUrl: (storyId: string, index: number) => `/api/stories/${storyId}/words/${index}/picture`,
   retryWord: (storyId: string, index: number, audio: Blob) => {
     const form = new FormData()
     form.append('audio', audio, audio.type.includes('mp4') ? 'word.mp4' : 'word.webm')

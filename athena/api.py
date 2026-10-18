@@ -782,7 +782,7 @@ class PartOut(BaseModel):
 class WordHelpOut(BaseModel):
     index: int
     word: str
-    has_picture: bool  # concrete noun: GET .../picture shows it
+    picture_url: str | None  # concrete nouns only; stable per word
     outcome: str | None
     heard: str | None
     parts: list[PartOut]
@@ -817,7 +817,7 @@ def word_help(story_id: str, index: int) -> WordHelpOut:
     return WordHelpOut(
         index=index,
         word=word,
-        has_picture=concrete_noun(s.language, word) is not None,
+        picture_url=f"/api/pictures/{s.language}/{noun}" if (noun := concrete_noun(s.language, word)) else None,
         outcome=result.outcome if result else None,
         heard=result.heard if result else None,
         parts=[PartOut(text=p.text, units=list(p.units), tricky=bool(wrong & set(p.units))) for p in word_parts(s.language, word)],
@@ -834,17 +834,18 @@ def word_audio(story_id: str, index: int) -> Response:
 picture_limit = RateLimit(per_ip=20, global_=100)
 
 
-@app.get("/api/stories/{story_id}/words/{index}/picture", dependencies=[Depends(picture_limit)])
-def word_picture(story_id: str, index: int) -> Response:
-    """Picture cue for a concrete noun in the story (cached per word). 404 for other words."""
+@app.get("/api/pictures/{language}/{noun}", dependencies=[Depends(picture_limit)])
+def noun_picture(language: Language, noun: str) -> Response:
+    """Picture cue for a concrete noun. One stable URL per word, so browsers and the disk
+    cache share it across every story and child. Only whitelisted nouns: never an open
+    image generator."""
     from athena.agents.picture import concrete_noun, picture
 
-    s, word = _story_word(story_id, index)
-    noun = concrete_noun(s.language, word)
-    if not noun:
+    base = concrete_noun(language, noun)
+    if base != noun:
         raise HTTPException(404, "no picture for this word")
-    data, mime = picture(s.language, noun)
-    return Response(data, media_type=mime, headers={"Cache-Control": "public, max-age=604800"})
+    data, mime = picture(language, noun)
+    return Response(data, media_type=mime, headers={"Cache-Control": "public, max-age=2592000, immutable"})
 
 
 @app.post("/api/stories/{story_id}/words/{index}/read", response_model=RetryOut, dependencies=[Depends(read_limit)])

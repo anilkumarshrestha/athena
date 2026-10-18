@@ -125,3 +125,20 @@ def test_english_parts_are_graphemes_with_split_digraph():
     assert [p.text for p in word_parts("en", "ship")] == ["sh", "i", "p"]
     assert [p.text for p in word_parts("en", "cake")] == ["c", "a…e", "k"]
     assert [p.units for p in word_parts("en", "the")] == [("w:the",)]
+
+
+def test_long_recording_split_at_quiet_points():
+    import array
+
+    from athena.assess.stt import PCM_RATE, SYNC_LIMIT_S, _split_quiet
+
+    # 120 s of "speech" (loud) with a silent 300 ms gap at 47 s and 95 s
+    s = array.array("h", [3000] * (120 * PCM_RATE))
+    for gap in (47, 95):
+        for i in range(gap * PCM_RATE, gap * PCM_RATE + 3 * PCM_RATE // 10):
+            s[i] = 0
+    chunks = _split_quiet(s.tobytes())
+    lens = [len(c) // 2 / PCM_RATE for c in chunks]
+    assert len(chunks) == 3 and all(x <= SYNC_LIMIT_S for x in lens)
+    assert abs(lens[0] - 47) < 0.2  # cut inside the silence, not mid-word
+    assert sum(len(c) for c in chunks) == len(s) * 2  # nothing lost

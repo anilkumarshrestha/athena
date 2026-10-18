@@ -344,7 +344,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/stories/{story_id}/words/{index}/picture": {
+    "/api/pictures/{language}/{noun}": {
         parameters: {
             query?: never;
             header?: never;
@@ -352,10 +352,12 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Word Picture
-         * @description Picture cue for a concrete noun in the story (cached per word). 404 for other words.
+         * Noun Picture
+         * @description Picture cue for a concrete noun. One stable URL per word, so browsers and the disk
+         *     cache share it across every story and child. Only whitelisted nouns: never an open
+         *     image generator.
          */
-        get: operations["word_picture_api_stories__story_id__words__index__picture_get"];
+        get: operations["noun_picture_api_pictures__language___noun__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -897,8 +899,8 @@ export interface components {
             index: number;
             /** Word */
             word: string;
-            /** Has Picture */
-            has_picture: boolean;
+            /** Picture Url */
+            picture_url: string | null;
             /** Outcome */
             outcome: string | null;
             /** Heard */
@@ -1553,13 +1555,13 @@ export interface operations {
             };
         };
     };
-    word_picture_api_stories__story_id__words__index__picture_get: {
+    noun_picture_api_pictures__language___noun__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                story_id: string;
-                index: number;
+                language: "ne" | "en";
+                noun: string;
             };
             cookie?: never;
         };

@@ -7,6 +7,8 @@ same flat style as story illustrations.
 """
 
 import hashlib
+import subprocess
+import threading
 from functools import lru_cache
 from pathlib import Path
 
@@ -51,30 +53,60 @@ def concrete_noun(language: str, word: str) -> str | None:
     return None
 
 
-def picture(language: str, noun: str) -> tuple[bytes, str]:
-    key = hashlib.sha256(f"{language}:{noun}".encode()).hexdigest()[:24]
+_locks: dict[str, threading.Lock] = {}
+_locks_guard = threading.Lock()
+SIZE = 512  # shown at 160 px; 512 keeps it sharp on retina for ~50 KB instead of ~900 KB
+
+
+def _shrink(data: bytes) -> bytes:
+    """Model PNG (~900 KB, 1024 px) -> 512 px JPEG (~50 KB). Falls back to the original."""
+    try:
+        return subprocess.run(
+            ["ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-vf", f"scale={SIZE}:-1", "-q:v", "4", "-f", "mjpeg", "pipe:1"],
+            input=data, capture_output=True, check=True, timeout=20,
+        ).stdout
+    except Exception:  # noqa: BLE001 - keep the big one rather than nothing
+        return data
+
+
+def _cached(key: str) -> tuple[bytes, str] | None:
     for ext, mime in (("jpeg", "image/jpeg"), ("png", "image/png")):
         p = CACHE / f"{key}.{ext}"
         if p.exists():
             return p.read_bytes(), mime
-    lang_name = "Nepali" if language == "ne" else "English"
-    r = with_retry(
-        lambda: genai_client("image").models.generate_content(
-            model=settings().image_model,
-            contents=(
-                f'One simple picture of the {lang_name} word "{noun}" for a young child learning to read: '
-                f"a single object, centred, plain background, nothing else.\n\n{STYLE}"
+    return None
+
+
+def picture(language: str, noun: str) -> tuple[bytes, str]:
+    """One picture per (language, noun), shared by every child and story. Generated at most
+    once even if several taps arrive while it is being drawn."""
+    key = hashlib.sha256(f"{language}:{noun}".encode()).hexdigest()[:24]
+    if hit := _cached(key):
+        return hit
+    with _locks_guard:
+        lock = _locks.setdefault(key, threading.Lock())
+    with lock:  # a second tap waits for the first generation instead of starting its own
+        if hit := _cached(key):
+            return hit
+        lang_name = "Nepali" if language == "ne" else "English"
+        r = with_retry(
+            lambda: genai_client("image").models.generate_content(
+                model=settings().image_model,
+                contents=(
+                    f'One simple picture of the {lang_name} word "{noun}" for a young child learning to read: '
+                    f"a single object, centred, plain background, nothing else.\n\n{STYLE}"
+                ),
+                config=types.GenerateContentConfig(
+                    response_modalities=["IMAGE"], image_config=types.ImageConfig(aspect_ratio="1:1")
+                ),
             ),
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE"], image_config=types.ImageConfig(aspect_ratio="1:1")
-            ),
-        ),
-        "picture",
-    )
-    for part in r.candidates[0].content.parts:
-        if part.inline_data and part.inline_data.data:
-            mime = part.inline_data.mime_type or "image/png"
-            CACHE.mkdir(parents=True, exist_ok=True)
-            (CACHE / f"{key}.{'jpeg' if 'jpeg' in mime else 'png'}").write_bytes(part.inline_data.data)
-            return part.inline_data.data, mime
-    raise RuntimeError("no picture returned")
+            "picture",
+        )
+        for part in r.candidates[0].content.parts:
+            if part.inline_data and part.inline_data.data:
+                data = _shrink(part.inline_data.data)
+                mime = "image/jpeg" if data[:2] == b"\xff\xd8" else (part.inline_data.mime_type or "image/png")
+                CACHE.mkdir(parents=True, exist_ok=True)
+                (CACHE / f"{key}.{'jpeg' if mime == 'image/jpeg' else 'png'}").write_bytes(data)
+                return data, mime
+        raise RuntimeError("no picture returned")

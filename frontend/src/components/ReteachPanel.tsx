@@ -74,11 +74,11 @@ export function ReteachPanel({
       ) : (
         <div className="flex flex-col items-center gap-4">
           {/* See it: a picture for concrete nouns (cached per word) */}
-          {help.has_picture && pic !== 'none' && (
+          {help.picture_url && pic !== 'none' && (
             <div className="flex size-28 items-center justify-center overflow-hidden rounded-2xl border-2 border-line bg-paper-sunken">
               {pic === 'loading' && <DotLoader label="Drawing" />}
               <img
-                src={api.wordPictureUrl(storyId, index)}
+                src={help.picture_url}
                 alt=""
                 onLoad={() => setPic('ready')}
                 onError={() => setPic('none')}
