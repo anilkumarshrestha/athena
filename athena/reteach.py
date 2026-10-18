@@ -47,7 +47,7 @@ def anchors(language: str, word: str, parts: list[tuple[list[str], bool]], limit
     """Letter anchors for a word: the tricky parts' letters first (else the first letter),
     each tied to a familiar word: [{unit, glyph, word, phrase}]. parts: (units, tricky)."""
     from athena.letters import example_word
-    from athena.tts import letter_phrase
+    from athena.tts import anchor_word, letter_phrase
 
     units = [u for us, tricky in parts if tricky for u in us]
     if not units:
@@ -58,7 +58,8 @@ def anchors(language: str, word: str, parts: list[tuple[list[str], bool]], limit
             continue
         seen.add(u)
         glyph = u.split(":", 1)[1]
-        anchor = example_word(language, u)
+        # letters: the same word letter_phrase speaks; a vowel sign: a word that contains it
+        anchor = anchor_word(language, glyph) if u[:2] in ("c:", "g:") else example_word(language, u)
         if not anchor or anchor == word or anchor == glyph:
             continue
         # consonants/vowels: the classroom phrase; a vowel sign is heard inside its word

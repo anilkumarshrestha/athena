@@ -25,7 +25,8 @@ NE_CATEGORIES = {"animals", "food", "objects", "places", "body", "nature"}
 EN_NOUNS = set(
     "cat dog hen pig sun cup ship fish duck bed hat map pen egg goat boat moon tree book car bus fox frog "
     "cow bird rain milk corn hill nest kite cake bell ball sock rock net van jam bag box lamp hand tent "
-    "drum flag clock star farm coat seed queen train snail sheep feet light rope bone rose bike cube".split()
+    "drum flag clock star farm coat seed queen train snail sheep feet light rope bone rose bike cube "
+    "apple insect octopus umbrella leg".split()  # + the letter anchors (athena/tts.py EN_ANCHORS)
 )
 
 

@@ -66,17 +66,22 @@ def letter_phrase(language: str, letter: str) -> str:
     name, then a word that starts with its sound. (A true phonics sound needs recorded audio:
     a TTS reads a lone "a" as its name, and the TTS model accepts no system instruction.)
     Two-letter sounds that never start a word: "ck, as in duck"."""
-    from athena.letters import example_word
-
-    sig = ("c:" if language == "ne" else "g:") + letter
-    word = example_word(language, sig)
-    if language == "ne":
-        return f"{letter}, {word}को {letter}" if word and word != letter else letter
-    # Phonics anchors: the word must START with the letter's short sound (not "cat" for a).
-    anchor = EN_ANCHORS.get(letter) or word
+    anchor = anchor_word(language, letter)
     if not anchor or anchor == letter:
         return letter
+    if language == "ne":
+        return f"{letter}, {anchor}को {letter}"
     return f"{letter} for {anchor}" if anchor.startswith(letter) else f"{letter}, as in {anchor}"
+
+
+def anchor_word(language: str, letter: str) -> str | None:
+    """The one familiar word a letter is tied to: spoken in letter_phrase AND shown (with its
+    picture) on the help card, so what the child hears and sees always match."""
+    from athena.letters import example_word
+
+    if language == "en" and letter in EN_ANCHORS:
+        return EN_ANCHORS[letter]  # starts with the letter's short sound (apple, not bag, for a)
+    return example_word(language, ("c:" if language == "ne" else "g:") + letter)
 
 
 EN_ANCHORS = {

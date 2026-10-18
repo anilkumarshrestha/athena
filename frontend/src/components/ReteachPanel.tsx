@@ -40,13 +40,17 @@ export function ReteachPanel({
   const audio = useRef<HTMLAudioElement | null>(null)
   const isNe = lang === 'ne'
 
-  // "ख, खसीको ख": the tricky letter tied to a familiar word, said as a teacher would
-  const sayAnchor = (k: number) => {
+  // "ख, खसीको ख": the tricky letter tied to a familiar word, said as a teacher would.
+  // all=true (the anchor way just opened): every anchor in turn, "t for tent", then "a for apple".
+  const sayAnchor = (k: number, all = false) => {
     if (used.current[used.current.length - 1] !== 'anchor') used.current.push('anchor')
     audio.current?.pause()
-    audio.current = new Audio(api.anchorAudioUrl(storyId, index, k))
-    audio.current.play().catch(() => {})
+    const a = new Audio(api.anchorAudioUrl(storyId, index, k))
+    audio.current = a
+    if (all) a.onended = () => audio.current === a && k + 1 < (anchorCount.current ?? 0) && sayAnchor(k + 1, true)
+    a.play().catch(() => {})
   }
+  const anchorCount = useRef<number | null>(null)
 
   const markUsed = (style: string) => {
     if (used.current[used.current.length - 1] !== style) used.current.push(style)
@@ -66,9 +70,10 @@ export function ReteachPanel({
       .wordHelp(storyId, index)
       .then((h) => {
         setHelp(h)
+        anchorCount.current = h.anchors.length
         const first = h.styles[0] ?? 'hear'
         if (first === 'hear') hear() // hearing it is this child's best first help
-        else if (first === 'anchor') sayAnchor(0)
+        else if (first === 'anchor') sayAnchor(0, true)
         else markUsed(first)
       })
       .catch(() => {})
@@ -81,7 +86,7 @@ export function ReteachPanel({
     const next = help.styles[shown]
     setShown(shown + 1)
     if (next === 'hear') hear()
-    else if (next === 'anchor') sayAnchor(0)
+    else if (next === 'anchor') sayAnchor(0, true)
     else markUsed(next)
   }
 

@@ -74,3 +74,13 @@ def test_anchor_ties_the_tricky_letter_to_a_known_word():
     assert a and a[0]["glyph"] == "ख" and a[0]["phrase"].startswith("ख, ") and a[0]["word"] != "खरायो"
     assert "anchor" in style_order([], has_picture=False, has_anchor=True)
     assert "anchor" not in style_order([], has_picture=False)
+
+
+def test_anchor_shown_is_the_anchor_spoken():
+    from athena.assess.parts import word_parts
+    from athena.reteach import anchors
+
+    parts = [(list(p.units), True) for p in word_parts("en", "tap")]
+    a = anchors("en", "tap", parts)
+    assert [(x["glyph"], x["word"], x["phrase"]) for x in a] == [("t", "tent", "t for tent"), ("a", "apple", "a for apple")]
+    assert all(x["phrase"].endswith(x["word"]) for x in a)  # what the child hears matches what they see
