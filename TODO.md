@@ -29,7 +29,7 @@ Live tracker. PLAN.md is the plan; this is the state. Update on every commit.
 - [ ] **GATE: verified illustrated story on public URL**
 
 ## Submission (due 2026-10-18 23:00)
-- [ ] README for judges: how to test (demo learners, walkthrough, Chrome mic permission, known limits/quotas), guarantees (verifier, safety, code-computed maths, eval numbers), speed (prefetch, budget, STT v1 vs Chirp, Flash vs Flash-Lite, picture cache), architecture diagram, Google services, safety + privacy
+- [x] README for judges (live demo, 3-minute tour, guarantees, measured numbers, Google services, safety, developer guide)
 - [ ] Screenshots
 - [ ] Fill pptx deck from presentation/DECK_PLAN.md
 - [ ] Public GitHub repo (user go-ahead; re-check no secrets / project ID)
