@@ -1086,20 +1086,36 @@ _maths: dict[str, dict] = {}
 maths_limit = RateLimit(per_ip=10, global_=60)
 
 
+_maths_next: dict[tuple[str, str], tuple[int, object]] = {}  # (learner, lang) -> (level, Future[Problem])
+
+
+def _maths_plan(learner: Learner, language: Language):
+    units = learner.units[language]
+    return plan(language, allowed(units), learner.name[language], level=learner.level[language],
+                child_gender=learner.profile.get("gender", "unspecified"))
+
+
 @app.post("/api/maths/start", response_model=MathsOut, dependencies=[Depends(maths_limit)])
 def maths_start(req: MathsStart) -> MathsOut:
+    """A problem now: the one prepared in the background if ready, else an instant code-built
+    one. Then the next model-written problem is prepared while the child solves this one."""
     import random as _random
     import uuid as _uuid
 
-    from athena.maths import make_problem, picture_noun
+    from athena.maths import make_problem, picture_noun, quick_problem
 
     learner = store.get_learner(req.learner_id)
     if not learner:
         raise HTTPException(404, "learner not found")
-    units = learner.units[req.language]
-    p_plan = plan(req.language, allowed(units), learner.name[req.language], level=learner.level[req.language],
-                  child_gender=learner.profile.get("gender", "unspecified"))
-    prob = make_problem(p_plan)
+    key, level = (learner.id, req.language), learner.level[req.language]
+    prob = None
+    entry = _maths_next.pop(key, None)
+    if entry and entry[0] == level and entry[1].done() and not entry[1].exception():
+        prob = entry[1].result()
+    if prob is None:
+        prob = quick_problem(_maths_plan(learner, req.language)) or make_problem(_maths_plan(learner, req.language))
+    _maths_next[key] = (level, _pool.submit(make_problem, _maths_plan(learner, req.language)))
+
     pid = _uuid.uuid4().hex[:12]
     rng = _random.Random()
     choices = {prob.answer}

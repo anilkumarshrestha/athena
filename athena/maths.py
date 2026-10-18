@@ -29,7 +29,10 @@ LEVELS = {1: (5, ("+",)), 2: (10, ("+", "-")), 3: (20, ("+", "-"))}
 # countable things a child can picture, preferred in this order when readable
 NE_OBJECTS = "केरा आँप स्याउ सुन्तला मकै अण्डा रोटी कुखुरा खसी चरा बिरालो कुकुर गाई बल कलम किताब".split()
 EN_OBJECTS = "cats dogs hens pigs cups pens hats eggs ducks fish".split()
-MAX_ATTEMPTS = 2
+MAX_ATTEMPTS = 3
+# Flash-Lite: ~1 s per draft without thinking (Flash thought ~1,800 tokens, 10-17 s, for 50
+# tokens of output). Weaker first drafts are fine: the checks reject them and a retry is cheap.
+MATHS_MODEL = "gemini-3.1-flash-lite"  # meaning check only: a yes/no judgement
 QUESTION_WORDS = {"ne": frozenset({"कति"}), "en": frozenset({"how", "many"})}
 
 
@@ -61,12 +64,16 @@ class Problem:
 def pick(language: str, level: int, readable: set[str], rng: random.Random) -> tuple[int, int, str, str]:
     top, ops = LEVELS.get(level, LEVELS[1])
     op = rng.choice(ops)
+    # Pick the ANSWER uniformly first, then split it. (Picking a, then b "whatever still fits"
+    # made the top total the most likely: ~52% of level-1 answers were 5.)
     if op == "+":
-        a = rng.randint(1, top - 1)
-        b = rng.randint(1, top - a)
+        total = rng.randint(2, top)
+        a = rng.randint(1, total - 1)
+        b = total - a
     else:
         a = rng.randint(2, top)
-        b = rng.randint(1, a - 1)
+        answer = rng.randint(1, a - 1)
+        b = a - answer
     pool = [w for w in (NE_OBJECTS if language == "ne" else EN_OBJECTS) if w in readable]
     noun = rng.choice(pool) if pool else ("केरा" if language == "ne" else "cats")
     return a, b, op, noun
@@ -74,6 +81,26 @@ def pick(language: str, level: int, readable: set[str], rng: random.Random) -> t
 
 class _Draft(BaseModel):
     sentences: list[str]
+
+
+class _Meaning(BaseModel):
+    meaning: str  # "adds" | "takes_away"
+
+
+def _meaning(language: str, sentences: list[str]) -> str:
+    """What the story does to the first number. A draft that says "mother GAVE 3" for a
+    subtraction would contradict the answer the code computes."""
+    r = genai_client().models.generate_content(
+        model=MATHS_MODEL,
+        contents=(
+            "A child's maths word problem:\n" + " ".join(sentences) + "\n\nDoes the story ADD to the first "
+            "amount (more come, someone gives more) or TAKE AWAY from it (some are eaten, given away, run off)? "
+            'Answer {"meaning": "adds"} or {"meaning": "takes_away"}.'
+        ),
+        config=types.GenerateContentConfig(response_mime_type="application/json", response_schema=_Meaning, temperature=0),
+    )
+    m = r.parsed if isinstance(r.parsed, _Meaning) else _Meaning.model_validate_json(r.text or "")
+    return m.meaning
 
 
 def _check(p: Problem, sentences: list[str], verifier) -> list[str]:
@@ -86,17 +113,24 @@ def _check(p: Problem, sentences: list[str], verifier) -> list[str]:
         problems.append(f"the numbers must be exactly {p.a} then {p.b}, nothing else (found {numbers_in(text)})")
     if not sentences or not sentences[-1].rstrip().endswith("?"):
         problems.append("the last sentence must be the question, ending with ?")
+    # Nepali number agreement: more than one -> plural verb (कति किताब छन्?, not छ?).
+    if p.language == "ne" and sentences and p.answer > 1 and re.search(r"(^|\s)(छ|थियो|भयो)\s*\?$", sentences[-1].strip()):
+        problems.append("the answer is more than one: use the plural verb in the question (छन् / थिए / भए)")
     return problems
 
 
 def _prompt(p: Problem, plan: StoryPlan, feedback: list[str]) -> str:
     lang = "Nepali (Devanagari, digits as ०-९)" if p.language == "ne" else "simple English (digits 0-9)"
     a, b = (to_ne(p.a), to_ne(p.b)) if p.language == "ne" else (str(p.a), str(p.b))
-    action = "gets more" if p.op == "+" else "gives some away / some go away"
+    action = (
+        "then gets MORE (someone gives more, more arrive)"
+        if p.op == "+"
+        else "then some go AWAY (eaten, given away by the child, run off): the amount gets SMALLER"
+    )
     text = f"""Write a tiny maths word problem in {lang} for a child aged 5-8 in Nepal.
 Child's name: {plan.learner_name}. Thing being counted: {p.noun}.
 Use exactly these numbers, in this order, and no other numbers: first {a}, then {b}.
-Story: {plan.learner_name} (or someone in the family) has {a} {p.noun}, then {action}: {b}.
+Story: {plan.learner_name} (or someone in the family) has {a} {p.noun}, {action}: {b}.
 2 or 3 very short sentences. The LAST sentence asks the question ("कति … ?" / "How many … ?").
 Never write the answer. Warm and everyday. Polite honorific verbs for elders (आमाले दिनुभयो).
 
@@ -107,27 +141,70 @@ Every word must be readable for this child. Word bank: {" ".join(plan.word_bank[
     return text
 
 
+NE_FOOD = {"केरा", "आँप", "स्याउ", "सुन्तला", "मकै", "अण्डा", "रोटी"}
+NE_ANIMALS = {"कुखुरा", "खसी", "चरा", "बिरालो", "कुकुर", "गाई"}
+
+
+def _ne_templates(p: Problem, name: str, gender: str) -> list[list[str]]:
+    """Grammatical Nepali problems, best first; the caller keeps the first readable one.
+    Plural agrees with the number (३ केरा छन् / १ केरा छ), elders take honorifics, the child's
+    verb agrees with gender (unknown: a younger brother acts instead)."""
+    A, B, N = to_ne(p.a), to_ne(p.b), p.noun
+    pl_a = p.a > 1
+    have = [f"{name}सँग {A} वटा {N} {'छन्' if pl_a else 'छ'}।", f"{name}सँग {A} {N} {'छन्' if pl_a else 'छ'}।",
+            f"{name}को {A} वटा {N} {'थिए' if pl_a else 'थियो'}।", f"{name}को {A} {N} {'थिए' if pl_a else 'थियो'}।"]
+    if p.op == "+":
+        act = [f"आमाले {B} {N} दिनुभयो।", f"बुबाले {B} {N} दिनुभयो।", f"बाबाले {B} {N} दिनुभयो।"]
+        ask = [f"अब {name}सँग कति {N} छन्?", f"अब {name}को कति {N} भए?", f"अब कति {N} भए?"]
+    else:
+        pl_b = p.b > 1
+        if N in NE_FOOD:
+            child = {"boy": "खायो", "girl": "खाइन्"}.get(gender)
+            act = ([f"{name}ले {B} {N} {child}।"] if child else []) + [f"भाइले {B} {N} खायो।"]
+        elif N in NE_ANIMALS:
+            act = [f"{B} {N} बाहिर {'गए' if pl_b else 'गयो'}।", f"{B} {N} बारीमा {'गए' if pl_b else 'गयो'}।"]
+        else:
+            act = [f"भाइले {B} {N} लियो।", f"बहिनीले {B} {N} लिई।"]
+        ask = [f"अब {name}सँग कति {N} बाँकी छन्?", f"अब कति {N} बाँकी छन्?", f"अब कति {N} छन्?"]
+    return [[h, a, q] for h in have for a in act for q in ask]
+
+
 def _template(p: Problem, plan: StoryPlan, verifier) -> list[str] | None:
     name = plan.learner_name
     if p.language == "ne":
-        a, b = to_ne(p.a), to_ne(p.b)
-        variants = (
-            [f"{name}सँग {a} {p.noun} छ।", f"आमाले {b} {p.noun} दिनुभयो।", "अब कति भयो?"]
-            if p.op == "+"
-            else [f"{name}सँग {a} {p.noun} छ।", f"{b} {p.noun} गयो।", "अब कति बाँकी छ?"]
-        )
+        options = _ne_templates(p, name, plan.child_gender)
     else:
-        variants = (
-            [f"{name} has {p.a} {p.noun}.", f"Dad gets {p.b} {p.noun}.", "How many?"]
+        def n(k: int) -> str:  # "1 dog", "2 dogs" (fish stays fish)
+            return p.noun if k != 1 or p.noun == "fish" else p.noun[:-1]
+
+        options = [
+            [f"{name} had {p.a} {n(p.a)}.", f"{name} got {p.b} {n(p.b)}.", f"How many {p.noun}?"]
             if p.op == "+"
-            else [f"{name} has {p.a} {p.noun}.", f"{p.b} {p.noun} ran off.", "How many?"]
-        )
-        variants = (
-            [f"{name} had {p.a} {p.noun}.", f"{name} got {p.b} {p.noun}.", f"How many {p.noun}?"]
+            else [f"{name} had {p.a} {n(p.a)}.", f"{p.b} {n(p.b)} {'ran' if p.b > 1 else 'ran'} off.", f"How many {p.noun}?"],
+            [f"{name} has {p.a} {n(p.a)}.", f"{p.b} more!", "How many?"]
             if p.op == "+"
-            else [f"{name} had {p.a} {p.noun}.", f"{p.b} {p.noun} ran off.", f"How many {p.noun}?"]
-        )
-    return variants if not _check(p, variants, verifier) else None
+            else [f"{name} has {p.a} {n(p.a)}.", f"{p.b} ran off.", "How many?"],
+        ]
+    return next((o for o in options if not _check(p, o, verifier)), None)
+
+
+def quick_problem(plan: StoryPlan, seed: int | None = None) -> Problem | None:
+    """Instant, code-built problem (no model): the first problem of a session, while a model-
+    written one is prepared in the background. None if no template is readable."""
+    rng = random.Random(seed)
+    readable = set(decodable_words(plan.language, frozenset(plan.mastery)))
+    for _ in range(6):  # a few number/object draws until one reads
+        a, b, op, noun = pick(plan.language, plan.level, readable, rng)
+        p = Problem(plan.language, a, b, op, noun)
+        if t := _template(p, plan, _verifier(plan, p)):
+            p.sentences, p.source = t, "template"
+            return p
+    return None
+
+
+def _verifier(plan: StoryPlan, p: Problem):
+    names = frozenset(plan.learner_name.split()) | frozenset(plan.learner_name.lower().split())
+    return verifier_for(plan.language, frozenset(plan.mastery), names | DIGITS | _digit_words(p.a, p.b) | QUESTION_WORDS[plan.language])
 
 
 def make_problem(plan: StoryPlan, seed: int | None = None) -> Problem:
@@ -144,6 +221,9 @@ def make_problem(plan: StoryPlan, seed: int | None = None) -> Problem:
         try:
             r = with_retry(
                 lambda: genai_client().models.generate_content(
+                    # Flash: Flash-Lite was 10x faster but its Nepali was not good enough
+                    # ("आमा ले", "खानु भयो", "बाकी"). Its time is hidden by preparing the next
+                    # problem in the background (athena/api.py).
                     model=settings().writer_model,
                     contents=_prompt(p, plan, feedback),
                     config=types.GenerateContentConfig(
@@ -151,7 +231,7 @@ def make_problem(plan: StoryPlan, seed: int | None = None) -> Problem:
                         response_schema=_Draft,
                         thinking_config=types.ThinkingConfig(thinking_level="low"),
                         temperature=0.8,
-                        max_output_tokens=2048,
+                        max_output_tokens=4096,
                     ),
                 ),
                 "maths",
@@ -161,6 +241,13 @@ def make_problem(plan: StoryPlan, seed: int | None = None) -> Problem:
             p.attempts.append({"sentences": [], "problems": [f"model error: {type(e).__name__}"]})
             continue
         feedback = _check(p, draft.sentences, verifier)
+        if not feedback:
+            want = "adds" if p.op == "+" else "takes_away"
+            try:
+                if _meaning(p.language, draft.sentences) != want:
+                    feedback = [f"the story must {'ADD more to' if p.op == '+' else 'TAKE AWAY from'} the first amount"]
+            except Exception:  # noqa: BLE001 - cannot confirm the meaning: do not risk it
+                feedback = ["meaning could not be checked"]
         p.attempts.append({"sentences": draft.sentences, "problems": feedback})
         if not feedback:
             p.sentences, p.source = draft.sentences, "model"

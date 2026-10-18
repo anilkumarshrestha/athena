@@ -30,3 +30,22 @@ def test_check_rejects_wrong_numbers_and_missing_question():
     assert any("numbers" in x for x in _check(p, ["केरा ३ केरा ४"], v))
     assert any("question" in x for x in _check(p, ["केरा ३ केरा २"], v))
     assert _check(p, ["केरा ३", "केरा २ ?"], v) == []
+
+
+def test_answers_are_spread_not_always_the_top():
+    from collections import Counter
+
+    rng = random.Random(1)
+    for level, (top, _) in LEVELS.items():
+        answers = Counter()
+        for _ in range(2000):
+            a, b, op, _n = pick("ne", level, {"केरा"}, rng)
+            answers[a + b if op == "+" else a - b] += 1
+        assert max(answers.values()) / 2000 < 0.3, (level, answers.most_common(3))
+
+
+def test_nepali_plural_question_required():
+    p = Problem("ne", 1, 3, "+", "किताब")
+    v = verifier_for("ne", frozenset({"c:क", "m:ि", "c:त", "m:ा", "c:ब", "c:छ", "c:न", "m:्", "c:अ"}), DIGITS | {"कति", "किताब"})
+    assert any("plural" in x for x in _check(p, ["किताब १ किताब ३", "अब कति किताब छ?"], v))
+    assert not any("plural" in x for x in _check(p, ["किताब १ किताब ३", "अब कति किताब छन्?"], v))
