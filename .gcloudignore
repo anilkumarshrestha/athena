@@ -9,6 +9,7 @@
 state/
 media/*
 !media/pictures/
+!media/sounds/
 logs/
 .venv/
 **/node_modules/

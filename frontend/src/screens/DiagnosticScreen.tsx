@@ -57,8 +57,25 @@ export function DiagnosticScreen({ learnerId, lang, onDone }: { learnerId: strin
   const isNe = lang === 'ne'
   const story = isNe ? 'font-story-ne' : 'font-story-en'
 
+  // Every listening card's sound is fetched as soon as the deck arrives, so each card speaks
+  // the moment it appears instead of waiting for the audio to load.
+  const sounds = useRef<Map<string, HTMLAudioElement>>(new Map())
+  useEffect(() => {
+    for (const t of deck?.tiers ?? []) {
+      if (t.kind !== 'listen') continue
+      for (const c of t.cards) {
+        if (sounds.current.has(c.text)) continue
+        const a = new Audio(api.diagnosticSoundUrl(lang, c.text))
+        a.preload = 'auto'
+        sounds.current.set(c.text, a)
+      }
+    }
+  }, [deck, lang])
+
   const say = useCallback((text: string) => {
-    new Audio(api.diagnosticSoundUrl(lang, text)).play().catch(() => {})
+    const a = sounds.current.get(text) ?? new Audio(api.diagnosticSoundUrl(lang, text))
+    a.currentTime = 0
+    a.play().catch(() => {})
   }, [lang])
 
   // Listen cards speak themselves when they appear.

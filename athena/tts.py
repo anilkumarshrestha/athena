@@ -20,6 +20,9 @@ TTS_MODEL = "gemini-3.8-flash-tts"
 # Telling the model the language fixes guessed pronunciations (ह read as "he").
 LANG_CODE = {"ne": "ne-NP", "en": "en-US"}
 CACHE = Path(__file__).resolve().parent.parent / "media" / "tts"
+# Fixed phrases (letter-game letters, praise) synthesised ahead by scripts/warm_sounds.py and
+# shipped in the image: instant even on a fresh Cloud Run instance with an empty CACHE.
+SHIPPED = Path(__file__).resolve().parent.parent / "media" / "sounds"
 
 
 def _wav(pcm: bytes, rate: int = 24000) -> bytes:
@@ -37,6 +40,8 @@ def speak_word(language: str, word: str) -> bytes:
     path = CACHE / f"{key}.wav"
     if path.exists():
         return path.read_bytes()
+    if (shipped := SHIPPED / f"{key}.wav").exists():
+        return shipped.read_bytes()
     r = with_retry(
         lambda: genai_client().models.generate_content(
             model=TTS_MODEL,

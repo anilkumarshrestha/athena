@@ -443,7 +443,7 @@ def diagnostic_sound(language: Language, text: str) -> Response:
     return Response(
         tts.speak_word(language, tts.letter_phrase(language, text)),
         media_type="audio/wav",
-        headers={"Cache-Control": "no-cache"},  # phrasing may improve; the server caches the audio
+        headers={"Cache-Control": "public, max-age=86400"},  # the card game preloads these
     )
 
 

@@ -20,6 +20,8 @@ RUN pip install --no-cache-dir --retries 10 --timeout 120 -c constraints.txt .
 COPY data ./data
 # Pre-drawn word pictures (illustrations only, no child data): a fresh deploy starts warm.
 COPY media/pictures ./media/pictures
+# Fixed phrases (letter game, praise), synthesised ahead: instant on a fresh instance.
+COPY media/sounds ./media/sounds
 COPY --from=web /web/dist ./frontend/dist
 
 ENV PORT=8080 PYTHONUNBUFFERED=1
