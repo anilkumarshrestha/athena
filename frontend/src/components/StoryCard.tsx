@@ -1,5 +1,5 @@
 import { Mic, Square } from 'lucide-react'
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { DisplayWord, Language } from '../api'
 import { DotLoader } from './DotLoader'
 import { WordToken, type Outcome } from './WordToken'
@@ -24,6 +24,9 @@ export function StoryCard({
   outcomes,
   wordPractice = false,
   onWordTap,
+  selectedWord = null,
+  wordPopover,
+  onDismiss,
   footer,
 }: {
   lang: Language
@@ -35,14 +38,18 @@ export function StoryCard({
   outcomes?: Map<number, Outcome>
   wordPractice?: boolean // last-resort fallback: separate words, not a sentence
   onWordTap?: (index: number) => void // re-teach: hear / see parts / try again
+  selectedWord?: number | null // highlighted word (first reference index)
+  wordPopover?: ReactNode // floats above the selected word
+  onDismiss?: () => void // Escape / tap outside
   footer?: ReactNode
 }) {
+  const card = useRef<HTMLElement>(null)
   const lines: DisplayWord[][] | undefined =
     (display?.length ? display : undefined) ??
     sentences?.map((s) => s.split(/\s+/).filter(Boolean).map((text) => ({ text, indices: [] })))
 
   return (
-    <article className="relative mx-auto w-full max-w-story rounded-xl border-2 border-sky bg-card">
+    <article ref={card} className="relative mx-auto w-full max-w-story rounded-xl border-2 border-sky bg-card">
       <span className="absolute left-4 top-4 z-10 rounded-full bg-sun px-3 py-1 text-caption font-semibold text-on-sun">
         {lang === 'ne' ? 'ने' : 'EN'}
       </span>
@@ -74,6 +81,8 @@ export function StoryCard({
                         text={w.text}
                         lang={lang}
                         outcome={worst(w.indices, outcomes)}
+                        dataWord={w.indices[0]}
+                        selected={selectedWord !== null && w.indices.includes(selectedWord)}
                         onTap={onWordTap && w.indices.length ? () => onWordTap(w.indices[0]) : undefined}
                       />
                     </Fragment>
@@ -90,7 +99,96 @@ export function StoryCard({
       </div>
 
       <div className="relative flex items-center justify-center px-8 pb-8">{footer}</div>
+
+      {wordPopover && selectedWord !== null && (
+        <WordPopover card={card} word={selectedWord} onDismiss={onDismiss}>
+          {wordPopover}
+        </WordPopover>
+      )}
     </article>
+  )
+}
+
+const GAP = 12 // space between word and popover
+const EDGE = 8 // keep clear of the card edge
+
+// Floats above the selected word (below if there is no room), arrow pointing at it.
+function WordPopover({
+  card,
+  word,
+  onDismiss,
+  children,
+}: {
+  card: React.RefObject<HTMLElement | null>
+  word: number
+  onDismiss?: () => void
+  children: ReactNode
+}) {
+  const box = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ left: number; top: number; arrow: number; below: boolean } | null>(null)
+
+  const place = useCallback(() => {
+    const c = card.current
+    const b = box.current
+    const w = c?.querySelector<HTMLElement>(`[data-word="${word}"]`)
+    if (!c || !b || !w) return
+    const cr = c.getBoundingClientRect()
+    const wr = w.getBoundingClientRect()
+    const cx = wr.left + wr.width / 2 - cr.left
+    const left = Math.min(Math.max(cx - b.offsetWidth / 2, EDGE), cr.width - b.offsetWidth - EDGE)
+    const below = wr.top - b.offsetHeight - GAP < 0
+    const top = below ? wr.bottom - cr.top + GAP : wr.top - cr.top - b.offsetHeight - GAP
+    const arrow = Math.min(Math.max(cx - left, 20), b.offsetWidth - 20)
+    setPos({ left, top, arrow, below })
+  }, [card, word])
+
+  useLayoutEffect(place, [place])
+  useEffect(() => {
+    // Content grows as help loads (picture, parts): re-place when it does.
+    const ro = new ResizeObserver(place)
+    if (box.current) ro.observe(box.current)
+    window.addEventListener('resize', place)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', place)
+    }
+  }, [place])
+
+  useEffect(() => {
+    if (pos) box.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [pos?.below, word]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && onDismiss?.()
+    const down = (e: PointerEvent) => {
+      const t = e.target as HTMLElement
+      if (!box.current?.contains(t) && !t.closest('[data-word]')) onDismiss?.()
+    }
+    document.addEventListener('keydown', key)
+    document.addEventListener('pointerdown', down)
+    return () => {
+      document.removeEventListener('keydown', key)
+      document.removeEventListener('pointerdown', down)
+    }
+  }, [onDismiss])
+
+  return (
+    <div
+      ref={box}
+      role="dialog"
+      aria-label="Word help"
+      style={{ left: pos?.left ?? 0, top: pos?.top ?? 0, visibility: pos ? 'visible' : 'hidden' }}
+      className="absolute z-20 w-80 max-w-[calc(100%-1rem)] rounded-2xl border-2 border-primary bg-card p-4 shadow-float"
+    >
+      {children}
+      <span
+        aria-hidden
+        style={{ left: (pos?.arrow ?? 0) - 8 }}
+        className={`absolute size-4 rotate-45 border-primary bg-card ${
+          pos?.below ? '-top-2.5 border-l-2 border-t-2' : '-bottom-2.5 border-b-2 border-r-2'
+        }`}
+      />
+    </div>
   )
 }
 

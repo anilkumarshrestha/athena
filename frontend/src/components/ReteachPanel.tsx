@@ -11,7 +11,7 @@ type WordHelp = components['schemas']['WordHelpOut']
 // tricky part marked), try again. Never "wrong": a miss just offers to listen again.
 
 const chunky =
-  'flex min-h-16 items-center justify-center gap-2 rounded-xl border-2 border-b-4 px-5 text-child-label font-bold transition-colors duration-150 active:translate-y-1 active:border-b-2'
+  'flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 border-b-4 px-4 text-child-label font-bold transition-colors duration-150 active:translate-y-1 active:border-b-2'
 
 export function ReteachPanel({
   storyId,
@@ -64,21 +64,18 @@ export function ReteachPanel({
   const story = isNe ? 'font-story-ne' : 'font-story-en'
 
   return (
-    <section
-      aria-label="Word help"
-      className="relative mx-auto mt-6 max-w-story rounded-2xl border-2 border-b-4 border-line bg-card p-6"
-    >
-      <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 flex size-12 items-center justify-center rounded-full text-ink-3 hover:bg-paper-sunken">
-        <X size={24} strokeWidth={2} />
+    <div className="relative">
+      <button type="button" onClick={onClose} aria-label="Close" className="absolute -right-2 -top-2 flex size-10 items-center justify-center rounded-full text-ink-3 hover:bg-paper-sunken">
+        <X size={22} strokeWidth={2} />
       </button>
 
       {!help ? (
         <DotLoader />
       ) : (
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-4">
           {/* See it: a picture for concrete nouns (cached per word) */}
           {help.has_picture && pic !== 'none' && (
-            <div className="flex size-40 items-center justify-center overflow-hidden rounded-2xl border-2 border-line bg-paper-sunken">
+            <div className="flex size-28 items-center justify-center overflow-hidden rounded-2xl border-2 border-line bg-paper-sunken">
               {pic === 'loading' && <DotLoader label="Drawing" />}
               <img
                 src={api.wordPictureUrl(storyId, index)}
@@ -89,14 +86,14 @@ export function ReteachPanel({
               />
             </div>
           )}
-          <div className={`${story} text-story-xl font-semibold`}>{help.word}</div>
+          <div className={`${story} text-story-lg font-semibold`}>{help.word}</div>
 
           {/* See its parts */}
           <div className="flex flex-wrap justify-center gap-2">
             {help.parts.map((p, i) => (
               <span
                 key={i}
-                className={`${story} flex min-h-16 min-w-16 items-center justify-center rounded-xl border-2 px-3 text-story-md ${
+                className={`${story} flex min-h-12 min-w-12 items-center justify-center rounded-lg border-2 px-2 text-child-label ${
                   p.tricky ? 'border-substituted bg-substituted-soft text-ink' : 'border-line bg-paper text-ink-2'
                 }`}
               >
@@ -105,7 +102,7 @@ export function ReteachPanel({
             ))}
           </div>
 
-          <div className="flex w-full flex-wrap justify-center gap-3">
+          <div className="flex w-full justify-center gap-2">
             <button type="button" onClick={hear} className={`${chunky} border-line-strong bg-card text-ink-2 hover:bg-paper-sunken`}>
               <Volume2 size={26} strokeWidth={2} />
               {isNe ? 'सुन' : 'Hear'}
@@ -131,6 +128,6 @@ export function ReteachPanel({
           </div>
         </div>
       )}
-    </section>
+    </div>
   )
 }

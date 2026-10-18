@@ -134,7 +134,22 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
           imageStatus={story?.image_status}
           display={story?.display}
           wordPractice={story?.outcome === 'wordlist'}
-          onWordTap={story ? setHelpWord : undefined}
+          onWordTap={story ? (i) => setHelpWord((cur) => (cur === i ? null : i)) : undefined}
+          selectedWord={helpWord}
+          onDismiss={() => setHelpWord(null)}
+          wordPopover={
+            story &&
+            helpWord !== null && (
+              <ReteachPanel
+                key={helpWord}
+                storyId={story.id}
+                index={helpWord}
+                lang={lang}
+                onClose={() => setHelpWord(null)}
+                onSuccess={(i) => setFixed((f) => new Set(f).add(i))}
+              />
+            )
+          }
           outcomes={outcomes}
           footer={
             <>
@@ -155,17 +170,6 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
               )}
             </>
           }
-        />
-      )}
-
-      {story && helpWord !== null && (
-        <ReteachPanel
-          key={helpWord}
-          storyId={story.id}
-          index={helpWord}
-          lang={lang}
-          onClose={() => setHelpWord(null)}
-          onSuccess={(i) => setFixed((f) => new Set(f).add(i))}
         />
       )}
 

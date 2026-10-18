@@ -17,16 +17,22 @@ export function WordToken({
   lang,
   outcome = 'pending',
   active = false,
+  selected = false,
+  dataWord,
   onTap,
 }: {
   text: string
   lang: Language
   outcome?: Outcome
   active?: boolean
+  selected?: boolean // tapped for help: filled + ringed (shape, not colour alone)
+  dataWord?: number
   onTap?: () => void
 }) {
   return (
     <span
+      data-word={dataWord}
+      aria-pressed={onTap ? selected : undefined}
       onClick={onTap}
       role={onTap ? 'button' : undefined}
       tabIndex={onTap ? 0 : undefined}
@@ -37,6 +43,7 @@ export function WordToken({
         lang === 'ne' ? 'font-story-ne font-medium' : 'font-story-en',
         OUTCOME[outcome],
         active ? 'bg-primary-soft rounded-sm' : '',
+        selected ? 'rounded-sm bg-primary-soft ring-2 ring-primary' : '',
         onTap ? 'cursor-pointer' : '',
       ].join(' ')}
     >
