@@ -27,6 +27,7 @@ export function StoryCard({
   selectedWord = null,
   wordPopover,
   onDismiss,
+  live,
   footer,
 }: {
   lang: Language
@@ -41,6 +42,7 @@ export function StoryCard({
   selectedWord?: number | null // highlighted word (first reference index)
   wordPopover?: ReactNode // floats above the selected word
   onDismiss?: () => void // Escape / tap outside
+  live?: { heard: Set<number>; next: number | null } // follow-along while reading aloud
   footer?: ReactNode
 }) {
   const card = useRef<HTMLElement>(null)
@@ -80,7 +82,14 @@ export function StoryCard({
                       <WordToken
                         text={w.text}
                         lang={lang}
-                        outcome={worst(w.indices, outcomes)}
+                        outcome={
+                          outcomes
+                            ? worst(w.indices, outcomes)
+                            : live && w.indices.length && w.indices.every((i) => live.heard.has(i))
+                              ? 'correct' // heard just now (live guide; final scoring comes after)
+                              : 'pending'
+                        }
+                        active={!outcomes && live?.next != null && w.indices.includes(live.next)}
                         dataWord={w.indices[0]}
                         selected={selectedWord !== null && w.indices.includes(selectedWord)}
                         onTap={onWordTap && w.indices.length ? () => onWordTap(w.indices[0]) : undefined}

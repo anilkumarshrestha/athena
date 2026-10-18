@@ -8,6 +8,7 @@ import { RecordButton, StoryCard } from '../components/StoryCard'
 import { VerifierLog } from '../components/VerifierLog'
 import { UnitChip } from '../components/UnitChip'
 import type { Outcome } from '../components/WordToken'
+import { useLiveFollow } from '../hooks/useLiveFollow'
 import { useRecorder } from '../hooks/useRecorder'
 
 const POLL_MS = 1500
@@ -28,6 +29,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [fixed, setFixed] = useState<Set<number>>(new Set()) // words got right on a retry
   const [checking, setChecking] = useState(false)
   const recorder = useRecorder()
+  const live = useLiveFollow(story?.id || undefined)
   const reqId = useRef(0)
 
   const load = useCallback(() => {
@@ -70,8 +72,9 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     if (!story) return
     if (recorder.state !== 'recording') {
       setReading(null)
-      return recorder.start()
+      return recorder.start((stream) => live.start(stream)) // same mic for recording + live guide
     }
+    live.stop()
     const { blob, durationS } = await recorder.stop()
     setChecking(true)
     try {
@@ -151,6 +154,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
             )
           }
           outcomes={outcomes}
+          live={recorder.state === 'recording' ? { heard: live.heard, next: live.next } : undefined}
           footer={
             <>
               <RecordButton

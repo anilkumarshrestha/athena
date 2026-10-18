@@ -8,6 +8,6 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: true,
-    proxy: { '/api': 'http://localhost:8077' },
+    proxy: { '/api': { target: 'http://localhost:8077', ws: true } }, // ws: live follow-along
   },
 })

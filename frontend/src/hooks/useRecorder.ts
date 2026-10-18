@@ -12,10 +12,12 @@ export function useRecorder() {
   const chunks = useRef<Blob[]>([])
   const startedAt = useRef(0)
 
-  const start = useCallback(async () => {
+  // onStream: the live microphone stream, e.g. for live follow-along (same mic, one prompt).
+  const start = useCallback(async (onStream?: (stream: MediaStream) => void) => {
     setError(null)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      onStream?.(stream)
       const mimeType = MIME_TYPES.find((t) => MediaRecorder.isTypeSupported(t))
       const r = new MediaRecorder(stream, mimeType ? { mimeType } : undefined)
       chunks.current = []
