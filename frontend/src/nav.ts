@@ -2,9 +2,16 @@
 // non-/api path (athena/api.py spa), so links and refreshes work; Back works as usual.
 
 export function go(path: string, replace = false): void {
-  if (replace) history.replaceState(null, '', path)
-  else history.pushState(null, '', path)
+  const state = { inApp: true } // the page before this one is ours: "back" can go there
+  if (replace) history.replaceState(history.state, '', path)
+  else history.pushState(state, '', path)
   dispatchEvent(new PopStateEvent('popstate'))
+}
+
+/** Back to the previous page if it is ours (not another site), else to a fallback page. */
+export function back(fallback: string): void {
+  if ((history.state as { inApp?: boolean } | null)?.inApp) history.back()
+  else go(fallback)
 }
 
 // Plain <a href="/..."> links inside the app navigate without a page load.

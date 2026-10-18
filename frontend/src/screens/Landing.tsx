@@ -1,5 +1,5 @@
 import { ArrowRight, BookOpenCheck, HeartHandshake, Mic, ShieldCheck, Sparkles, UserRound } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { components } from '../api-types'
 import { api } from '../api'
 import { DotLoader } from '../components/DotLoader'
@@ -77,9 +77,12 @@ function initialLang(): UiLang {
   }
 }
 
-export function Landing() {
+export type LandingStep = 'hero' | 'account' | 'learner'
+const STEP_PATH: Record<LandingStep, string> = { hero: '/', account: '/start', learner: '/start/child' }
+
+export function Landing({ step }: { step: LandingStep }) {
   const [lang, setLang] = useState<UiLang>(initialLang)
-  const [step, setStep] = useState<'hero' | 'account' | 'learner'>('hero')
+  const setStep = (s: LandingStep) => go(STEP_PATH[s]) // steps are pages: Back works through them
   const [family, setFamily] = useState<Family | null>(null)
   const [busy, setBusy] = useState(false)
   const t = T[lang]
@@ -107,6 +110,11 @@ export function Landing() {
       setBusy(false)
     }
   }
+  // Opened straight on /start or /start/child (or via Back): load the family for these steps.
+  useEffect(() => {
+    if (step !== 'hero' && !family) api.family().then(setFamily).catch(() => {})
+  }, [step, family])
+
   const signedIn = useCallback(() => {
     api.family().then(setFamily).catch(() => {})
     setStep('learner')

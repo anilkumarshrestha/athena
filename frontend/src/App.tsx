@@ -9,10 +9,10 @@ import { MathsScreen } from './screens/MathsScreen'
 import { ParentScreen } from './screens/ParentScreen'
 import { StoryReview } from './screens/StoryReview'
 import { StoryScreen } from './screens/StoryScreen'
-import { Landing } from './screens/Landing'
+import { Landing, type LandingStep } from './screens/Landing'
 import { Styleguide } from './screens/Styleguide'
 import { TeachScreen } from './screens/TeachScreen'
-import { go, interceptLinks } from './nav'
+import { back, go, interceptLinks } from './nav'
 
 type Route =
   | { name: 'pick' }
@@ -25,13 +25,15 @@ type Route =
   | { name: 'story'; learnerId: string; lang: Language }
   | { name: 'maths'; learnerId: string; lang: Language }
   | { name: 'teach'; learnerId: string; lang: Language }
-  | { name: 'landing' }
+  | { name: 'landing'; step: LandingStep }
 
 // Routes (clean paths, nav.ts): /  /app  /new  /check/<learner>/<ne|en>  /styleguide  /mastery/<learner>
 //   /parent/<learner>[/story/<id>]  /read/<learner>/<ne|en>  /maths/<learner>/<ne|en>  /teach/<learner>/<ne|en>
 function parse(path: string): Route {
   const p = path.replace(/\/+$/, '') || '/'
-  if (p === '/') return { name: 'landing' }
+  if (p === '/') return { name: 'landing', step: 'hero' }
+  if (p === '/start') return { name: 'landing', step: 'account' }
+  if (p === '/start/child') return { name: 'landing', step: 'learner' }
   if (p === '/app') return { name: 'pick' }
   if (p === '/styleguide') return { name: 'styleguide' }
   if (p === '/new') return { name: 'new' }
@@ -48,7 +50,7 @@ function parse(path: string): Route {
   const tc = p.match(/^\/teach\/([\w-]+)\/(ne|en)$/)
   if (tc) return { name: 'teach', learnerId: tc[1], lang: tc[2] as Language }
   const m = p.match(/^\/read\/([\w-]+)\/(ne|en)$/)
-  return m ? { name: 'story', learnerId: m[1], lang: m[2] as Language } : { name: 'landing' }
+  return m ? { name: 'story', learnerId: m[1], lang: m[2] as Language } : { name: 'landing', step: 'hero' }
 }
 
 // Old links (/#/parent/x) still work: moved to the clean path once, before the first render.
@@ -70,13 +72,13 @@ export default function App() {
     }
   }, [])
 
-  if (route.name === 'landing') return <Landing />
+  if (route.name === 'landing') return <Landing step={route.step} />
   if (route.name === 'styleguide') return <Styleguide />
   if (route.name === 'new')
     return (
       <AddLearner
         onDone={(id, langs) => go(`/check/${id}/${langs === 'en' ? 'en' : 'ne'}`)}
-        onBack={() => go('/app')}
+        onBack={() => back('/app')} // where they came from (the landing steps or /app)
       />
     )
   if (route.name === 'check')
