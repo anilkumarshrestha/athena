@@ -460,6 +460,8 @@ def _publish(learner: Learner, language: Language, result, image_future) -> Stor
             "level": result.plan.level,
             "outcome": result.outcome,
             "units_used": result.units_used,
+            "target_units": result.plan.target_units,  # what it practises ("why this story")
+            "safety": result.safety,
             "attempts": [
                 {"n": a.n, "ms": a.latency_ms, "violations": [[v.word, v.unit, v.reason] for v in a.violations]}
                 for a in result.attempts
@@ -820,6 +822,7 @@ class HistoryStoryOut(BaseModel):
     readings: list[dict]  # each: transcript, wcpm, words (per-word outcomes), insertions
     close: dict | None
     reteach: list[dict]  # each retry from the re-teach card: word, ways used, read right or not
+    why: dict[str, list[str]]  # "why this story", plain lines in en and ne (athena/why.py)
 
 
 @app.get("/api/learners/{learner_id}/stories", response_model=list[HistoryItemOut])
@@ -843,9 +846,12 @@ def learner_stories(learner_id: str) -> list[HistoryItemOut]:
 
 @app.get("/api/learners/{learner_id}/stories/{story_id}", response_model=HistoryStoryOut)
 def learner_story(learner_id: str, story_id: str) -> HistoryStoryOut:
+    from athena.why import explain
+
     r = store.history.story(learner_id, story_id)
     if not r:
         raise HTTPException(404, "story not found")
+    learner = store.get_learner(learner_id)
     return HistoryStoryOut(
         story_id=r["story_id"],
         at=r["at"],
@@ -861,6 +867,7 @@ def learner_story(learner_id: str, story_id: str) -> HistoryStoryOut:
         readings=r["readings"],
         close=r.get("close"),
         reteach=r.get("reteach", []),
+        why=explain(r, learner.name, learner.profile) if learner else {"en": [], "ne": []},
     )
 
 

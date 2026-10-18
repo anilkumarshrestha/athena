@@ -982,6 +982,10 @@ export interface components {
             reteach: {
                 [key: string]: unknown;
             }[];
+            /** Why */
+            why: {
+                [key: string]: string[];
+            };
         };
         /** InsertionOut */
         InsertionOut: {

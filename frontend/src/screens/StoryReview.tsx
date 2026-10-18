@@ -44,6 +44,20 @@ export function StoryReview({ learnerId, storyId, onBack }: { learnerId: string;
         {new Date(d.at * 1000).toLocaleString()} · level {d.level} · {d.theme}
       </p>
 
+      {d.why.en.length > 0 && (
+        <section className="mb-6 rounded-xl border-2 border-line bg-card p-4 font-ui">
+          <h2 className="m-0 mb-2 text-h3 font-semibold">किन यो कथा? · Why this story</h2>
+          <ul className="m-0 grid list-none gap-2 p-0">
+            {d.why.en.map((line, i) => (
+              <li key={i}>
+                <div className="font-story-ne text-body">{d.why.ne[i]}</div>
+                <div className="text-small text-ink-2">{line}</div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <StoryCard
         lang={d.lang}
         title={d.title}
