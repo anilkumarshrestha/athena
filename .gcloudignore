@@ -1,0 +1,23 @@
+# What `gcloud run deploy --source .` uploads to Cloud Build. Without this file gcloud uses
+# .gitignore, which drops media/pictures (the pre-drawn word pictures the Dockerfile ships).
+# Same rules as .dockerignore: never upload secrets, children's data, caches or tooling.
+.gcloudignore
+.git/
+.env
+.env.*
+!.env.example
+state/
+media/*
+!media/pictures/
+logs/
+.venv/
+**/node_modules/
+frontend/dist/
+graphify-out/
+eval/results/
+presentation/
+scripts/smoke_out/
+.claude/
+**/__pycache__/
+*.egg-info/
+.pytest_cache/

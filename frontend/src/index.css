@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/* Tailwind v4 no longer gives buttons a pointer: everything clickable shows the hand,
+   anything disabled shows "not allowed" (DESIGN.md: large, obvious touch targets). */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="radio"],
+  [role="tab"],
+  a[href],
+  summary,
+  label[for],
+  select {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
 /* DESIGN.md §5 tokens. Screens use these only: no raw hex, no arbitrary values. */
 @theme {
   --color-paper: #EAF6FF;
