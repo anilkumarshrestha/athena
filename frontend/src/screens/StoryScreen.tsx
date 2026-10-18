@@ -14,7 +14,7 @@ import type { Outcome } from '../components/WordToken'
 import { useLiveFollow } from '../hooks/useLiveFollow'
 import { useNarration } from '../hooks/useNarration'
 import { useRecorder } from '../hooks/useRecorder'
-import { sfx } from '../sound'
+import { jingle, sfx } from '../sound'
 
 const POLL_MS = 1500
 
@@ -35,6 +35,8 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const [helpWord, setHelpWord] = useState<number | null>(null)
   const [helpTrigger, setHelpTrigger] = useState<'tap' | 'repeat' | 'pause'>('tap')
   const paused = useRef<Set<number>>(new Set()) // words the live guide stayed on for PAUSE_MS
+  const celebration = useRef<HTMLAudioElement | null>(null)
+  const jingleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const autoShown = useRef(false) // the help card opens by itself at most once per story
   const autoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [praise, setPraise] = useState<'great' | 'good' | 'try' | null>(null)
@@ -118,6 +120,8 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     if (!story) return
     if (recorder.state !== 'recording') {
       narration.stop() // never read aloud into the microphone
+      clearTimeout(jingleTimer.current) // nor music
+      celebration.current?.pause()
       setReading(null)
       setHelpWord(null)
       clearTimeout(autoTimer.current) // never open the card while the mic is on
@@ -152,6 +156,8 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
       setPraise(tier)
       if (!instant) sfx.chime()
       setTimeout(() => new Audio(api.praiseUrl(lang, tier)).play().catch(() => {}), instant ? 0 : 350) // chime, then praise
+      if (tier === 'great')
+        jingleTimer.current = setTimeout(() => (celebration.current = jingle('story_done', 0.5)), 2600) // after the praise
       // First reading of a story updates mastery once; later re-reads are practice only.
       if (!closed) {
         const c = await api.closeSession(story.id)

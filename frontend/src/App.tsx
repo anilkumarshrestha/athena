@@ -10,6 +10,7 @@ import { ParentScreen } from './screens/ParentScreen'
 import { StoryReview } from './screens/StoryReview'
 import { StoryScreen } from './screens/StoryScreen'
 import { ChildHome } from './screens/ChildHome'
+import { ClapScreen } from './screens/ClapScreen'
 import { GrownUps } from './screens/GrownUps'
 import { Landing, type LandingStep } from './screens/Landing'
 import { Styleguide } from './screens/Styleguide'
@@ -30,6 +31,7 @@ type Route =
   | { name: 'story'; learnerId: string; lang: Language }
   | { name: 'maths'; learnerId: string; lang: Language }
   | { name: 'teach'; learnerId: string; lang: Language }
+  | { name: 'clap'; learnerId: string; lang: Language }
   | { name: 'landing'; step: LandingStep }
 
 // Routes (clean paths, nav.ts): /  /app  /new  /check/<learner>/<ne|en>  /styleguide  /mastery/<learner>
@@ -55,6 +57,8 @@ function parse(path: string): Route {
   if (pm) return { name: 'parent', learnerId: pm[1] }
   const mt = p.match(/^\/maths\/([\w-]+)\/(ne|en)$/)
   if (mt) return { name: 'maths', learnerId: mt[1], lang: mt[2] as Language }
+  const cl = p.match(/^\/clap\/([\w-]+)\/(ne|en)$/)
+  if (cl) return { name: 'clap', learnerId: cl[1], lang: cl[2] as Language }
   const tc = p.match(/^\/teach\/([\w-]+)\/(ne|en)$/)
   if (tc) return { name: 'teach', learnerId: tc[1], lang: tc[2] as Language }
   const m = p.match(/^\/read\/([\w-]+)\/(ne|en)$/)
@@ -115,6 +119,8 @@ export default function App() {
     return <ParentGate onBack={grownups}><ParentScreen learnerId={route.learnerId} onBack={grownups} /></ParentGate>
   if (route.name === 'mastery')
     return <ParentGate onBack={grownups}><MasteryScreen learnerId={route.learnerId} onBack={grownups} /></ParentGate>
+  if (route.name === 'clap')
+    return <ClapScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => go(`/child/${route.learnerId}`)} />
   if (route.name === 'teach')
     return <TeachScreen key={`${route.learnerId}/${route.lang}`} learnerId={route.learnerId} lang={route.lang} onBack={() => go(`/child/${route.learnerId}`)} />
   if (route.name === 'maths')

@@ -1,10 +1,10 @@
-import { ArrowLeft, BookOpen, Calculator } from 'lucide-react'
+import { ArrowLeft, BookOpen, Calculator, Drum } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { api, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { LevelStars, knownCount, neNum } from '../components/LevelStars'
 import { accentOf, buddyEn, buddyNe, gainedStar, goalOf, learns } from '../learner'
-import { sfx } from '../sound'
+import { jingle } from '../sound'
 import { bi, uiLang } from '../ui'
 
 // One child's home (/child/<id>): only their things. Big picture tiles for each activity in
@@ -32,7 +32,7 @@ export function ChildHome({ learnerId, onBack }: { learnerId: string; onBack: ()
         setL(x)
         if (gainedStar(x)) {
           setNewStar(true)
-          setTimeout(sfx.sparkle, 400)
+          setTimeout(() => jingle('star'), 400)
         }
       })
       .catch((e) => setError(String(e.message ?? e)))
@@ -100,6 +100,15 @@ export function ChildHome({ learnerId, onBack }: { learnerId: string; onBack: ()
           ))}
         </div>
       )}
+
+      <div className="mb-4 grid grid-cols-2 gap-4">
+        {langs.map((x) => (
+          <Tile key={x} href={`/clap/${l.id}/${x}`} className="border-coral-edge bg-coral-soft text-ink">
+            <Drum size={30} className="text-coral-edge" />
+            <span className={`${x === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-label font-bold`}>{x === 'ne' ? 'ताली बजाऊ' : 'Clap the beats'}</span>
+          </Tile>
+        ))}
+      </div>
 
       {l.controls.teach !== false && (
         <div className="grid grid-cols-2 gap-4">

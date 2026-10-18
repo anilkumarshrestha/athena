@@ -4,7 +4,7 @@ import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { WordToken } from '../components/WordToken'
-import { sfx } from '../sound'
+import { jingle, sfx } from '../sound'
 
 type Teach = components['schemas']['TeachOut']
 
@@ -82,7 +82,7 @@ export function TeachScreen({ learnerId, lang, onBack }: { learnerId: string; la
       setSay(tx.thanks(r.word ?? ''))
       sfx.chime()
       setTimeout(() => play(api.teachWordAudioUrl(t.id, index)), 300) // the word, said properly
-      if (r.left === 0) setTimeout(sfx.sparkle, 1200)
+      if (r.left === 0) setTimeout(() => jingle('cat'), 1400) // all the cat's mistakes caught
     } else {
       setMisses((m) => m + 1)
       setSay(tx.notThis) // gentle, silent: no "wrong" sound

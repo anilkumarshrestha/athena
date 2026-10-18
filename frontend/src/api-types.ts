@@ -820,6 +820,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learners/{learner_id}/clap/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Clap Round
+         * @description A round of words the child can read, with their beats (code, no model).
+         */
+        get: operations["clap_round_api_learners__learner_id__clap__language__get"];
+        put?: never;
+        /**
+         * Clap Answer
+         * @description Count the taps against the beats (code). Logged for the parent; mastery unchanged.
+         */
+        post: operations["clap_answer_api_learners__learner_id__clap__language__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learners/{learner_id}/clap/{language}/audio/{word}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Clap Audio
+         * @description The word said aloud: only words this child can read (no open voice service).
+         */
+        get: operations["clap_audio_api_learners__learner_id__clap__language__audio__word__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}": {
         parameters: {
             query?: never;
@@ -1078,6 +1122,29 @@ export interface components {
             picture_url: string;
             /** Ready */
             ready: boolean;
+        };
+        /** ClapIn */
+        ClapIn: {
+            /** Word */
+            word: string;
+            /** Taps */
+            taps: number;
+        };
+        /** ClapResult */
+        ClapResult: {
+            /** Correct */
+            correct: boolean;
+            /** Beats */
+            beats: string[];
+        };
+        /** ClapWordOut */
+        ClapWordOut: {
+            /** Word */
+            word: string;
+            /** Beats */
+            beats: string[];
+            /** Picture Url */
+            picture_url: string | null;
         };
         /** CloseOut */
         CloseOut: {
@@ -3303,6 +3370,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GlossOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clap_round_api_learners__learner_id__clap__language__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClapWordOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clap_answer_api_learners__learner_id__clap__language__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClapIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClapResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clap_audio_api_learners__learner_id__clap__language__audio__word__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+                word: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -71,3 +71,13 @@ export const sfx = {
   /** river crossed: short happy tune (C5 E5 G5 C6) */
   tada: () => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => note(f, i * 0.11, i === 3 ? 0.45 : 0.18, 0.1, 'triangle')),
 }
+
+// Music made once with Lyria (scripts/make_music.py), shipped in /music. Jingles celebrate;
+// they follow the sound toggle and are never played while the microphone is open (callers).
+export function jingle(id: 'star' | 'story_done' | 'cat', volume = 0.7): HTMLAudioElement | null {
+  if (!soundOn()) return null
+  const a = new Audio(`/music/${id}.mp3`)
+  a.volume = volume
+  a.play().catch(() => {})
+  return a // so a screen can stop it (e.g. when the microphone opens)
+}

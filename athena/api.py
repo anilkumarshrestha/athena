@@ -1774,6 +1774,76 @@ def history_gloss(learner_id: str, story_id: str) -> GlossOut:
     return _gloss(r["lang"], r.get("title", ""), r.get("sentences", []))
 
 
+# --- clap the beats (athena/clap.py): rhythm and phonological awareness ------------------
+
+class ClapWordOut(BaseModel):
+    word: str
+    beats: list[str]
+    picture_url: str | None
+
+
+class ClapIn(BaseModel):
+    word: str = Field(min_length=1, max_length=40)
+    taps: int = Field(ge=0, le=20)
+
+
+class ClapResult(BaseModel):
+    correct: bool
+    beats: list[str]
+
+
+clap_limit = RateLimit(per_ip=30, global_=200)
+
+
+@app.get("/api/learners/{learner_id}/clap/{language}", response_model=list[ClapWordOut], dependencies=[Depends(clap_limit)])
+def clap_round(learner_id: str, language: Language) -> list[ClapWordOut]:
+    """A round of words the child can read, with their beats (code, no model)."""
+    import random as _random
+
+    from athena.agents.picture import concrete_noun
+    from athena.clap import round_words
+
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    words = round_words(language, allowed(learner.units[language]), _random.Random())
+    out = []
+    for w in words:
+        noun = concrete_noun(language, w["word"])
+        out.append(ClapWordOut(word=w["word"], beats=w["beats"],
+                               picture_url=f"/api/pictures/{language}/{noun}" if noun else None))
+    return out
+
+
+@app.get("/api/learners/{learner_id}/clap/{language}/audio/{word}", dependencies=[Depends(narrate_limit)])
+def clap_audio(learner_id: str, language: Language, word: str) -> Response:
+    """The word said aloud: only words this child can read (no open voice service)."""
+    from athena.lexicon import decodable_words
+
+    learner = store.get_learner(learner_id)
+    if not learner or word not in set(decodable_words(language, allowed(learner.units[language]))):
+        raise HTTPException(404, "not a word for this child")
+    return Response(tts.speak_word(language, word), media_type="audio/wav", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.post("/api/learners/{learner_id}/clap/{language}", response_model=ClapResult)
+def clap_answer(learner_id: str, language: Language, req: ClapIn) -> ClapResult:
+    """Count the taps against the beats (code). Logged for the parent; mastery unchanged."""
+    from athena.clap import beats
+
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    b = beats(language, req.word)
+    if not b:
+        raise HTTPException(404, "not a clapping word")
+    correct = req.taps == len(b)
+    store.history.append(learner.id, {"type": "clap", "story_id": f"clap-{int(time.time() * 1000)}", "at": time.time(),
+                                      "lang": language, "word": req.word, "beats": len(b), "taps": req.taps,
+                                      "correct": correct})
+    return ClapResult(correct=correct, beats=b)
+
+
 class PartOut(BaseModel):
     text: str
     units: list[str]

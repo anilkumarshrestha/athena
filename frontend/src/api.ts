@@ -86,6 +86,15 @@ export const api = {
   storyGloss: (storyId: string) => fetch(`/api/stories/${storyId}/gloss`).then(json<components['schemas']['GlossOut']>),
   historyGloss: (learnerId: string, storyId: string) =>
     fetch(`/api/learners/${learnerId}/stories/${storyId}/gloss`).then(json<components['schemas']['GlossOut']>),
+  clapRound: (id: string, lang: Language) =>
+    fetch(`/api/learners/${id}/clap/${lang}`).then(json<components['schemas']['ClapWordOut'][]>),
+  clapAudioUrl: (id: string, lang: Language, word: string) => `/api/learners/${id}/clap/${lang}/audio/${encodeURIComponent(word)}`,
+  clapAnswer: (id: string, lang: Language, word: string, taps: number) =>
+    fetch(`/api/learners/${id}/clap/${lang}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ word, taps }),
+    }).then(json<components['schemas']['ClapResult']>),
   mathsProgress: (id: string, lang: Language) =>
     fetch(`/api/learners/${id}/maths/${lang}`).then(json<components['schemas']['MathsProgressOut']>),
   summary: (id: string, lang: Language) => fetch(`/api/learners/${id}/summary/${lang}`).then(json<{ ne: string; en: string }>),
