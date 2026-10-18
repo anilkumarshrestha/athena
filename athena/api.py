@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 import hashlib
+import threading
 import re
 import time
 from typing import Literal
@@ -26,6 +27,7 @@ from athena.assess.align import assess, fold, tokens
 from athena.assess.parts import word_parts
 from athena import tts
 from athena.generate import generate
+from athena.lexicon import verifier_for
 from athena.mastery import Change, UnitState, allowed, apply_session, practice_targets
 from athena.progression import MAX_PRACTICING, next_level, next_units, should_introduce
 from athena.models import Language
@@ -379,28 +381,42 @@ def start_session(req: StartRequest) -> StoryOut:
             outcome="letters", units_used=[], attempts=[], total_latency_ms=0, image_status="failed",
             image_url=None, image_latency_ms=None, display=[], letters=letter_cards(req.language, units),
         )
+    # Prepared while the child looked at their last result (see _prefetch_next)?
+    if req.theme is None and (ready := _take_prefetched(learner, req.language)):
+        result, image_future = ready
+    else:
+        result, image_future = _compose(learner, req.language, req.theme)
+    return story_out(_publish(learner, req.language, result, image_future))
+
+
+def _compose(learner: Learner, language: Language, theme: str | None = None):
+    """Plan + generate + verify a story, with its picture started in parallel. Not stored yet."""
+    units = learner.units[language]
     p = plan(
-        req.language,
+        language,
         allowed(units),
-        learner.name[req.language],
-        theme=req.theme,
+        learner.name[language],
+        theme=theme,
         target_units=practice_targets(units)[:3] or None,  # practise what is being learned
-        level=learner.level[req.language],
+        level=learner.level[language],
         personal=personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food")),
         setting=SETTINGS.get(learner.profile.get("setting", "")),
     )
-
     # Image starts now from the theme; text is generated + verified meanwhile.
     image_future = _pool.submit(illustrator.illustrate, p.theme)
-    result = generate(p, budget_s=STORY_BUDGET_S)
-    story = store.add_story(learner.id, req.language, result)
+    return generate(p, budget_s=STORY_BUDGET_S), image_future
+
+
+def _publish(learner: Learner, language: Language, result, image_future) -> Story:
+    """Store a composed story for this child, log it, attach its picture when ready."""
+    story = store.add_story(learner.id, language, result)
     store.history.append(
         learner.id,
         {
             "type": "story",
             "story_id": story.id,
             "at": story.created_at,
-            "lang": req.language,
+            "lang": language,
             "title": result.title,
             "sentences": result.sentences,
             "theme": result.plan.theme,
@@ -425,7 +441,63 @@ def start_session(req: StartRequest) -> StoryOut:
             store.set_image(story.id, "failed", None, None)
 
     image_future.add_done_callback(_done)
-    return story_out(story)
+    _pool.submit(_prespeak, language, result.sentences)  # tapped words then play instantly
+    return story
+
+
+def _prespeak(language: str, sentences: list[str]) -> None:
+    """Synthesise every word of a story into the TTS cache (cheap; shared by all children)."""
+    for word in dict.fromkeys(tokens(language, " ".join(sentences))):
+        try:
+            tts.speak_word(language, word)
+        except Exception:  # noqa: BLE001 - a tap will just synthesise it then
+            log.warning("prespeak failed for %r", word)
+
+
+# --- next story, prepared while the child looks at their result ---------------------
+
+PREFETCH_TTL_S = 30 * 60
+_prefetch: dict[tuple[str, str], tuple[float, object]] = {}
+_prefetch_lock = threading.Lock()
+
+
+def _prefetch_next(learner: Learner, language: Language) -> None:
+    """Called right after a reading updates mastery: compose the next story from the NEW state."""
+    from athena.letters import MIN_STORY_WORDS
+    from athena.lexicon import decodable_words
+
+    if len(decodable_words(language, allowed(learner.units[language]))) < MIN_STORY_WORDS:
+        return  # letter mode next: nothing to prepare
+    key = (learner.id, language)
+    with _prefetch_lock:
+        if key in _prefetch:
+            return
+        _prefetch[key] = (time.time(), _pool.submit(_compose, learner, language))
+
+
+def _take_prefetched(learner: Learner, language: Language):
+    """The prepared story, if still valid for the child RIGHT NOW. The verifier re-checks it
+    against current units and level: anything that changed since means compose afresh."""
+    with _prefetch_lock:
+        entry = _prefetch.pop((learner.id, language), None)
+    if not entry:
+        return None
+    created, fut = entry
+    if time.time() - created > PREFETCH_TTL_S:
+        return None
+    try:
+        result, image_future = fut.result(timeout=STORY_BUDGET_S)
+    except Exception:  # noqa: BLE001 - compose afresh
+        return None
+    if result.plan.level != learner.level[language] or result.outcome == "wordlist":
+        return None
+    name = learner.name[language]
+    names = frozenset(name.split()) | frozenset(name.lower().split())
+    v = verifier_for(language, allowed(learner.units[language]), names)
+    if not v.verify("\n".join([result.title, *result.sentences])).ok:
+        log.info("prefetched story no longer readable for %s: discarded", learner.id)
+        return None
+    return result, image_future
 
 
 MAX_AUDIO_BYTES = 8 * 1024 * 1024  # ~4 min of opus; a story read takes < 1 min
@@ -549,6 +621,7 @@ def close_session(req: CloseRequest) -> CloseOut:
             "changes": [[c.unit, c.before, c.after] for c in changes],
         },
     )
+    _prefetch_next(learner, lang)  # next story is written while the child looks at this result
     return CloseOut(
         story_id=s.id,
         accuracy=round(accuracy, 2),
@@ -748,6 +821,7 @@ def close_letters(learner_id: str, req: LetterCheckIn) -> CloseOut:
         for sig in next_units(lang, units, k=MAX_PRACTICING - practicing):
             units[sig] = UnitState("practicing", streak=0, seen=0)
             changes.append(Change(sig, "unseen", "practicing"))
+    _prefetch_next(learner, lang)  # if this session crossed into stories, the first one is ready
     learner.sessions.append(
         {"at": time.time(), "started": time.time() - 60, "lang": lang, "title": "letters", "accuracy": round(accuracy, 3),
          "wcpm": 0.0, "words": 0, "changes": [[c.unit, c.before, c.after] for c in changes]}
