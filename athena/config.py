@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     writer_model: str = "gemini-3.8-flash"
     cheap_model: str = "gemma-4-26b-a4b-it"
+    safety_model: str = "gemini-3.1-flash-lite"  # fast screen; Gemma is not a plain API on Vertex
     image_model: str = "gemini-3.1-flash-image"
     writer_thinking_level: str = "low"
     media_bucket: str = ""

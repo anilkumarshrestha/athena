@@ -14,6 +14,7 @@ from concurrent.futures import TimeoutError as FutureTimeout
 from pathlib import Path
 
 from athena.agents import writer
+from athena import safety
 from athena.fallback import template_story
 from athena.lexicon import decodable_words, verifier_for
 from athena.models import Attempt, GenerationResult, StoryPlan, ViolationOut
@@ -36,7 +37,9 @@ def _violations(result) -> list[ViolationOut]:
 MIN_CALL_MS = 5_000
 
 
-def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -> GenerationResult:
+def generate(
+    plan: StoryPlan, log: bool = True, budget_s: float | None = None, check_safety: bool = True
+) -> GenerationResult:
     """budget_s: total time for model attempts. Past it, go straight to the verified fallback."""
     t0 = time.perf_counter()
     mastery = frozenset(plan.mastery)
@@ -133,6 +136,34 @@ def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -
     if outcome != "wordlist":  # a word list is not sentences; its words were length-filtered above
         assert shape_ok([title, *sentences]), "shape limits broken"
 
+    # Safety before display (PLAN §11). Model-written text gets blocklist + model screen;
+    # curated templates and word lists get the blocklist. Unsafe -> curated template.
+    safety_info: dict = {}
+    if check_safety:
+        ts = time.perf_counter()
+        verdict = safety.check(plan.language, title, sentences, model=outcome in ("first_pass", "regenerated", "pruned"))
+        replaced = False
+        if not verdict.safe:
+            readable = decodable_words(plan.language, mastery)
+            t_title, extra = template_story(plan.language, verifier, readable, plan.key_words, random.Random(1))
+            extra = [x for x in extra if shape_ok([x])][: limits.sentences[1]]
+            if len(extra) >= MIN_PRUNED_SENTENCES and safety.check(plan.language, t_title, extra, model=False).safe:
+                title, sentences, outcome = (t_title if shape_ok([t_title]) else plan.learner_name), extra, "template"
+            else:
+                short = [w for w in plan.word_bank if shape_ok([w]) and not safety.blocklisted(plan.language, [w])]
+                title, sentences, outcome = plan.learner_name, [" ".join(short[:12])], "wordlist"
+            final = verifier.verify("\n".join([title, *sentences]))
+            assert final.ok, "replacement broke the verifier guarantee"
+            units = final.units_used
+            replaced = True
+        safety_info = {
+            "safe": verdict.safe,
+            "stage": verdict.stage,
+            "reason": verdict.reason,
+            "ms": int((time.perf_counter() - ts) * 1000),
+            "replaced": replaced,
+        }
+
     res = GenerationResult(
         plan=plan,
         attempts=attempts,
@@ -144,6 +175,7 @@ def generate(plan: StoryPlan, log: bool = True, budget_s: float | None = None) -
         first_pass_violations=len(attempts[0].violations),
         final_violation_count=len(final.violations),
         total_latency_ms=int((time.perf_counter() - t0) * 1000),
+        safety=safety_info,
     )
     if log:
         LOG.parent.mkdir(exist_ok=True)

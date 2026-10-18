@@ -63,3 +63,4 @@ class GenerationResult(BaseModel):
     first_pass_violations: int
     final_violation_count: int
     total_latency_ms: int
+    safety: dict = {}  # {"safe", "stage", "reason", "ms", "replaced"}
