@@ -93,8 +93,10 @@ def picture(language: str, noun: str) -> tuple[bytes, str]:
             lambda: genai_client("image").models.generate_content(
                 model=settings().image_model,
                 contents=(
-                    f'One simple picture of the {lang_name} word "{noun}" for a young child learning to read: '
-                    f"a single object, centred, plain background, nothing else.\n\n{STYLE}"
+                    f"Draw the thing that the {lang_name} word {noun} names, for a young child: one single "
+                    "object or animal, centred, plain background, nothing else. The picture must contain NO "
+                    "writing at all: no words, no letters, no labels, no captions (the child is learning to "
+                    f"read the word, so the picture must not show it).\n\n{STYLE}"
                 ),
                 config=types.GenerateContentConfig(
                     response_modalities=["IMAGE"], image_config=types.ImageConfig(aspect_ratio="1:1")

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
+import { RiverCrossing } from '../components/RiverCrossing'
 import { UnitChip } from '../components/UnitChip'
 
 type Diagnostic = components['schemas']['DiagnosticOut']
@@ -118,17 +119,7 @@ export function DiagnosticScreen({ learnerId, lang, onDone }: { learnerId: strin
           <p className={`m-0 mb-3 ${story} text-child-label font-semibold`}>
             {isNe ? `${guide.ne}लाई खोला तार्न मद्दत गर!` : `Help the ${guide.en} cross the river!`}
           </p>
-          {/* the river: one stone per round, the guide stands on the current one */}
-          <div aria-label={`Round ${stone + 1} of ${stones}`} className="mb-6 flex items-end gap-2 rounded-2xl bg-primary-soft px-3 py-2">
-            {Array.from({ length: stones }, (_, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                <div className="size-12">
-                  {i === stone && <img src={pictureUrl} alt="" className="size-12 rounded-full object-cover" />}
-                </div>
-                <div className={`h-3 w-full rounded-full ${i < stone ? 'bg-correct' : i === stone ? 'bg-primary' : 'bg-line-strong'}`} />
-              </div>
-            ))}
-          </div>
+          <RiverCrossing stones={stones} current={stone} pictureUrl={pictureUrl} label={`Round ${stone + 1} of ${stones}`} />
         </>
       )}
 
@@ -183,7 +174,7 @@ export function DiagnosticScreen({ learnerId, lang, onDone }: { learnerId: strin
 
       {result && (
         <section className="flex flex-1 flex-col items-start gap-6">
-          <img src={pictureUrl} alt="" className="size-28 rounded-full object-cover" />
+          <RiverCrossing stones={stones} current={stones - 1} done pictureUrl={pictureUrl} label="Crossed the river" />
           <h1 className={`m-0 ${story} text-child-title font-bold`}>
             {isNe ? `${guide.ne} पारि पुग्यो! राम्रो!` : `The ${guide.en} crossed the river! Well done!`}
           </h1>

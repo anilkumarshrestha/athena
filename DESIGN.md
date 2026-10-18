@@ -6,11 +6,11 @@ needs something not defined here, add it here first, then use it.
 Two surfaces, one token set:
 
 - **Child surface** — story, read-aloud, feedback. A picture book. Big type,
-  almost no chrome, warm paper.
+  almost no chrome, bright sky paper, playful colors.
 - **Adult surface** — teacher grid, verifier log, eval charts, printable pack.
   A calm instrument panel. Dense, precise, quiet.
 
-Both sit on the same warm paper background and share all semantic colors. They
+Both sit on the same light sky background and share all semantic colors. They
 differ in type size, density and font.
 
 Light mode only. Classroom tablets in daylight; the printable pack is paper.
@@ -22,8 +22,10 @@ No dark theme for the demo.
 
 1. **Content is the hero.** The story and its illustration own the child
    screen. UI chrome is a guest.
-2. **Meaning before decoration.** Every color means something (outcome,
-   mastery state, interactive). Nothing is colored for vibes.
+2. **Meaning before decoration, except the child accents.** Outcome, mastery
+   and interactive colors always mean something. On the child surface only,
+   four accents (`sun` yellow, `coral` red, `leaf` green, `sky` blue) may
+   decorate avatars, tiles and button edges. They never carry state.
 3. **Never color alone.** Every semantic state also differs by shape, fill or
    line style, so it survives colorblindness and black-and-white printing.
 4. **Devanagari is first-class.** Every font choice must render conjuncts
@@ -35,35 +37,49 @@ No dark theme for the demo.
 
 ## 2. Color
 
-All values are WCAG-checked against `paper` (#FBF7F0). Ratios in brackets.
+All values are WCAG-checked against `paper` (#EAF6FF). Ratios in brackets.
 
-### Neutrals (warm)
+### Neutrals (cool sky)
 
 | Token | Hex | Use |
 |---|---|---|
-| `paper` | `#FBF7F0` | Page background, both surfaces |
-| `paper-sunken` | `#F4EEE3` | Wells, table header rows, code/log background |
-| `card` | `#FFFDF9` | Raised surfaces: story card, panels |
-| `line` | `#E6DDCD` | Default 1px borders, dividers |
-| `line-strong` | `#C9BCA6` | Input borders, unseen-unit outlines, focus-adjacent |
-| `ink` | `#1F1B16` | Primary text, story text (16.0:1) |
-| `ink-2` | `#4A4339` | Secondary text, labels (9.1:1) |
-| `ink-3` | `#6E6558` | Tertiary text, captions, axis labels (5.4:1) |
-| `ink-4` | `#A69C8E` | Disabled, placeholder, decorative only — **never body text** (2.5:1) |
+| `paper` | `#EAF6FF` | Page background, both surfaces |
+| `paper-sunken` | `#D9EDFB` | Wells, table header rows, code/log background |
+| `card` | `#FFFFFF` | Raised surfaces: story card, panels |
+| `line` | `#CFE3F2` | Default 1px borders, dividers |
+| `line-strong` | `#8FB4D0` | Input borders, unseen-unit outlines, focus-adjacent |
+| `ink` | `#1E2A4A` | Primary text, story text (13:1) |
+| `ink-2` | `#3A4A6B` | Secondary text, labels (8:1) |
+| `ink-3` | `#55658A` | Tertiary text, captions, axis labels (5:1) |
+| `ink-4` | `#9AA8C2` | Disabled, placeholder, decorative only — **never body text** (2.5:1) |
 
-Never use pure black `#000` or pure white `#FFF` as a surface or text color.
+Never use pure black `#000` as a text color. `card` is white `#FFFFFF`.
 
 ### Interactive
 
 | Token | Hex | Use |
 |---|---|---|
-| `primary` | `#1E4FB5` | Buttons, links, focus ring, selected state (6.9:1). Derived from Nepal flag blue |
-| `primary-hover` | `#173F92` | Hover / pressed |
-| `primary-soft` | `#E6EDFA` | Selected row, active tab background |
-| `on-primary` | `#FFFDF9` | Text on primary (7.4:1) |
+| `primary` | `#1D6FE8` | Buttons, links, focus ring, selected state (4.6:1) |
+| `primary-hover` | `#1558BD` | Hover / pressed |
+| `primary-soft` | `#D9E8FF` | Selected row, active tab background |
+| `on-primary` | `#FFFFFF` | Text on primary |
 
 `primary` is **only** for things you can press or things that are selected.
 It is never used for headings, illustrations or decoration.
+
+### Child accents (child surface decoration only)
+
+| Token | Fill | Edge (3D bottom border) | Soft |
+|---|---|---|---|
+| `sun` | `#FFC800` | `#D19F00` | `#FFF3BF` |
+| `coral` | `#FF5A5F` | `#D13B40` | `#FFE3E3` |
+| `leaf` | `#3DBB4F` | `#2A9239` | `#DDF6E0` |
+| `sky` | `#38A8FF` | `#1C86D6` | `#D6EEFF` |
+
+Text on `sun` uses `on-sun` `#4A3600`; text on the others is `ink` or `soft`
+backgrounds. Chunky buttons: fill + `border-b-4` in the edge color; pressed =
+`translate-y-1` and `border-b-0`. Cycle accents across learner tiles by index.
+Never use an accent to signal state.
 
 ### Brand
 
@@ -78,11 +94,11 @@ Each also has a **shape**, which is mandatory.
 
 | Outcome | Ink | Soft | Shape (mandatory) |
 |---|---|---|---|
-| `correct` | `#1F7A3E` | `#E2F1E6` | Solid 3px underline |
-| `substituted` | `#9A5B00` | `#FBEED6` | Wavy 2px underline |
-| `omitted` | `#B3360B` | `#FBE5DA` | Dashed 2px outline around word, word text at `ink-3` |
-| `self_corrected` | `#0B6E7A` | `#DDF0F2` | Solid underline + small filled dot above word end |
-| `inserted` | `#6B4FA0` | `#EEE8F7` | Caret marker `‸` between words; extra word shown on tap only |
+| `correct` | `#268A3B` | `#DDF6E0` | Solid 3px underline |
+| `substituted` | `#996300` | `#FFF1B8` | Wavy 2px underline |
+| `omitted` | `#C62828` | `#FFE1E1` | Dashed 2px outline around word, word text at `ink-3` |
+| `self_corrected` | `#0A7F8F` | `#D6F3F7` | Solid underline + small filled dot above word end |
+| `inserted` | `#7041D0` | `#ECE4FB` | Caret marker `‸` between words; extra word shown on tap only |
 | `pending` | `ink-4` | none | No underline. Default before reading |
 
 All ink colors pass 4.5:1 on both `paper` and their own soft background.
@@ -91,8 +107,8 @@ All ink colors pass 4.5:1 on both `paper` and their own soft background.
 
 | State | Fill | Border | Glyph color |
 |---|---|---|---|
-| `mastered` | `correct` ink `#1F7A3E` | same | `on-primary` |
-| `practicing` | `substituted` soft `#FBEED6`, bottom half filled with `#9A5B00` at 25% | 2px `#9A5B00` | `ink` |
+| `mastered` | `correct` ink `#268A3B` | same | `on-primary` |
+| `practicing` | `substituted` soft `#FFF1B8`, bottom half filled with `#996300` at 25% | 2px `#996300` | `ink` |
 | `unseen` | transparent | 2px dashed `line-strong` | `ink-3` |
 | `excluded` (demo: deliberately removed) | `paper-sunken` | 2px `line` | `ink-4`, strikethrough |
 
@@ -101,8 +117,8 @@ story and the grid. That lets the demo say "every word uses only green units".
 
 ### Data visualization (eval charts)
 
-- Nepali series: `primary` `#1E4FB5`
-- English series: `#9A5B00` (amber ink)
+- Nepali series: `primary` `#1D6FE8`
+- English series: `#996300` (amber ink)
 - Target / threshold lines: `ink-3`, 1px dashed
 - Gridlines: `line`. Axis text: `ink-3`, Plex Sans 12px
 - Never more than 2 series colors on one chart. Label series directly, no legend box when avoidable.
@@ -175,13 +191,14 @@ Max weight is 600 (Baloo `700` allowed only for the child title). No letter-spac
 | `radius-sm` | 4px | UnitChip in dense grids, badges, inputs |
 | `radius-md` | 8px | **Default** for adult: cards, buttons, panels, popovers |
 | `radius-lg` | 16px | Child surface only: story card, child buttons, illustration frame |
+| `radius-xl` | 28px | Child surface only: learner tiles, big chunky buttons |
 | `radius-full` | 9999px | Record button, avatar |
 
 **Elevation.** Depth comes from borders and surface steps (`paper` → `card`), not shadows.
 - Level 0: `paper`, no border
 - Level 1: `card` + 1px `line` border. No shadow. (Most things.)
 - Level 2: floating only (popover, dialog, toast): `card` + 1px `line` +
-  `box-shadow: 0 1px 2px rgb(31 27 22 / .06), 0 8px 24px rgb(31 27 22 / .08)`
+  `box-shadow: 0 1px 2px rgb(30 42 74 / .06), 0 8px 24px rgb(30 42 74 / .10)`
 
 **Focus:** `outline: 2px solid var(--primary); outline-offset: 2px`. Always visible on keyboard focus.
 
@@ -206,32 +223,47 @@ no raw hex, no arbitrary values like `p-[13px]`.
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #FBF7F0;
-  --color-paper-sunken: #F4EEE3;
-  --color-card: #FFFDF9;
-  --color-line: #E6DDCD;
-  --color-line-strong: #C9BCA6;
-  --color-ink: #1F1B16;
-  --color-ink-2: #4A4339;
-  --color-ink-3: #6E6558;
-  --color-ink-4: #A69C8E;
+  --color-paper: #EAF6FF;
+  --color-paper-sunken: #D9EDFB;
+  --color-card: #FFFFFF;
+  --color-line: #CFE3F2;
+  --color-line-strong: #8FB4D0;
+  --color-ink: #1E2A4A;
+  --color-ink-2: #3A4A6B;
+  --color-ink-3: #55658A;
+  --color-ink-4: #9AA8C2;
 
-  --color-primary: #1E4FB5;
-  --color-primary-hover: #173F92;
-  --color-primary-soft: #E6EDFA;
-  --color-on-primary: #FFFDF9;
+  --color-primary: #1D6FE8;
+  --color-primary-hover: #1558BD;
+  --color-primary-soft: #D9E8FF;
+  --color-on-primary: #FFFFFF;
   --color-crimson: #C8102E;
 
-  --color-correct: #1F7A3E;
-  --color-correct-soft: #E2F1E6;
-  --color-substituted: #9A5B00;
-  --color-substituted-soft: #FBEED6;
-  --color-omitted: #B3360B;
-  --color-omitted-soft: #FBE5DA;
-  --color-selfcorrected: #0B6E7A;
-  --color-selfcorrected-soft: #DDF0F2;
-  --color-inserted: #6B4FA0;
-  --color-inserted-soft: #EEE8F7;
+  /* Child accents: decoration on the child surface (avatars, tiles, button edges). Meaning-free. */
+  --color-sun: #FFC800;
+  --color-sun-edge: #D19F00;
+  --color-sun-soft: #FFF3BF;
+  --color-coral: #FF5A5F;
+  --color-coral-edge: #D13B40;
+  --color-coral-soft: #FFE3E3;
+  --color-leaf: #3DBB4F;
+  --color-leaf-edge: #2A9239;
+  --color-leaf-soft: #DDF6E0;
+  --color-sky: #38A8FF;
+  --color-sky-edge: #1C86D6;
+  --color-sky-soft: #D6EEFF;
+  --color-on-sun: #4A3600;
+
+  --color-correct: #268A3B;
+  --color-correct-soft: #DDF6E0;
+  --color-substituted: #996300;
+  --color-substituted-soft: #FFF1B8;
+  --color-omitted: #C62828;
+  --color-omitted-soft: #FFE1E1;
+  --color-selfcorrected: #0A7F8F;
+  --color-selfcorrected-soft: #D6F3F7;
+  --color-inserted: #7041D0;
+  --color-inserted-soft: #ECE4FB;
 
   --font-story-ne: "Baloo 2", "IBM Plex Sans Devanagari", sans-serif;
   --font-story-en: "Andika", "IBM Plex Sans", sans-serif;
@@ -240,9 +272,10 @@ no raw hex, no arbitrary values like `p-[13px]`.
 
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 
-  --shadow-float: 0 1px 2px rgb(31 27 22 / .06), 0 8px 24px rgb(31 27 22 / .08);
+  --shadow-float: 0 1px 2px rgb(30 42 74 / .06), 0 8px 24px rgb(30 42 74 / .10);
 
   --ease-out: cubic-bezier(.2, .8, .2, 1);
 
@@ -364,6 +397,19 @@ The child's page.
 - Bottom bar: one **record button** (96px circle, `primary`, mic icon, `radius-full`) centered, with "Next" (`child-label`) on the right only after reading. Nothing else.
 - Language badge top-left (`ने` / `EN`, `caption`, `paper-sunken` pill).
 
+### 6.6 `RiverCrossing`
+
+Progress for the card check (placement game): the child's favourite animal crosses a river.
+
+- Inline SVG, full width, 16:5. Near bank left, far bank right: `leaf-soft` with `leaf` grass tufts.
+  Water between: `sky-soft` with 2–3 `sky` wave lines.
+- One stepping stone per round, evenly spaced. **Shape + colour** per state: passed = `leaf` stone
+  with a white ✓; current = `sun` stone, slightly larger; ahead = `card` stone with `line-strong` edge.
+- The animal (its cached word picture, round, white ring) stands on the current stone and hops to
+  the next with a 400 ms ease-out arc. On the far bank at the end, with a `sun` flag.
+- Reduced motion: no hop, it just appears on the new stone.
+- Accessible: `role="img"` with "Round 3 of 6" label.
+
 ---
 
 ## 7. Screens (composition only)
@@ -391,10 +437,9 @@ No emoji in UI. The only non-lucide glyphs allowed are ✓ ✗ ↑ ↓ ↺ ‸ �
 
 **Illustrations:** generated, and must look like they belong to the UI. Append this to every illustrator prompt:
 
-> Simple flat vector children's book illustration. Warm off-white background
-> #FBF7F0. Limited palette: deep blue #1E4FB5, leaf green #1F7A3E, ochre
-> #9A5B00, terracotta #B3360B, teal #0B6E7A, warm dark brown #1F1B16 for
-> outlines. Soft rounded shapes, no gradients, no text, no letters. Animals or
+> Simple flat vector children's book illustration. Light sky background
+> #EAF6FF. Bright palette: sky blue #38A8FF, leaf green #3DBB4F, sunny yellow
+> #FFC800, coral red #FF5A5F, deep navy #1E2A4A for outlines. Soft rounded shapes, no gradients, no text, no letters. Animals or
 > objects as main characters; any people shown small, simple, no detailed faces.
 > Not photorealistic. Setting: rural or small-town Nepal.
 
