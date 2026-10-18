@@ -401,6 +401,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learners/{learner_id}/choices/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Story Choices
+         * @description Three stories the child can pick from, all readable for them. The prepared next story
+         *     (if any) is always one of them. Empty in letter mode.
+         */
+        get: operations["story_choices_api_learners__learner_id__choices__language__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stories/{story_id}/words/{index}": {
         parameters: {
             query?: never;
@@ -592,6 +613,19 @@ export interface components {
             before: string;
             /** After */
             after: string;
+        };
+        /** ChoiceOut */
+        ChoiceOut: {
+            /** Theme */
+            theme: string;
+            /** Label Ne */
+            label_ne: string;
+            /** Label En */
+            label_en: string;
+            /** Picture Url */
+            picture_url: string;
+            /** Ready */
+            ready: boolean;
         };
         /** CloseOut */
         CloseOut: {
@@ -1812,6 +1846,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    story_choices_api_learners__learner_id__choices__language__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+                language: "ne" | "en";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChoiceOut"][];
                 };
             };
             /** @description Validation Error */

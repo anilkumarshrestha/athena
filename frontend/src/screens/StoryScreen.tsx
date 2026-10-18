@@ -1,9 +1,11 @@
 import { ArrowLeft, ArrowRight, Moon, Square, Volume2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { components } from '../api-types'
 import { api, type CloseResult, type Language, type ReadResult, type Story } from '../api'
 import { ReadingLog } from '../components/ReadingLog'
 import { LetterPractice } from '../components/LetterPractice'
 import { ReteachPanel } from '../components/ReteachPanel'
+import { StoryChoice } from '../components/StoryChoice'
 import { RecordButton, StoryCard } from '../components/StoryCard'
 import { VerifierLog } from '../components/VerifierLog'
 import { UnitChip } from '../components/UnitChip'
@@ -35,8 +37,11 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
   const narration = useNarration(story?.id || undefined)
   const reqId = useRef(0)
 
-  const load = useCallback(() => {
+  const [choices, setChoices] = useState<components['schemas']['ChoiceOut'][] | null>(null)
+
+  const load = useCallback((theme?: string) => {
     const id = ++reqId.current
+    setChoices(null)
     setStory(null)
     setReading(null)
     setClosed(null)
@@ -45,12 +50,27 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
     setFixed(new Set())
     setError(null)
     api
-      .startSession(learnerId, lang)
+      .startSession(learnerId, lang, theme)
       .then((s) => id === reqId.current && setStory(s))
       .catch((e) => id === reqId.current && setError(String(e.message ?? e)))
   }, [learnerId, lang])
 
-  useEffect(load, [load])
+  // Before each story: let the child pick from 3 readable stories (letter mode: none, go straight on).
+  const choose = useCallback(() => {
+    const id = ++reqId.current
+    setStory(null)
+    setReading(null)
+    setClosed(null)
+    setHelpWord(null)
+    setPraise(null)
+    setError(null)
+    api
+      .choices(learnerId, lang)
+      .then((c) => id === reqId.current && (c.length ? setChoices(c) : load()))
+      .catch(() => id === reqId.current && load())
+  }, [learnerId, lang, load])
+
+  useEffect(choose, [choose])
 
   // Image is generated in parallel; poll until it lands.
   useEffect(() => {
@@ -125,10 +145,12 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
         </section>
       ) : error ? (
         <p className="rounded-lg border border-line bg-card p-8 text-child-label text-omitted">{error}</p>
+      ) : choices ? (
+        <StoryChoice lang={lang} choices={choices} onPick={(theme) => load(theme)} />
       ) : story?.outcome === 'letters' ? (
         closed ? (
           <div className="flex justify-center">
-            <button type="button" onClick={load} className="flex min-h-16 items-center gap-2 rounded-xl border-2 border-b-4 border-primary-hover bg-primary px-8 text-child-label font-bold text-on-primary">
+            <button type="button" onClick={choose} className="flex min-h-16 items-center gap-2 rounded-xl border-2 border-b-4 border-primary-hover bg-primary px-8 text-child-label font-bold text-on-primary">
               {lang === 'ne' ? 'अर्को' : 'Next'} <ArrowRight size={28} />
             </button>
           </div>
@@ -204,7 +226,7 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
               {story && recorder.state !== 'recording' && !checking ? (
                 <button
                   type="button"
-                  onClick={load}
+                  onClick={choose}
                   className="flex min-h-16 items-center gap-1 justify-self-end rounded-lg px-2 text-child-label font-semibold text-primary transition-colors duration-150 hover:bg-primary-soft"
                 >
                   {lang === 'ne' ? 'अर्को' : 'Next'}

@@ -75,12 +75,14 @@ export const api = {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body),
     }).then(json<Learner>),
-  startSession: (learner_id: string, language: Language) =>
+  startSession: (learner_id: string, language: Language, theme?: string) =>
     fetch('/api/session/start', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ learner_id, language }),
+      body: JSON.stringify({ learner_id, language, theme: theme ?? null }),
     }).then(json<Story>),
+  choices: (learnerId: string, lang: Language) =>
+    fetch(`/api/learners/${learnerId}/choices/${lang}`).then(json<components['schemas']['ChoiceOut'][]>),
   story: (id: string) => fetch(`/api/stories/${id}`).then(json<Story>),
   closeSession: (story_id: string) =>
     fetch('/api/session/close', {

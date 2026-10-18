@@ -39,6 +39,45 @@ THEMES = [
 ]
 _BY_TEXT = {t.text: t for t in THEMES}
 
+# For the "pick your story" tiles: (Nepali label, English label, picture noun). The child picks
+# by picture; labels are for the adult. Picture nouns are concrete nouns (no people drawn).
+THEME_TILES: dict[str, tuple[str, str, str]] = {
+    "helping mother cook dal bhat in the kitchen": ("दाल भात पकाउने", "Cooking dal bhat", "भात"),
+    "a goat that wanders off in the village": ("हराएको खसी", "The lost goat", "खसी"),
+    "flying a kite on the rooftop during Dashain": ("चङ्गा उडाउने", "Flying a kite", "चङ्गा"),
+    "a rainy day walk to school": ("पानी पर्दा स्कुल", "Rainy walk to school", "पानी"),
+    "feeding the hens in the morning": ("कुखुरालाई दाना", "Feeding the hens", "कुखुरा"),
+    "a picnic by the river with family": ("खोला किनारमा", "Picnic by the river", "खोला"),
+    "grandmother telling a story in the evening": ("हजुरआमाको कथा", "Grandma's story", "घर"),
+    "planting maize in the field": ("मकै रोप्ने", "Planting maize", "मकै"),
+    "a cat and a dog who become friends": ("बिरालो र कुकुर", "Cat and dog", "बिरालो"),
+    "going to the market with father": ("बुबासँग बजार", "Market with dad", "बजार"),
+    "seeing the mountains on a clear morning": ("हिमाल हेर्ने", "Seeing the mountains", "हिमाल"),
+    "a little bird building a nest": ("चराको गुँड", "A bird's nest", "चरा"),
+}
+
+
+def tile_for(theme: Theme) -> tuple[str, str, str]:
+    """(ne label, en label, picture noun) for a theme, personal ones included."""
+    if theme.text in THEME_TILES:
+        return THEME_TILES[theme.text]
+    noun = theme.ne[0][0] if theme.ne and theme.ne[0] else "घर"
+    if theme.text.startswith("eating "):  # favourite food: "eating dal bhat with family"
+        en = theme.text.removeprefix("eating ").removesuffix(" with family")
+        return (f"{noun} खाने", f"Eating {en}", noun)
+    if "the child's " in theme.text:  # favourite animal: "a day with the child's goat"
+        return (f"मेरो {noun}", f"My {theme.text.split('the child' + chr(39) + 's ')[-1]}", noun)
+    return (theme.text, theme.text, noun)
+
+
+def readable_themes(language: Language, mastery: frozenset[str], personal: list[Theme] | None = None) -> list[Theme]:
+    return [t for t in [*(personal or []), *THEMES] if _resolve(t, language, mastery)[0]]
+
+
+def base_theme(theme_text: str) -> str:
+    """Theme without the ", in <setting>" suffix the planner adds."""
+    return theme_text.split(", in ")[0]
+
 WORD_BANK_MAX = 150
 PERSONAL_SHARE = 0.6
 
@@ -74,8 +113,8 @@ def plan(
     setting: where the child lives, e.g. "a hill village in Nepal" (story + picture)."""
     rng = random.Random(seed)
 
-    if theme:  # explicit theme: honour it, resolve key words if we know it
-        chosen = _BY_TEXT.get(theme, Theme(theme))
+    if theme:  # explicit theme (e.g. the child picked it): honour it, personal ones included
+        chosen = next((t for t in [*(personal or []), *THEMES] if t.text == theme), None) or _BY_TEXT.get(theme, Theme(theme))
     else:
         mine = [t for t in personal or [] if _resolve(t, language, mastery)[0]]
         readable = [t for t in THEMES if _resolve(t, language, mastery)[0]]

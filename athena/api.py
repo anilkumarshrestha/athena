@@ -402,8 +402,9 @@ def start_session(req: StartRequest) -> StoryOut:
             outcome="letters", units_used=[], attempts=[], total_latency_ms=0, image_status="failed",
             image_url=None, image_latency_ms=None, display=[], letters=letter_cards(req.language, units),
         )
-    # Prepared while the child looked at their last result (see _prefetch_next)?
-    if req.theme is None and (ready := _take_prefetched(learner, req.language)):
+    # Prepared while the child looked at their last result (see _prefetch_next)? Used when the
+    # child did not pick a theme, or picked the prepared one.
+    if (ready := _take_prefetched(learner, req.language, req.theme)):
         result, image_future = ready
     else:
         result, image_future = _compose(learner, req.language, req.theme)
@@ -503,10 +504,17 @@ def _prefetch_next(learner: Learner, language: Language) -> None:
         _prefetch[key] = (time.time(), _pool.submit(_compose, learner, language))
 
 
-def _take_prefetched(learner: Learner, language: Language):
+def _take_prefetched(learner: Learner, language: Language, theme: str | None = None):
     """The prepared story, if still valid for the child RIGHT NOW. The verifier re-checks it
     against current units and level: anything that changed since means compose afresh."""
+    from athena.agents.planner import base_theme
+
     with _prefetch_lock:
+        entry = _prefetch.get((learner.id, language))
+        if entry and theme is not None:
+            fut0 = entry[1]
+            if not fut0.done() or fut0.exception() or base_theme(fut0.result()[0].plan.theme) != theme:
+                return None  # child picked another story: keep the prepared one for later
         entry = _prefetch.pop((learner.id, language), None)
     if not entry:
         return None
@@ -990,6 +998,51 @@ def narration_audio(key: str) -> Response:
     if not path:
         raise HTTPException(404, "not found")
     return Response(path.read_bytes(), media_type="audio/wav", headers={"Cache-Control": "public, max-age=604800, immutable"})
+
+
+class ChoiceOut(BaseModel):
+    theme: str
+    label_ne: str
+    label_en: str
+    picture_url: str
+    ready: bool  # the prepared next story: picking it is instant
+
+
+@app.get("/api/learners/{learner_id}/choices/{language}", response_model=list[ChoiceOut])
+def story_choices(learner_id: str, language: Language) -> list[ChoiceOut]:
+    """Three stories the child can pick from, all readable for them. The prepared next story
+    (if any) is always one of them. Empty in letter mode."""
+    import random as _random
+
+    from athena.agents.planner import base_theme, readable_themes, tile_for
+    from athena.letters import MIN_STORY_WORDS
+    from athena.lexicon import decodable_words
+
+    learner = store.get_learner(learner_id)
+    if not learner:
+        raise HTTPException(404, "learner not found")
+    units = allowed(learner.units[language])
+    if len(decodable_words(language, units)) < MIN_STORY_WORDS:
+        return []
+    personal = personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food"))
+    themes = readable_themes(language, units, personal)
+    ready_text = None
+    entry = _prefetch.get((learner.id, language))
+    if entry and entry[1].done() and not entry[1].exception():
+        ready_text = base_theme(entry[1].result()[0].plan.theme)
+    first = [t for t in themes if t.text == ready_text]
+    rest = [t for t in themes if t.text != ready_text]
+    rng = _random.Random()
+    personal_rest = [t for t in rest if t in personal]
+    others = [t for t in rest if t not in personal]
+    rng.shuffle(personal_rest)
+    rng.shuffle(others)
+    picked = (first + personal_rest[:1] + others)[:3]  # ready one, a favourite, then variety
+    out = []
+    for t in picked:
+        ne, en, noun = tile_for(t)
+        out.append(ChoiceOut(theme=t.text, label_ne=ne, label_en=en, picture_url=f"/api/pictures/ne/{noun}", ready=t.text == ready_text))
+    return out
 
 
 class PartOut(BaseModel):
