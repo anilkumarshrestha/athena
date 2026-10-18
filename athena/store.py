@@ -171,6 +171,8 @@ def new_learner(name_ne: str, name_en: str, profile: dict[str, str], start: str)
     from athena.profile import STARTS  # lazy: profile imports the planner
 
     ne_preset, en_preset, level = STARTS[start]
+    if profile.get("age") in ("4", "5"):
+        level = 1  # youngest readers start with the shortest stories (the card check refines units)
     units = {
         lang: {sig: UnitState("mastered", streak=3, seen=3) for sig in preset(p)[1]}
         for lang, p in (("ne", ne_preset), ("en", en_preset))

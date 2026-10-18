@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Language } from './api'
+import { api, type Language } from './api'
 import { AddLearner } from './screens/AddLearner'
 import { DiagnosticScreen } from './screens/DiagnosticScreen'
 import { LearnerPick } from './screens/LearnerPick'
@@ -54,15 +54,25 @@ export default function App() {
 
   if (route.name === 'styleguide') return <Styleguide />
   if (route.name === 'new')
-    return <AddLearner onDone={(id) => (location.hash = `#/check/${id}/ne`)} onBack={() => (location.hash = '#/')} />
+    return (
+      <AddLearner
+        onDone={(id, langs) => (location.hash = `#/check/${id}/${langs === 'en' ? 'en' : 'ne'}`)}
+        onBack={() => (location.hash = '#/')}
+      />
+    )
   if (route.name === 'check')
     return (
       <DiagnosticScreen
         key={`${route.learnerId}/${route.lang}`}
         learnerId={route.learnerId}
         lang={route.lang}
-        // Nepali first, then English, then the learner list
-        onDone={() => (location.hash = route.lang === 'ne' ? `#/check/${route.learnerId}/en` : '#/')}
+        // Nepali first, then English (if the child learns both), then the learner list
+        onDone={() =>
+          api
+            .learner(route.learnerId)
+            .then((l) => (location.hash = route.lang === 'ne' && (l.profile.languages ?? 'both') !== 'ne' ? `#/check/${route.learnerId}/en` : '#/'))
+            .catch(() => (location.hash = '#/'))
+        }
       />
     )
   if (route.name === 'review')

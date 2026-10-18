@@ -17,6 +17,11 @@ const ACCENTS = [
 ] as const
 const CHUNKY = 'min-h-16 flex-1 rounded-xl border-b-4 text-child-label font-bold transition-transform duration-150 active:translate-y-1 active:border-b-0'
 
+const BUDDY_NE: Record<string, string> = { cat: 'बिरालो', dog: 'कुकुर', goat: 'बाख्रा', bird: 'चरा', rabbit: 'खरायो' }
+const buddyNe = (l: Learner) => BUDDY_NE[l.profile.buddy ?? 'cat'] ?? 'बिरालो'
+const goalOf = (l: Learner) => Number(l.profile.daily_goal ?? 10)
+const learns = (l: Learner, lang: 'ne' | 'en') => (l.profile.languages ?? 'both') === 'both' || l.profile.languages === lang
+
 export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Language) => void }) {
   const [learners, setLearners] = useState<Learner[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -57,33 +62,44 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
           return (
           <div key={l.id} className={`rounded-xl border-2 p-6 ${a.tile}`}>
             <div className="mb-6 flex items-center gap-4">
-              <div className={`flex size-30 shrink-0 items-center justify-center rounded-full font-story-ne text-story-xl ${a.avatar}`}>
+              <div className={`relative flex size-30 shrink-0 items-center justify-center rounded-full font-story-ne text-story-xl ${a.avatar}`}>
                 {initial(l.name.ne)}
+                {/* the reading buddy chosen in onboarding */}
+                <img src={`/api/pictures/ne/${buddyNe(l)}`} alt="" className="absolute -bottom-1 -right-1 size-12 rounded-full border-4 border-card object-cover" />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="font-story-ne text-child-title font-bold">{l.name.ne}</div>
                 <div className="font-story-en text-child-label text-ink-2">{l.name.en}</div>
+                {/* today's goal: minutes so far / goal, as a bar + numbers (not colour alone) */}
+                <div className="mt-2 flex items-center gap-2" aria-label="Today's reading goal">
+                  <div className="h-3 flex-1 overflow-hidden rounded-full bg-line">
+                    <div className="h-full rounded-full bg-leaf" style={{ width: `${Math.min(100, (l.used_today / goalOf(l)) * 100)}%` }} />
+                  </div>
+                  <span className="font-mono text-caption tabular-nums text-ink-2">
+                    {l.used_today >= goalOf(l) ? '✓ ' : ''}{Math.min(l.used_today, goalOf(l))}/{goalOf(l)} min
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex gap-3">
-              <button
+              {learns(l, 'ne') && <button
                 type="button"
                 onClick={() => onPick(l.id, 'ne')}
                 className={`${CHUNKY} font-story-ne ${a.btn}`}
               >
                 नेपाली
-              </button>
-              <button
+              </button>}
+              {learns(l, 'en') && <button
                 type="button"
                 onClick={() => onPick(l.id, 'en')}
                 className={`${CHUNKY} font-story-en ${a.btn}`}
               >
                 English
-              </button>
+              </button>}
             </div>
             {l.controls.maths !== false && (
             <div className="mt-3 flex gap-3">
-              {(['ne', 'en'] as const).map((ml) => (
+              {(['ne', 'en'] as const).filter((ml) => learns(l, ml)).map((ml) => (
                 <a
                   key={ml}
                   href={`#/maths/${l.id}/${ml}`}
@@ -96,14 +112,14 @@ export function LearnerPick({ onPick }: { onPick: (learnerId: string, lang: Lang
             )}
             {l.controls.teach !== false && (
             <div className="mt-3 flex gap-3">
-              {(['ne', 'en'] as const).map((ml) => (
+              {(['ne', 'en'] as const).filter((ml) => learns(l, ml)).map((ml) => (
                 <a
                   key={ml}
                   href={`#/teach/${l.id}/${ml}`}
                   className={`flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-b-4 border-sun-edge bg-sun-soft ${ml === 'ne' ? 'font-story-ne' : 'font-story-en'} text-small font-bold text-ink transition-transform duration-150 active:translate-y-1`}
                 >
-                  <img src="/api/pictures/ne/बिरालो" alt="" className="size-8 rounded-full object-cover" />
-                  {ml === 'ne' ? 'बिरालोलाई सिकाऊ' : 'Teach the cat'}
+                  <img src={`/api/pictures/ne/${buddyNe(l)}`} alt="" className="size-8 rounded-full object-cover" />
+                  {ml === 'ne' ? `${buddyNe(l)}लाई सिकाऊ` : `Teach the ${l.profile.buddy ?? 'cat'}`}
                 </a>
               ))}
             </div>

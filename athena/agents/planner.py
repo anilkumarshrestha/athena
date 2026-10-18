@@ -39,6 +39,16 @@ THEMES = [
 ]
 _BY_TEXT = {t.text: t for t in THEMES}
 
+# The child's favourite thing to do (onboarding): personal themes, used like favourite animal/food.
+ACTIVITY_THEMES: dict[str, Theme] = {
+    "kite": Theme("flying a kite with friends", ne=[["चङ्गा"]], en=[["kite", "kites"]]),
+    "football": Theme("playing football with friends", ne=[["बल", "फुटबल"]], en=[["ball", "kick"]]),
+    "dancing": Theme("dancing together at a festival", ne=[["नाच", "नाच्न"]], en=[["dance", "hop"]]),
+    "drawing": Theme("drawing a picture", ne=[["चित्र"]], en=[["pen", "pens"]]),
+    "singing": Theme("singing songs with family", ne=[["गीत"]], en=[["song", "sing"]]),
+    "cycling": Theme("riding a bicycle on the path", ne=[["साइकल"]], en=[["bike"]]),
+}
+
 # For the "pick your story" tiles: (Nepali label, English label, picture noun). The child picks
 # by picture; labels are for the adult. Picture nouns are concrete nouns (no people drawn).
 THEME_TILES: dict[str, tuple[str, str, str]] = {
@@ -54,6 +64,12 @@ THEME_TILES: dict[str, tuple[str, str, str]] = {
     "going to the market with father": ("बुबासँग बजार", "Market with dad", "बजार"),
     "seeing the mountains on a clear morning": ("हिमाल हेर्ने", "Seeing the mountains", "हिमाल"),
     "a little bird building a nest": ("चराको गुँड", "A bird's nest", "चरा"),
+    "flying a kite with friends": ("साथीसँग चङ्गा", "Kite with friends", "चङ्गा"),
+    "playing football with friends": ("फुटबल खेल्ने", "Playing football", "बल"),
+    "dancing together at a festival": ("चाडमा नाच", "Dancing at a festival", "घर"),
+    "drawing a picture": ("चित्र बनाउने", "Drawing a picture", "किताब"),
+    "singing songs with family": ("गीत गाउने", "Singing songs", "घर"),
+    "riding a bicycle on the path": ("साइकल चलाउने", "Riding a bike", "बाटो"),
 }
 
 

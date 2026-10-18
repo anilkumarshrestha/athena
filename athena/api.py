@@ -32,7 +32,8 @@ from athena.mastery import Change, UnitState, allowed, apply_session, practice_t
 from athena.progression import MAX_PRACTICING, next_level, next_units, should_introduce
 from athena.models import Language
 from athena.ratelimit import RateLimit
-from athena.profile import SETTINGS, AnimalId, FoodId, GenderId, SettingId, StartId, personal_themes
+from athena.profile import (SETTINGS, ActivityId, AgeId, AnimalId, BuddyId, FoodId, GenderId, GoalId, LanguagesId,
+                            SettingId, StartId, buddy, personal_themes)
 from athena.store import Learner, Story, new_learner, store
 from athena.verifier.nepali import DecomposeError, decompose, normalize
 
@@ -67,6 +68,7 @@ class LearnerOut(BaseModel):
     profile: dict[str, str]
     settings: dict[str, int]
     maths_level: dict[str, int]
+    used_today: int = 0  # minutes today (reading + maths): the daily goal on the card
     controls: dict  # {"maths", "teach", "pictures": bool, "avoid_themes": [theme text]}
 
 
@@ -80,6 +82,12 @@ class LearnerCreate(BaseModel):
     gender: GenderId = "unspecified"
     setting: SettingId
     start: StartId
+    # onboarding (all optional, fixed choices)
+    age: AgeId | None = None
+    languages: LanguagesId = "both"
+    activity: ActivityId | None = None
+    buddy: BuddyId = "cat"
+    daily_goal: GoalId = "10"
 
     @field_validator("name_ne")
     @classmethod
@@ -200,6 +208,7 @@ def learner_out(learner: Learner) -> LearnerOut:
         settings=learner.settings,
         maths_level={lang: st.get("level", 1) for lang, st in learner.maths.items()},
         controls=learner.controls,
+        used_today=_used_today(learner),
     )
 
 
@@ -371,8 +380,16 @@ def create_learner(req: LearnerCreate) -> LearnerOut:
         "favorite_food": req.favorite_food,
         "setting": req.setting,
         "gender": req.gender,
+        "languages": req.languages,
+        "buddy": req.buddy,
+        "daily_goal": req.daily_goal,
     }
+    if req.age:
+        profile["age"] = req.age
+    if req.activity:
+        profile["activity"] = req.activity
     learner = new_learner(req.name_ne, req.name_en.strip(), profile, req.start)
+    learner.avatar = req.buddy  # the reading buddy is the child's picture on the card
     store.put_learner(learner)
     return learner_out(learner)
 
@@ -437,7 +454,8 @@ def _compose(learner: Learner, language: Language, theme: str | None = None, eng
         theme=theme,
         target_units=practice_targets(units)[:3] or None,  # practise what is being learned
         level=learner.level[language],
-        personal=personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food")),
+        personal=personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food"),
+                        learner.profile.get("activity")),
         setting=SETTINGS.get(learner.profile.get("setting", "")),
         child_gender=learner.profile.get("gender", "unspecified"),
         avoid=frozenset(learner.controls.get("avoid_themes", [])),
@@ -1134,7 +1152,8 @@ def story_choices(learner_id: str, language: Language) -> list[ChoiceOut]:
     units = allowed(learner.units[language])
     if len(decodable_words(language, units)) < MIN_STORY_WORDS:
         return []
-    personal = personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food"))
+    personal = personal_themes(learner.profile.get("favorite_animal"), learner.profile.get("favorite_food"),
+                        learner.profile.get("activity"))
     avoid = set(learner.controls.get("avoid_themes", []))
     themes = [t for t in readable_themes(language, units, personal) if t.text not in avoid]
     ready_text = None
@@ -1175,6 +1194,7 @@ class MathsOut(BaseModel):
     choices: list[int]  # answer tiles (the answer is among them; the server keeps which)
     source: str
     cat_answer: int | None = None  # teach the cat: the cat answers first, the child checks it
+    buddy_picture: str | None = None  # who answers first (the child's reading buddy)
 
 
 class MathsAnswer(BaseModel):
@@ -1305,6 +1325,7 @@ def maths_start(req: MathsStart) -> MathsOut:
         id=pid, language=req.language, sentences=prob.sentences, display=display_words(req.language, prob.sentences),
         a=prob.a, b=prob.b, op=prob.op, picture_url=f"/api/pictures/ne/{noun}" if noun else None,
         choices=sorted(choices), source=prob.source, cat_answer=cat,
+        buddy_picture=f"/api/pictures/ne/{buddy(learner.profile)[0]}",
     )
 
 
@@ -1435,7 +1456,9 @@ class TeachOut(BaseModel):
     sentences: list[str]  # the story as written: what the child sees
     display: list[list[DisplayWord]]
     mistakes: int  # how many to find
-    cat_picture: str | None
+    cat_picture: str | None  # the child's reading buddy (a cat unless chosen otherwise)
+    buddy_ne: str = "बिरालो"
+    buddy_en: str = "cat"
 
 
 class TeachTap(BaseModel):
@@ -1511,9 +1534,10 @@ def teach_start(learner_id: str, language: Language) -> TeachOut:
     _teach[tid] = {**event, "learner": learner.id, "found": []}
     from athena.agents.picture import concrete_noun
 
+    b_ne, b_en = buddy(learner.profile)
     return TeachOut(id=tid, language=language, title=story.get("title", ""), sentences=sentences, display=display,
-                    mistakes=len(mistakes),
-                    cat_picture=f"/api/pictures/ne/{n}" if (n := concrete_noun("ne", "बिरालो")) else None)
+                    mistakes=len(mistakes), buddy_ne=b_ne, buddy_en=b_en,
+                    cat_picture=f"/api/pictures/ne/{n}" if (n := concrete_noun("ne", b_ne)) else None)
 
 
 @app.get("/api/teach/{tid}/audio", dependencies=[Depends(narrate_limit)])

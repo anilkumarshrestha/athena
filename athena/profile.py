@@ -14,6 +14,21 @@ FoodId = Literal["dal_bhat", "momo", "roti", "mango", "banana", "milk", "corn", 
 SettingId = Literal["hills", "terai", "mountains", "city"]
 StartId = Literal["beginner", "some", "reads"]
 GenderId = Literal["boy", "girl", "unspecified"]  # Nepali past-tense verbs agree with gender
+AgeId = Literal["4", "5", "6", "7", "8"]  # 8 = 8 or older
+LanguagesId = Literal["ne", "en", "both"]  # what the child is learning to read
+ActivityId = Literal["kite", "football", "dancing", "drawing", "singing", "cycling"]
+BuddyId = Literal["cat", "dog", "goat", "bird", "rabbit"]  # the reading buddy: avatar + "teach the ..."
+GoalId = Literal["5", "10", "15"]  # daily goal in minutes (the child's goal, not the parent's limit)
+
+# buddy -> (Nepali, English): pictured nouns (athena/agents/picture.py)
+BUDDIES: dict[str, tuple[str, str]] = {
+    "cat": ("बिरालो", "cat"), "dog": ("कुकुर", "dog"), "goat": ("बाख्रा", "goat"),
+    "bird": ("चरा", "bird"), "rabbit": ("खरायो", "rabbit"),
+}
+
+
+def buddy(profile: dict) -> tuple[str, str]:
+    return BUDDIES.get(profile.get("buddy", "cat"), BUDDIES["cat"])
 
 # id -> (English for the image/theme, Nepali words most natural first, English story words)
 ANIMALS: dict[str, tuple[str, list[str], list[str]]] = {
@@ -50,9 +65,11 @@ STARTS: dict[str, tuple[str, str, int]] = {
 }
 
 
-def personal_themes(animal: str | None, food: str | None) -> list[Theme]:
+def personal_themes(animal: str | None, food: str | None, activity: str | None = None) -> list[Theme]:
     """Themes built from the child's favourites (the planner keeps only readable ones)."""
-    themes = []
+    from athena.agents.planner import ACTIVITY_THEMES
+
+    themes = [ACTIVITY_THEMES[activity]] if activity in ACTIVITY_THEMES else []
     if animal in ANIMALS:
         en, ne_words, en_words = ANIMALS[animal]
         themes.append(Theme(f"a day with the child's {en}", ne=[ne_words], en=[en_words] if en_words else []))

@@ -1159,6 +1159,28 @@ export interface components {
              * @enum {string}
              */
             start: "beginner" | "some" | "reads";
+            /** Age */
+            age?: ("4" | "5" | "6" | "7" | "8") | null;
+            /**
+             * Languages
+             * @default both
+             * @enum {string}
+             */
+            languages: "ne" | "en" | "both";
+            /** Activity */
+            activity?: ("kite" | "football" | "dancing" | "drawing" | "singing" | "cycling") | null;
+            /**
+             * Buddy
+             * @default cat
+             * @enum {string}
+             */
+            buddy: "cat" | "dog" | "goat" | "bird" | "rabbit";
+            /**
+             * Daily Goal
+             * @default 10
+             * @enum {string}
+             */
+            daily_goal: "5" | "10" | "15";
         };
         /** LearnerOut */
         LearnerOut: {
@@ -1198,6 +1220,11 @@ export interface components {
             maths_level: {
                 [key: string]: number;
             };
+            /**
+             * Used Today
+             * @default 0
+             */
+            used_today: number;
             /** Controls */
             controls: {
                 [key: string]: unknown;
@@ -1267,6 +1294,8 @@ export interface components {
             source: string;
             /** Cat Answer */
             cat_answer?: number | null;
+            /** Buddy Picture */
+            buddy_picture?: string | null;
         };
         /** MathsProblemOut */
         MathsProblemOut: {
@@ -1596,6 +1625,16 @@ export interface components {
             mistakes: number;
             /** Cat Picture */
             cat_picture: string | null;
+            /**
+             * Buddy Ne
+             * @default बिरालो
+             */
+            buddy_ne: string;
+            /**
+             * Buddy En
+             * @default cat
+             */
+            buddy_en: string;
         };
         /** TeachTap */
         TeachTap: {
