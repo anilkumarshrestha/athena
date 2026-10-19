@@ -54,3 +54,23 @@ def take(learner, language: str):
     else:
         image.set_exception(RuntimeError("no shelf picture"))
     return result, image
+
+
+def readable(learner, language: str, verifier, exclude_names: tuple[str, ...] = ("सीता", "राम", "लियो", "Sita", "Ram", "Leo")):
+    """Last resort before a bare word list: any shelf story THIS child can read, checked by the
+    verifier against their own letters. Stories naming another demo child are skipped."""
+    names = set(exclude_names) - set(learner.name.values())
+    for path in sorted(SHELF.glob(f"*_{language}.json")):
+        for item in _load(path.stem.rsplit("_", 1)[0], language):
+            result = GenerationResult.model_validate(item["result"])
+            text = "\n".join([result.title, *result.sentences])
+            if any(n in text for n in names) or not verifier.verify(text).ok:
+                continue
+            image: Future = Future()
+            pic = SHELF / item["image"] if item.get("image") else None
+            if pic and pic.exists():
+                image.set_result((pic.read_bytes(), "image/jpeg", Usage(model="shelf"), 0))
+            else:
+                image.set_exception(RuntimeError("no shelf picture"))
+            return result, image
+    return None

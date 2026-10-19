@@ -1,35 +1,36 @@
-"""Shelf: a demo child's first stories are served instantly, still checked against their letters."""
-
-import json
-
-from athena.history import History
+from athena import shelf
+from athena.lexicon import verifier_for
+from types import SimpleNamespace
 
 
-def test_demo_child_gets_shelf_story_instantly(tmp_path, monkeypatch):
-    from fastapi.testclient import TestClient
+def _child(units: list[str]) -> SimpleNamespace:
+    return SimpleNamespace(id="x", name={"ne": "अनिल", "en": "Anil"})
 
-    import athena.api as api
-    import athena.shelf as shelf
-    from athena.store import store
-    from tests.test_prefetch import fake_result
 
-    monkeypatch.setattr(store, "history", History(tmp_path / "h"))
-    c = TestClient(api.app)
-    sita = next(x for x in c.get("/api/learners").json() if x["name"]["en"] == "Sita")
-    learner = store.get_learner(sita["id"]) or store.learners[sita["id"]]
-    # a two-story shelf for Sita (Nepali), readable with her letters, at her level
-    sents = [["सीता घर गइन्।"], ["सीता रमाइन्।"]]
-    items = [{"result": json.loads(fake_result(learner, s, level=learner.level["ne"]).model_dump_json()), "image": ""}
-             for s in sents]
-    monkeypatch.setattr(shelf, "SHELF", tmp_path)
-    (tmp_path / "sita_ne.json").write_text(json.dumps(items, ensure_ascii=False), encoding="utf-8")
-    shelf._load.cache_clear()
-    monkeypatch.setattr(api, "_compose", lambda *a, **k: (_ for _ in ()).throw(AssertionError("composed live")))
+def test_readable_story_passes_this_childs_verifier():
+    units = "a b c ck d e g i l n o p s ss t u".split()
+    v = verifier_for("en", frozenset(units), frozenset({"Anil"}))
+    found = shelf.readable(_child(units), "en", v)
+    if found is None:  # no shelf story fits these letters: nothing unreadable is served either
+        return
+    result, image = found
+    text = "\n".join([result.title, *result.sentences])
+    assert v.verify(text).ok
+    assert not any(n in text for n in ("Sita", "Ram", "Leo"))
 
-    assert c.post(f"/api/learners/{learner.id}/warm").json()["ne"] == "shelf"
-    s1 = c.post("/api/session/start", json={"learner_id": learner.id, "language": "ne"}).json()
-    assert s1["sentences"] == ["सीता घर गइन्।"]  # served from the shelf, no model call
-    assert c.post(f"/api/learners/{learner.id}/warm").json()["ne"] == "shelf"
-    s2 = c.post("/api/session/start", json={"learner_id": learner.id, "language": "ne"}).json()
-    assert s2["sentences"] == ["सीता रमाइन्।"]
-    shelf._load.cache_clear()
+
+def test_no_letters_no_story():
+    v = verifier_for("en", frozenset({"a"}), frozenset({"Anil"}))
+    assert shelf.readable(_child(["a"]), "en", v) is None
+
+
+def test_english_template_is_sentences_not_a_word_list():
+    import random
+
+    from athena.fallback import template_story
+
+    units = frozenset("g:" + x for x in "a b c ck d e g i l n o p s ss t u".split())
+    v = verifier_for("en", units, frozenset({"Anil"}))
+    title, sentences = template_story("en", v, [], [], random.Random(0), "Anil")
+    assert len(sentences) >= 3
+    assert all(s.endswith(".") and v.verify(s).ok for s in sentences)

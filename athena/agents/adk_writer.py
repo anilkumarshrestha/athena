@@ -43,15 +43,18 @@ def _runtime() -> None:
         os.environ.setdefault("GOOGLE_CLOUD_LOCATION", s.google_cloud_location)
 
 
-def write_with_tool(plan: StoryPlan, check: Check) -> tuple[StoryDraft | None, list[dict], Usage, int]:
-    """Returns (accepted draft or None, every tool check made, token usage, latency ms)."""
+def write_with_tool(
+    plan: StoryPlan, check: Check, checks: list[dict] | None = None
+) -> tuple[StoryDraft | None, list[dict], Usage, int]:
+    """Returns (accepted draft or None, every tool check made, token usage, latency ms).
+    `checks` is filled as the agent works, so a caller that times out still sees the drafts."""
     _runtime()
     from google.adk.agents import LlmAgent
     from google.adk.runners import Runner
     from google.adk.sessions import InMemorySessionService
     from google.adk.tools import ToolContext
 
-    checks: list[dict] = []
+    checks = [] if checks is None else checks
     accepted: list[StoryDraft] = []
 
     def verify_story(title: str, sentences: list[str], scene: str, tool_context: ToolContext) -> dict:
@@ -84,13 +87,21 @@ def write_with_tool(plan: StoryPlan, check: Check) -> tuple[StoryDraft | None, l
     runner = Runner(agent=agent, app_name="athena", session_service=InMemorySessionService(), auto_create_session=True)
     usage = Usage(model=settings().writer_model)
     t0 = time.perf_counter()
-    msg = types.Content(role="user", parts=[types.Part(text="Write the story now.")])
-    for ev in runner.run(user_id="athena", session_id=uuid.uuid4().hex, new_message=msg):
-        um = getattr(ev, "usage_metadata", None)
-        if um:
-            usage.input_tokens += um.prompt_token_count or 0
-            usage.output_tokens += um.candidates_token_count or 0
-            usage.thinking_tokens += um.thoughts_token_count or 0
-        if accepted or len(checks) >= MAX_CHECKS:
+    session = uuid.uuid4().hex
+    text = "Write the story now."
+    for _ in range(MAX_CHECKS):
+        msg = types.Content(role="user", parts=[types.Part(text=text)])
+        before = len(checks)
+        for ev in runner.run(user_id="athena", session_id=session, new_message=msg):
+            um = getattr(ev, "usage_metadata", None)
+            if um:
+                usage.input_tokens += um.prompt_token_count or 0
+                usage.output_tokens += um.candidates_token_count or 0
+                usage.thinking_tokens += um.thoughts_token_count or 0
+            if accepted or len(checks) >= MAX_CHECKS:
+                break
+        if accepted or len(checks) >= MAX_CHECKS or len(checks) == before:
             break
+        # The agent ended its turn after a rejected draft instead of rewriting: send it back.
+        text = "verify_story rejected that draft. Rewrite it without those words and call verify_story again."
     return (accepted[0] if accepted else None), checks, usage, int((time.perf_counter() - t0) * 1000)

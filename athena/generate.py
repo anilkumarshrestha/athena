@@ -71,18 +71,26 @@ def generate(
     engine = engine or settings().writer_engine
     if engine == "adk":
         # ADK agent: drafts, calls the verifier tool, code ends the turn on acceptance.
+        checks: list[dict] = []  # filled live, so drafts made before a timeout are kept for pruning
         try:
-            fut = _calls.submit(adk_writer.write_with_tool, plan, code_check)
+            fut = _calls.submit(adk_writer.write_with_tool, plan, code_check, checks)
             accepted, checks, usage, latency = fut.result(timeout=budget_s)
         except Exception as e:  # noqa: BLE001 - timeout / model error: verified fallback below
-            accepted, checks, usage, latency = None, [], writer.Usage(), int((time.perf_counter() - t0) * 1000)
-            attempts.append(Attempt(n=1, prompt="adk", title="", sentences=[], latency_ms=latency, usage=usage,
-                                    violations=[ViolationOut(word="", word_index=-1, unit=None, reason=f"agent: {type(e).__name__}")]))
+            accepted, usage, latency = None, writer.Usage(), int((time.perf_counter() - t0) * 1000)
+            checks = list(checks)
+            stopped = Attempt(n=len(checks) + 1, prompt="adk", title="", sentences=[], latency_ms=0, usage=usage,
+                              violations=[ViolationOut(word="", word_index=-1, unit=None, reason=f"agent: {type(e).__name__}")])
+        else:
+            stopped = None
         per = latency // max(1, len(checks))
         for i, c in enumerate(checks, 1):
             attempts.append(Attempt(n=i, prompt="adk:verify_story", title=c["title"], sentences=c["sentences"],
                                     violations=c["violations"], latency_ms=per,
                                     usage=usage if i == 1 else writer.Usage(model=usage.model)))
+        if stopped:
+            if not checks:
+                stopped.latency_ms = latency
+            attempts.append(stopped)
         if checks:
             last = checks[-1]
             draft = accepted or StoryDraft(title=last["title"], sentences=last["sentences"], scene=plan.theme)
@@ -156,7 +164,7 @@ def generate(
             outcome, sentences = "pruned", kept
         else:
             readable = decodable_words(plan.language, mastery)
-            t_title, extra = template_story(plan.language, verifier, readable, plan.key_words, random.Random(0))
+            t_title, extra = template_story(plan.language, verifier, readable, plan.key_words, random.Random(), plan.learner_name)
             extra = [x for x in extra if x not in kept and shape_ok([x])]
             if t_title and not shape_ok([t_title]):
                 t_title = ""
@@ -183,7 +191,7 @@ def generate(
         replaced = False
         if not verdict.safe:
             readable = decodable_words(plan.language, mastery)
-            t_title, extra = template_story(plan.language, verifier, readable, plan.key_words, random.Random(1))
+            t_title, extra = template_story(plan.language, verifier, readable, plan.key_words, random.Random(1), plan.learner_name)
             extra = [x for x in extra if shape_ok([x])][: limits.sentences[1]]
             if len(extra) >= MIN_PRUNED_SENTENCES and safety.check(plan.language, t_title, extra, model=False).safe:
                 title, sentences, outcome = (t_title if shape_ok([t_title]) else plan.learner_name), extra, "template"

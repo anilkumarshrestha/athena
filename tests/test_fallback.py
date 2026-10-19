@@ -34,10 +34,11 @@ def test_theme_key_word_is_used():
     assert "कुखुरा" in " ".join([title, *sentences])
 
 
-def test_english_returns_nothing_rather_than_guessing():
+def test_english_template_is_verified_sentences():
     lang, m = preset("en_p2")
     v = verifier_for(lang, m)
-    assert template_story(lang, v, decodable_words(lang, m), [], random.Random(0)) == ("", [])
+    title, sentences = template_story(lang, v, decodable_words(lang, m), [], random.Random(0))
+    assert len(sentences) >= 3 and all(v.verify(s).ok for s in [title, *sentences] if s)
 
 
 def test_elders_always_get_honorific_verbs():

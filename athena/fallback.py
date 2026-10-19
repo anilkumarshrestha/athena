@@ -8,7 +8,8 @@ possessions fit their owner (a brother's ball, a mother's umbrella). Edit the ma
 below to tune; every sentence still goes through the verifier.
 
 Sentences are anchored on the theme's key words so they hang together.
-Nepali only: English has the closed lexicon and rarely falls back.
+English (en_template_story) only runs when the model is unavailable (quota, outage): one animal,
+short sentences about it, every word checked by the verifier.
 """
 
 import random
@@ -90,9 +91,12 @@ MAX_SENTENCES = 4
 
 
 def template_story(
-    language: str, verifier: Verifier, readable_words: list[str], key_words: list[str], rng: random.Random
+    language: str, verifier: Verifier, readable_words: list[str], key_words: list[str], rng: random.Random,
+    name: str = "",
 ) -> tuple[str, list[str]]:
     """(title, sentences), all verified; ("", []) if nothing fits."""
+    if language == "en":
+        return en_template_story(verifier, key_words, rng, name)
     if language != "ne":
         return "", []
     # Readability is the verifier's call, not seed-list membership (खसी is readable
@@ -125,3 +129,53 @@ def template_story(
     if title and not verifier.verify(title).ok:
         title = ""
     return title, sentences
+
+
+EN_ANIMALS = ["cat", "dog", "pig", "hen", "fox", "rat", "bug", "duck", "frog", "cub", "pup", "ant", "bat"]
+EN_ADJ = ["big", "sad", "glad", "red", "wet", "fat", "fit", "fast", "hot"]
+EN_VERBS = ["sit", "dig", "nap", "run", "hop", "jog", "swim", "skip"]
+EN_PLACES = ["box", "tent", "den", "pot", "tub", "pen", "bed", "nest", "pit"]
+EN_THINGS = ["cap", "cup", "bag", "bun", "hat", "net", "pan", "lid", "egg"]
+
+
+def _plural(w: str) -> str:
+    return w + ("es" if w.endswith(("x", "s")) else "s")
+
+
+def en_template_story(verifier: Verifier, key_words: list[str], rng: random.Random, name: str = "") -> tuple[str, list[str]]:
+    """A short English story about one animal (and the child, by name); ("", []) if nothing fits.
+    Singular with "the"/"a" when the child can read one, else plural ("Cats can dig.")."""
+    ok = lambda t: verifier.verify(t).ok  # noqa: E731
+    animals = [a for a in key_words if a in EN_ANIMALS and ok(a)] or [a for a in EN_ANIMALS if ok(a)]
+    if not animals:
+        return "", []
+    x = rng.choice(animals)
+    D = next((d for d in ("the", "a") if ok(d)), None)
+    N = [name] if name and ok(name) else []
+    adj, verbs, places, things = EN_ADJ, EN_VERBS, EN_PLACES, EN_THINGS
+    if D:  # singular: "The cat is big. It can dig. It naps in the box."
+        it, the_x = "It", f"{D.capitalize()} {x}"
+        groups = [
+            [f"{the_x} is {a}." for a in adj] + [f"{n} pets {D} {x}." for n in N],
+            [f"It can {v}." for v in verbs] + [f"{the_x} can {v}." for v in verbs],
+            [f"It {_plural(v)} in {D} {p}." for v in ("nap", "sit", "dig") for p in places],
+            [f"{n} gets {D} {t}." for n in N for t in things] + [f"It gets {D} {t}." for t in things],
+            [f"{n} and {D} {x} {v}." for n in N for v in verbs] + [f"{n} is {a}." for n in N for a in ("glad", "fit")],
+        ]
+        title = the_x
+    else:  # plural: no article needed
+        xs = _plural(x).capitalize()
+        groups = [
+            [f"{n} pets {xs.lower()}." for n in N] + [f"{xs} can {v}." for v in verbs],
+            [f"{xs} {v} in {_plural(p)}." for v in ("nap", "sit", "dig") for p in places],
+            [f"{n} can {v}." for n in N for v in verbs] + [f"{n} and Dad {v}." for n in N for v in verbs],
+            [f"{n} gets {_plural(t)}." for n in N for t in things] + [f"{xs} get {_plural(t)}." for t in things],
+            [f"{n} and {xs.lower()} {v}." for n in N for v in verbs] + [f"{n} is {a}." for n in N for a in ("glad", "fit")],
+        ]
+        title = xs
+    sentences = []
+    for group in groups:
+        fits = [t for t in group if ok(t)]
+        if fits:
+            sentences.append(rng.choice(fits))
+    return (title if ok(title) else ""), sentences[:MAX_SENTENCES]

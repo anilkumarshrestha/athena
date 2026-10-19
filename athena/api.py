@@ -568,7 +568,22 @@ def _compose(learner: Learner, language: Language, theme: str | None = None, eng
     else:  # parent turned story pictures off: no image call at all
         image_future = Future()
         image_future.set_exception(PicturesOff())
-    return generate(p, budget_s=budget_s, engine=engine), image_future
+    result = generate(p, budget_s=budget_s, engine=engine)
+    if result.outcome == "wordlist":
+        # No model draft and no template (e.g. quota exhausted): a ready-made story this child
+        # can read beats a bare list of words. The verifier decides, against the child's letters.
+        from athena import shelf
+
+        name = learner.name[language]
+        names = frozenset(name.split()) | frozenset(name.lower().split())
+        if (found := shelf.readable(learner, language, verifier_for(language, allowed(units), names))):
+            image_future.cancel()
+            return found
+    if result.outcome in ("template", "wordlist") and learner.controls.get("pictures", True):
+        # The fallback text is not about the planned theme: draw what the child will read instead.
+        image_future.cancel()
+        image_future = _pool.submit(illustrator.illustrate, " ".join([result.title, *result.sentences]))
+    return result, image_future
 
 
 class PicturesOff(Exception):
