@@ -1,0 +1,64 @@
+{
+  "stamp": "20261018-113846",
+  "status": "SUCCESS",
+  "problems": [],
+  "jobs": 16,
+  "completed": 16,
+  "n_per_lang": 8,
+  "wall_s": 55.0,
+  "errors": [],
+  "ne": {
+    "n": 8,
+    "first_pass_ok_rate": 0.375,
+    "first_pass_mean_violations": 3.625,
+    "final_violation_count_total": 0,
+    "mean_attempts": 2.125,
+    "fallback_rate": 0.5,
+    "wordlist_rate": 0.0,
+    "outcomes": {
+      "first_pass": 3,
+      "regenerated": 1,
+      "pruned": 3,
+      "template": 1,
+      "wordlist": 0
+    },
+    "latency_ms_p50": 7961,
+    "latency_ms_p95": 33347,
+    "tokens_mean": {
+      "input_tokens": 2467.125,
+      "output_tokens": 215.875,
+      "thinking_tokens": 0
+    },
+    "cost_usd_per_story": 0.002659875,
+    "models": [
+      "gemini-3.8-flash"
+    ]
+  },
+  "en": {
+    "n": 8,
+    "first_pass_ok_rate": 0.75,
+    "first_pass_mean_violations": 0.25,
+    "final_violation_count_total": 0,
+    "mean_attempts": 1.25,
+    "fallback_rate": 0.0,
+    "wordlist_rate": 0.0,
+    "outcomes": {
+      "first_pass": 6,
+      "regenerated": 2,
+      "pruned": 0,
+      "template": 0,
+      "wordlist": 0
+    },
+    "latency_ms_p50": 3312,
+    "latency_ms_p95": 4905,
+    "tokens_mean": {
+      "input_tokens": 710,
+      "output_tokens": 104,
+      "thinking_tokens": 0
+    },
+    "cost_usd_per_story": 0.0009224999999999999,
+    "models": [
+      "gemini-3.8-flash"
+    ]
+  }
+}
