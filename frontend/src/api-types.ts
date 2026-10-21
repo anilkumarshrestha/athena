@@ -1835,7 +1835,7 @@ export interface components {
         };
         /**
          * StageOut
-         * @description Reading stage (athena/stages.py): Sprout, Leaf, Flower, Tree, Forest.
+         * @description Reading level 1-10 (athena/stages.py), with progress to the next level.
          */
         StageOut: {
             /** N */
@@ -1849,7 +1849,7 @@ export interface components {
             /** Start */
             start: number;
             /** Next At */
-            next_at: number | null;
+            next_at: number;
             /** Total */
             total: number;
         };

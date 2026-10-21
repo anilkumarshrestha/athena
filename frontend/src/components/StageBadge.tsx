@@ -1,4 +1,4 @@
-import { BookOpen, Flower2, Leaf, Sprout, TreeDeciduous, Trees, type LucideIcon } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import type { components } from '../api-types'
 import { bi } from '../ui'
 import { neNum } from './LevelStars'
@@ -6,20 +6,26 @@ import { UnitChip } from './UnitChip'
 
 export type Stage = components['schemas']['StageOut']
 
-// DESIGN.md §6.7: reading stage (athena/stages.py). Names stay English in every language.
-const ICON: Record<number, LucideIcon> = { 1: Sprout, 2: Leaf, 3: Flower2, 4: TreeDeciduous, 5: Trees }
+// DESIGN.md §6.7: reading level 1-10 (athena/stages.py) with progress to the next level.
 
-export function StageIcon({ n, size = 20 }: { n: number; size?: number }) {
-  const Icon = ICON[n] ?? Sprout
-  return <Icon size={size} strokeWidth={1.75} className="shrink-0 text-leaf-edge" aria-hidden />
+/** The level number in a round `leaf` badge. */
+export function LevelNumber({ n, size = 'sm' }: { n: number; size?: 'sm' | 'lg' }) {
+  const cls = size === 'lg' ? 'size-10 text-child-label' : 'size-5 text-caption'
+  return (
+    <span aria-hidden className={`inline-flex shrink-0 items-center justify-center rounded-full bg-leaf font-bold tabular-nums text-on-primary ${cls}`}>
+      {n}
+    </span>
+  )
 }
 
-/** "3 more letters to Flower" / "All letters learned" */
+/** "3 more letters to Level 5" / "4 more letters to learn them all" / "All letters learned" */
 function nextLabel(stage: Stage, lang: 'ne' | 'en'): string {
-  const unit = lang === 'ne' ? 'letters' : 'sounds'
-  if (stage.next_at == null || !stage.next_name) return bi(lang === 'ne' ? 'सबै अक्षर सिकियो' : 'सबै ध्वनि सिकियो', `All ${unit} learned`)
   const left = stage.next_at - stage.mastered
-  return bi(`${stage.next_name} सम्म ${neNum(left)} ${lang === 'ne' ? 'अक्षर' : 'ध्वनि'} बाँकी`, `${left} more ${unit} to ${stage.next_name}`)
+  const unit = (lang === 'ne' ? 'letter' : 'sound') + (left === 1 ? '' : 's')
+  const ne = lang === 'ne' ? 'अक्षर' : 'ध्वनि'
+  if (left <= 0) return bi(`सबै ${ne} सिकियो`, `All ${lang === 'ne' ? 'letters' : 'sounds'} learned`)
+  if (!stage.next_name) return bi(`सबै सिक्न ${neNum(left)} ${ne} बाँकी`, `${left} more ${unit} to learn them all`)
+  return bi(`तह ${neNum(stage.n + 1)} सम्म ${neNum(left)} ${ne} बाँकी`, `${left} more ${unit} to ${stage.next_name}`)
 }
 
 export function StageBadge({
@@ -33,7 +39,7 @@ export function StageBadge({
   variant?: 'full' | 'compact'
   className?: string
 }) {
-  const label = `Reading stage ${stage.name}, ${stage.mastered} of ${stage.total} ${lang === 'ne' ? 'letters' : 'sounds'}`
+  const label = `Reading level ${stage.n} of 10, ${stage.mastered} of ${stage.total} ${lang === 'ne' ? 'letters' : 'sounds'}`
   if (variant === 'compact') {
     return (
       <span
@@ -41,18 +47,17 @@ export function StageBadge({
         aria-label={label}
         className={`inline-flex items-center gap-1 rounded-full border border-line bg-card px-2 py-0.5 font-semibold text-ink ${className}`}
       >
-        <StageIcon n={stage.n} size={14} />
         {stage.name}
       </span>
     )
   }
-  const span = stage.next_at == null ? 1 : Math.max(1, stage.next_at - stage.start)
-  const pct = stage.next_at == null ? 100 : Math.min(100, ((stage.mastered - stage.start) / span) * 100)
+  const span = Math.max(1, stage.next_at - stage.start)
+  const pct = Math.min(100, ((stage.mastered - stage.start) / span) * 100)
   return (
     <span role="img" aria-label={label} className={`flex w-full flex-col gap-1.5 ${className}`}>
       <span className="flex items-center justify-center gap-2 text-child-label font-bold text-ink">
-        <StageIcon n={stage.n} size={32} />
-        {stage.name}
+        {bi('तह', 'Level')}
+        <LevelNumber n={stage.n} size="lg" />
       </span>
       <span className="block h-3 w-full overflow-hidden rounded-full bg-line">
         <span className="block h-full rounded-full bg-leaf" style={{ width: `${pct}%` }} />
@@ -62,7 +67,7 @@ export function StageBadge({
   )
 }
 
-/** DESIGN.md §6.8: shown once on the result screen when a reading moved the child forward. */
+/** DESIGN.md §6.8: shown on the result screen when a reading moved the child forward. */
 export function LevelUpCard({
   before,
   after,
@@ -76,13 +81,13 @@ export function LevelUpCard({
   learned: string[]
   lang: 'ne' | 'en'
 }) {
-  const stageUp = after.n > before.n
-  if (!stageUp && !sizeUp && learned.length === 0) return null
+  const levelUp = after.n > before.n
+  if (!levelUp && !sizeUp && learned.length === 0) return null
   return (
     <div className="mb-4 flex flex-col gap-3 rounded-lg border border-sun-edge bg-sun-soft px-4 py-3">
-      {stageUp && (
+      {levelUp && (
         <p className="m-0 flex items-center gap-3 text-child-label font-bold text-ink">
-          <StageIcon n={after.n} size={32} /> {bi(`${after.name} पुग्यौ!`, `You reached ${after.name}!`)}
+          <LevelNumber n={after.n} size="lg" /> {bi(`तह ${neNum(after.n)} पुग्यौ!`, `You reached ${after.name}!`)}
         </p>
       )}
       {sizeUp && (

@@ -101,11 +101,11 @@ const SAMPLE_STORY: Story = {
 }
 
 const STAGES: Stage[] = [
-  { n: 1, name: 'Sprout', next_name: 'Leaf', mastered: 4, start: 0, next_at: 10, total: 69 },
-  { n: 2, name: 'Leaf', next_name: 'Flower', mastered: 12, start: 10, next_at: 24, total: 69 },
-  { n: 3, name: 'Flower', next_name: 'Tree', mastered: 30, start: 24, next_at: 41, total: 69 },
-  { n: 4, name: 'Tree', next_name: 'Forest', mastered: 48, start: 41, next_at: 59, total: 69 },
-  { n: 5, name: 'Forest', next_name: null, mastered: 69, start: 59, next_at: null, total: 69 },
+  { n: 1, name: 'Level 1', next_name: 'Level 2', mastered: 4, start: 0, next_at: 7, total: 69 },
+  { n: 2, name: 'Level 2', next_name: 'Level 3', mastered: 12, start: 7, next_at: 14, total: 69 },
+  { n: 5, name: 'Level 5', next_name: 'Level 6', mastered: 30, start: 28, next_at: 35, total: 69 },
+  { n: 7, name: 'Level 7', next_name: 'Level 8', mastered: 48, start: 41, next_at: 48, total: 69 },
+  { n: 10, name: 'Level 10', next_name: null, mastered: 66, start: 62, next_at: 69, total: 69 },
 ]
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
@@ -291,7 +291,7 @@ export function Styleguide() {
         />
       </Section>
 
-      <Section id="stage" title="StageBadge + LevelUpCard (§6.7, §6.8)">
+      <Section id="stage" title="StageBadge (reading level) + LevelUpCard (§6.7, §6.8)">
         <div className="grid gap-4 md:grid-cols-2">
           <Panel label="compact">
             <div className="flex flex-wrap gap-2 text-small">

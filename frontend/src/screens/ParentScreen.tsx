@@ -74,7 +74,7 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
             <StageBadge stage={d.learner.stage[l]} lang={l} />
             <span>
               {d.learner.stage[l].mastered} of {d.learner.stage[l].total} {l === 'ne' ? 'letters' : 'sounds'} mastered
-              {d.learner.stage[l].next_name ? ` · ${(d.learner.stage[l].next_at ?? 0) - d.learner.stage[l].mastered} more to ${d.learner.stage[l].next_name}` : ''}
+              {d.learner.stage[l].next_name ? ` · ${d.learner.stage[l].next_at - d.learner.stage[l].mastered} more to ${d.learner.stage[l].next_name}` : ''}
               {' '}· story size {d.learner.level[l] ?? 1} of 3
             </span>
           </li>

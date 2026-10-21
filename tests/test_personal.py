@@ -24,7 +24,7 @@ def test_stage_thresholds_and_progress():
             st = stage(lang, _units(lang, at))
             assert (st.n, st.name, st.start) == (i + 1, NAMES[i], at)
         last = stage(lang, _units(lang, total))
-        assert last.n == 5 and last.next_at is None and last.next_name is None
+        assert last.n == 10 and last.next_at == total and last.next_name is None
 
 
 def test_practising_units_do_not_count():

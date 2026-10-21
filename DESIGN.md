@@ -420,22 +420,26 @@ Progress for the card check (placement game): the child's favourite animal cross
 
 ### 6.7 `StageBadge`
 
-The child's reading stage in one language (athena/stages.py): how much of the teaching order
-is mastered. Stage names are English in every language: Sprout, Leaf, Flower, Tree, Forest.
+The child's reading level in one language, **Level 1–10** (athena/stages.py): ten equal steps
+of the teaching order mastered (level 2 at 10%, …, level 10 at 90%).
 
 ```ts
 { stage: StageOut; lang: "ne" | "en"; variant?: "full" | "compact" }
 ```
 
-- Icon per stage (lucide): `Sprout`, `Leaf`, `Flower2`, `TreeDeciduous`, `Trees`, in `leaf-edge`.
-- `compact`: icon + name (`caption` adult, `small` child), `card` pill, `line` border. Used on
+- `LevelNumber`: the number in a round `leaf` badge, `on-primary` text, `tabular-nums`
+  (20px compact, 40px full).
+- `compact`: "Level 4" text (`caption` adult, `small` child), `card` pill, `line` border. Used on
   learner tiles and lists.
-- `full`: icon (32px) + name in `child-label`, then a progress bar to the next stage: `line`
-  track, `leaf` fill, `radius-full`, 12px tall. Under it the text label "3 more letters to Flower"
-  (Nepali: अक्षर count in Devanagari digits stays in the label, the stage name stays English;
-  English: "sounds"). Last stage: full bar and "All letters learned". The text label means the
-  bar never carries meaning by colour alone.
-- Accessible: `role="img"`, label "Reading stage Leaf, 12 of 69 letters".
+- `full`: "Level" in `child-label` + the 40px number badge (the number once, never twice), then
+  a progress bar to the next level:
+  `line` track, `leaf` fill, `radius-full`, 12px tall. Under it the text label
+  "3 more letters to Level 5" ("sounds" in English). Level 10 runs on to every letter:
+  "2 more letters to learn them all", then "All letters learned". The text label means the bar
+  never carries meaning by colour alone.
+- Accessible: `role="img"`, label "Reading level 4 of 10, 30 of 69 letters".
+- Not the story size: stories still adapt through the 1–3 story-size band, shown to grown-ups
+  as "story size 2 of 3".
 
 ### 6.8 `LevelUpCard`
 
@@ -443,7 +447,7 @@ Shown once on the result screen when a reading moved the child forward. Calm: no
 animation (§9).
 
 - `sun-soft` card, `radius-lg`, `sun-edge` 1px border, icon (32px) + one line in `child-label`.
-- Lines, any that apply: "You reached Leaf!" (stage up, stage icon); "Bigger stories now!"
+- Lines, any that apply: "You reached Level 5!" (level up, `LevelNumber`); "Bigger stories now!"
   (story size up, `BookOpen`); "New letters learned" followed by `lg` `UnitChip`s (mastered).
 - Plays the existing `story_done` jingle only, never a new sound.
 

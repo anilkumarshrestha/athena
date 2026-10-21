@@ -61,14 +61,14 @@ class UnitOut(BaseModel):
 
 
 class StageOut(BaseModel):
-    """Reading stage (athena/stages.py): Sprout, Leaf, Flower, Tree, Forest."""
+    """Reading level 1-10 (athena/stages.py), with progress to the next level."""
 
     n: int
     name: str
     next_name: str | None
     mastered: int
     start: int
-    next_at: int | None
+    next_at: int
     total: int
 
 
@@ -88,7 +88,7 @@ class LearnerOut(BaseModel):
     mastery: dict[str, list[str]]  # units stories may use now
     units: dict[str, list[UnitOut]]
     level: dict[str, int]  # story size 1-3 (progression.LEVELS)
-    stage: dict[str, StageOut]  # reading stage per language
+    stage: dict[str, StageOut]  # reading level 1-10 per language
     recent_accuracy: dict[str, list[float]]  # last 5 sessions, oldest first
     profile: dict[str, str]
     settings: dict[str, int]
