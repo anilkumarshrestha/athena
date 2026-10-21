@@ -60,6 +60,26 @@ class UnitOut(BaseModel):
     cooldown: int
 
 
+class StageOut(BaseModel):
+    """Reading stage (athena/stages.py): Sprout, Leaf, Flower, Tree, Forest."""
+
+    n: int
+    name: str
+    next_name: str | None
+    mastered: int
+    start: int
+    next_at: int | None
+    total: int
+
+
+def stage_out(language: str, units) -> StageOut:
+    from athena.stages import stage
+
+    st = stage(language, units)
+    return StageOut(n=st.n, name=st.name, next_name=st.next_name, mastered=st.mastered, start=st.start,
+                    next_at=st.next_at, total=st.total)
+
+
 class LearnerOut(BaseModel):
     id: str
     name: dict[str, str]
@@ -67,7 +87,8 @@ class LearnerOut(BaseModel):
     avatar_url: str
     mastery: dict[str, list[str]]  # units stories may use now
     units: dict[str, list[UnitOut]]
-    level: dict[str, int]
+    level: dict[str, int]  # story size 1-3 (progression.LEVELS)
+    stage: dict[str, StageOut]  # reading stage per language
     recent_accuracy: dict[str, list[float]]  # last 5 sessions, oldest first
     profile: dict[str, str]
     settings: dict[str, int]
@@ -121,6 +142,8 @@ class CloseOut(BaseModel):
     accuracy: float
     level_before: int
     level_after: int
+    stage_before: StageOut
+    stage_after: StageOut
     changes: list[ChangeOut]  # before "unseen" = newly introduced unit
     learner: LearnerOut
 
@@ -209,6 +232,7 @@ def learner_out(learner: Learner) -> LearnerOut:
             for lang, units in learner.units.items()
         },
         level=learner.level,
+        stage={lang: stage_out(lang, units) for lang, units in learner.units.items()},
         recent_accuracy={lang: [round(a, 2) for a in h[-5:]] for lang, h in learner.history.items()},
         profile=learner.profile,
         settings=learner.settings,
@@ -549,6 +573,7 @@ def _compose(learner: Learner, language: Language, theme: str | None = None, eng
              budget_s: float = STORY_BUDGET_S):
     """Plan + generate + verify a story, with its picture started in parallel. Not stored yet."""
     units = learner.units[language]
+    revisit, recent_themes, recent_titles = _recent(learner, language)
     p = plan(
         language,
         allowed(units),
@@ -561,6 +586,9 @@ def _compose(learner: Learner, language: Language, theme: str | None = None, eng
         setting=SETTINGS.get(learner.profile.get("setting", "")),
         child_gender=learner.profile.get("gender", "unspecified"),
         avoid=frozenset(learner.controls.get("avoid_themes", [])),
+        recent=recent_themes,
+        recent_titles=recent_titles,
+        revisit_words=revisit,
     )
     # Image starts now from the theme; text is generated + verified meanwhile.
     if learner.controls.get("pictures", True):
@@ -586,6 +614,40 @@ def _compose(learner: Learner, language: Language, theme: str | None = None, eng
     return result, image_future
 
 
+REVISIT_MAX = 3  # misread words brought back per story
+RECENT_STORIES = 6  # stories the next one should differ from
+
+
+def _recent(learner: Learner, language: Language) -> tuple[list[str], frozenset[str], list[str]]:
+    """(words to revisit, recent base themes, recent titles) from the child's own history.
+    Revisit words: misread or skipped in the last readings, newest first, and readable NOW
+    (the verifier decides), so a story never brings back a word the child cannot decode."""
+    from athena.agents.planner import base_theme
+
+    try:
+        records = [r for r in store.history.stories(learner.id) if r.get("lang") == language]
+    except Exception:  # noqa: BLE001 - history is a nice-to-have for planning, never a blocker
+        log.exception("history unavailable for %s", learner.id)
+        return [], frozenset(), []
+    recent = records[:RECENT_STORIES]
+    themes = frozenset(base_theme(r["theme"]) for r in recent if r.get("theme"))
+    titles = [r["title"] for r in recent if r.get("title")]
+    name = learner.name[language]
+    names = frozenset(name.split()) | frozenset(name.lower().split())
+    v = verifier_for(language, allowed(learner.units[language]), names)
+    revisit: list[str] = []
+    for r in records[:5]:
+        for reading in reversed(r.get("readings", [])[-1:]):  # the child's latest try of that story
+            for w in reading.get("words", []):
+                word = w.get("expected", "")
+                if (w.get("outcome") in ("substituted", "omitted") and len(word) > 1 and word not in revisit
+                        and word not in names and v.verify(word).ok):
+                    revisit.append(word)
+        if len(revisit) >= REVISIT_MAX:
+            break
+    return revisit[:REVISIT_MAX], themes, titles
+
+
 class PicturesOff(Exception):
     """The parent turned story pictures off: no illustration is made."""
 
@@ -607,6 +669,7 @@ def _publish(learner: Learner, language: Language, result, image_future) -> Stor
             "outcome": result.outcome,
             "units_used": result.units_used,
             "target_units": result.plan.target_units,  # what it practises ("why this story")
+            "revisit_words": result.plan.revisit_words,  # misread words it brings back
             "safety": result.safety,
             "attempts": [
                 {"n": a.n, "ms": a.latency_ms, "violations": [[v.word, v.unit, v.reason] for v in a.violations]}
@@ -840,6 +903,7 @@ def close_session(req: CloseRequest) -> CloseOut:
         raise HTTPException(400, "no reading to score yet")
     a = s.readings[-1]
     lang, units = s.language, learner.units[s.language]
+    stage_before = stage_out(lang, units)
     changes = apply_session(units, a.unit_correct, a.unit_errors)
 
     accuracy = a.words_correct / len(a.words) if a.words else 0.0
@@ -887,6 +951,8 @@ def close_session(req: CloseRequest) -> CloseOut:
         accuracy=round(accuracy, 2),
         level_before=level_before,
         level_after=learner.level[lang],
+        stage_before=stage_before,
+        stage_after=stage_out(lang, units),
         changes=[ChangeOut(unit=c.unit, before=c.before, after=c.after) for c in changes],
         learner=learner_out(learner),
     )
@@ -1154,6 +1220,7 @@ def close_letters(learner_id: str, req: LetterCheckIn) -> CloseOut:
         raise HTTPException(400, "results must be unit signatures")
     correct = {u: 1 for u, ok in req.results.items() if ok}
     errors = {u: 1 for u, ok in req.results.items() if not ok}
+    stage_before = stage_out(lang, units)
     changes = apply_session(units, correct, errors)
     accuracy = len(correct) / len(req.results)
     learner.history[lang].append(accuracy)
@@ -1170,6 +1237,7 @@ def close_letters(learner_id: str, req: LetterCheckIn) -> CloseOut:
     store.save()
     return CloseOut(
         story_id="", accuracy=round(accuracy, 2), level_before=learner.level[lang], level_after=learner.level[lang],
+        stage_before=stage_before, stage_after=stage_out(lang, units),
         changes=[ChangeOut(unit=c.unit, before=c.before, after=c.after) for c in changes], learner=learner_out(learner),
     )
 

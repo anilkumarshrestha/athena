@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import type { Story } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { MasteryGrid } from '../components/MasteryGrid'
+import { LevelUpCard, StageBadge, type Stage } from '../components/StageBadge'
 import { RecordButton, StoryCard } from '../components/StoryCard'
 import { UnitChip } from '../components/UnitChip'
 import { VerifierLog } from '../components/VerifierLog'
@@ -98,6 +99,14 @@ const SAMPLE_STORY: Story = {
   image_url: null,
   image_latency_ms: null,
 }
+
+const STAGES: Stage[] = [
+  { n: 1, name: 'Sprout', next_name: 'Leaf', mastered: 4, start: 0, next_at: 10, total: 69 },
+  { n: 2, name: 'Leaf', next_name: 'Flower', mastered: 12, start: 10, next_at: 24, total: 69 },
+  { n: 3, name: 'Flower', next_name: 'Tree', mastered: 30, start: 24, next_at: 41, total: 69 },
+  { n: 4, name: 'Tree', next_name: 'Forest', mastered: 48, start: 41, next_at: 59, total: 69 },
+  { n: 5, name: 'Forest', next_name: null, mastered: 69, start: 59, next_at: null, total: 69 },
+]
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -280,6 +289,27 @@ export function Styleguide() {
           imageStatus="pending"
           footer={<RecordButton />}
         />
+      </Section>
+
+      <Section id="stage" title="StageBadge + LevelUpCard (§6.7, §6.8)">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Panel label="compact">
+            <div className="flex flex-wrap gap-2 text-small">
+              {STAGES.map((st) => (
+                <StageBadge key={st.n} stage={st} lang="ne" />
+              ))}
+            </div>
+          </Panel>
+          <Panel label="full (ne: letters, en: sounds)">
+            <div className="grid gap-6 sm:grid-cols-2">
+              <StageBadge stage={STAGES[1]} lang="ne" variant="full" />
+              <StageBadge stage={STAGES[4]} lang="en" variant="full" />
+            </div>
+          </Panel>
+          <Panel label="LevelUpCard">
+            <LevelUpCard before={STAGES[0]} after={STAGES[1]} sizeUp learned={['c:क', 'm:ि']} lang="ne" />
+          </Panel>
+        </div>
       </Section>
 
       <Section id="misc" title="Loaders">

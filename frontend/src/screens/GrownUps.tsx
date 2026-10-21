@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { api, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { FamilyCode } from '../components/FamilyCode'
-import { LevelStars, knownCount } from '../components/LevelStars'
+import { StageBadge } from '../components/StageBadge'
+import { knownCount } from '../components/LevelStars'
 import { accentOf, learns } from '../learner'
 import { bi } from '../ui'
 import { UiLangSwitch } from '../components/UiLangSwitch'
@@ -44,7 +45,7 @@ export function GrownUps({ onBack }: { onBack: () => void }) {
                 <div className="flex flex-wrap gap-x-4 text-small text-ink-2">
                   {(['ne', 'en'] as const).filter((x) => learns(l, x)).map((x) => (
                     <span key={x} className="inline-flex items-center gap-1">
-                      {x === 'ne' ? 'Nepali' : 'English'} <LevelStars level={l.level[x] ?? 1} size={12} />
+                      {x === 'ne' ? 'Nepali' : 'English'} <StageBadge stage={l.stage[x]} lang={x} className="text-caption" />
                       {knownCount(l, x)} {x === 'ne' ? 'letters' : 'sounds'}
                     </span>
                   ))}

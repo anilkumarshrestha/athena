@@ -126,23 +126,31 @@ def plan(
     setting: str | None = None,
     child_gender: str = "unspecified",
     avoid: frozenset[str] = frozenset(),
+    recent: frozenset[str] = frozenset(),
+    recent_titles: list[str] | None = None,
+    revisit_words: list[str] | None = None,
 ) -> StoryPlan:
     """personal: themes from the child's favourites, preferred when readable.
-    setting: where the child lives, e.g. "a hill village in Nepal" (story + picture)."""
+    setting: where the child lives, e.g. "a hill village in Nepal" (story + picture).
+    recent: base themes of the child's last stories, skipped when another theme is readable.
+    revisit_words: readable words the child misread recently, kept in the word bank."""
     rng = random.Random(seed)
 
     if theme:  # explicit theme (e.g. the child picked it): honour it, personal ones included
         chosen = next((t for t in [*(personal or []), *THEMES] if t.text == theme), None) or _BY_TEXT.get(theme, Theme(theme))
     else:
         mine = [t for t in personal or [] if _resolve(t, language, mastery)[0]]
+        mine = [t for t in mine if t.text not in recent] or mine  # no repeats, unless nothing else fits
         allowed_themes = [t for t in THEMES if t.text not in avoid] or THEMES  # parent's "avoid" list
         readable = [t for t in allowed_themes if _resolve(t, language, mastery)[0]]
+        readable = [t for t in readable if t.text not in recent] or readable
         # Favourites most of the time; general themes keep it from getting repetitive.
         chosen = rng.choice(mine) if mine and rng.random() < PERSONAL_SHARE else rng.choice(readable or allowed_themes)
     _, key_words, avoid_words = _resolve(chosen, language, mastery)
     theme_text = f"{chosen.text}, in {setting}" if setting else chosen.text
 
     words = decodable_words(language, mastery)
+    revisit = [w for w in revisit_words or [] if w]
     if not target_units:
         pool = sorted(u for u in mastery if not u.startswith("w:"))
         target_units = rng.sample(pool, min(3, len(pool)))
@@ -151,11 +159,13 @@ def plan(
         # keep key words and every word that exercises a target unit, fill the rest at random
         targets = [u.split(":", 1)[1] for u in target_units]
         focus = [w for w in words if w in key_words or any(t in w for t in targets)]
-        focus_set = set(focus)
+        focus_set = set(focus) | set(revisit)
         rest = [w for w in words if w not in focus_set]
         rng.shuffle(focus)
         rng.shuffle(rest)
-        words = sorted((focus + rest)[:WORD_BANK_MAX])
+        words = sorted(set(revisit) | set((focus + rest)[: WORD_BANK_MAX - len(revisit)]))
+    else:
+        words = sorted(set(words) | set(revisit))
 
     return StoryPlan(
         language=language,
@@ -168,4 +178,6 @@ def plan(
         child_gender=child_gender,
         word_bank=words,
         mastery=sorted(mastery),
+        revisit_words=revisit,
+        recent_titles=list(recent_titles or []),
     )

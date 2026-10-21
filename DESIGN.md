@@ -303,7 +303,7 @@ html { background: var(--color-paper); color: var(--color-ink); font-family: var
 
 ## 6. Signature components
 
-These five are what make Athena look designed. Build them first on a
+These are what make Athena look designed. Build them first on a
 `/styleguide` route with dummy data, then compose screens only from them plus
 shadcn/ui primitives (Button, Dialog, Tabs, Tooltip, Table) restyled to these tokens.
 
@@ -418,15 +418,45 @@ Progress for the card check (placement game): the child's favourite animal cross
 - Reduced motion: no hop, it just appears on the new stone.
 - Accessible: `role="img"` with "Round 3 of 6" label.
 
+### 6.7 `StageBadge`
+
+The child's reading stage in one language (athena/stages.py): how much of the teaching order
+is mastered. Stage names are English in every language: Sprout, Leaf, Flower, Tree, Forest.
+
+```ts
+{ stage: StageOut; lang: "ne" | "en"; variant?: "full" | "compact" }
+```
+
+- Icon per stage (lucide): `Sprout`, `Leaf`, `Flower2`, `TreeDeciduous`, `Trees`, in `leaf-edge`.
+- `compact`: icon + name (`caption` adult, `small` child), `card` pill, `line` border. Used on
+  learner tiles and lists.
+- `full`: icon (32px) + name in `child-label`, then a progress bar to the next stage: `line`
+  track, `leaf` fill, `radius-full`, 12px tall. Under it the text label "3 more letters to Flower"
+  (Nepali: अक्षर count in Devanagari digits stays in the label, the stage name stays English;
+  English: "sounds"). Last stage: full bar and "All letters learned". The text label means the
+  bar never carries meaning by colour alone.
+- Accessible: `role="img"`, label "Reading stage Leaf, 12 of 69 letters".
+
+### 6.8 `LevelUpCard`
+
+Shown once on the result screen when a reading moved the child forward. Calm: no confetti and no
+animation (§9).
+
+- `sun-soft` card, `radius-lg`, `sun-edge` 1px border, icon (32px) + one line in `child-label`.
+- Lines, any that apply: "You reached Leaf!" (stage up, stage icon); "Bigger stories now!"
+  (story size up, `BookOpen`); "New letters learned" followed by `lg` `UnitChip`s (mastered).
+- Plays the existing `story_done` jingle only, never a new sound.
+
 ---
 
 ## 7. Screens (composition only)
 
 | Screen | Surface | Composed from |
 |---|---|---|
-| Learner pick | Child | Avatar tiles (`lg` radius, 120px), name in `child-title` |
+| Learner pick | Child | Avatar tiles (`lg` radius, 120px), name in `child-title`, `compact` `StageBadge` per language |
+| Child home | Child | Reading tiles with a `full` `StageBadge` per language; maths tiles keep `LevelStars` |
 | Story / read | Child | `StoryCard`, `WordToken` |
-| Result | Child | `StoryCard` with outcomes + a compact strip of `lg` `UnitChip`s that changed |
+| Result | Child | `StoryCard` with outcomes + `LevelUpCard` when the child moved forward + a compact strip of `lg` `UnitChip`s that changed |
 | Mastery | Adult | `MasteryGrid` (ne/en tabs) + `SkillGraph` (next units, units waiting with each prerequisite as icon + "known"/"not yet", maths chain of status cards: icon + word) + `MathsProgress` with `detail` (every recent problem, the child's taps, outcome as icon + word) |
 | Teach the cat | Child | Cat avatar (`sun` ring) + speech bubble (`sun-soft`), story of `WordToken`s (caught = `self_corrected`, shown = `substituted`, shape not colour alone), "cat reads" button, found counter. Maths: the cat's answer bubble, then ✓ / ✗ tiles (icon + word) |
 | Parent | Adult | Stat row, `UnitChip`s, `MathsProgress` (week stats, struggle callout, mistake kinds with a home tip), `ContentControls` (on/off cards with a check mark and the word On/Off; theme chips ticked to avoid) |

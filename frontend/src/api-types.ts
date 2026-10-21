@@ -217,6 +217,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learners/{learner_id}/warm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Warm
+         * @description Called when a child's home opens: have a story ready in each language they learn.
+         */
+        post: operations["warm_api_learners__learner_id__warm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/session/read": {
         parameters: {
             query?: never;
@@ -1176,6 +1196,8 @@ export interface components {
             level_before: number;
             /** Level After */
             level_after: number;
+            stage_before: components["schemas"]["StageOut"];
+            stage_after: components["schemas"]["StageOut"];
             /** Changes */
             changes: components["schemas"]["ChangeOut"][];
             learner: components["schemas"]["LearnerOut"];
@@ -1478,6 +1500,10 @@ export interface components {
             /** Level */
             level: {
                 [key: string]: number;
+            };
+            /** Stage */
+            stage: {
+                [key: string]: components["schemas"]["StageOut"];
             };
             /** Recent Accuracy */
             recent_accuracy: {
@@ -1806,6 +1832,26 @@ export interface components {
             maths: {
                 [key: string]: unknown;
             }[];
+        };
+        /**
+         * StageOut
+         * @description Reading stage (athena/stages.py): Sprout, Leaf, Flower, Tree, Forest.
+         */
+        StageOut: {
+            /** N */
+            n: number;
+            /** Name */
+            name: string;
+            /** Next Name */
+            next_name: string | null;
+            /** Mastered */
+            mastered: number;
+            /** Start */
+            start: number;
+            /** Next At */
+            next_at: number | null;
+            /** Total */
+            total: number;
         };
         /** StartRequest */
         StartRequest: {
@@ -2390,6 +2436,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    warm_api_learners__learner_id__warm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                learner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
                 };
             };
             /** @description Validation Error */

@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, Moon, Square, Volume2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { components } from '../api-types'
+import { LevelUpCard, StageBadge } from '../components/StageBadge'
 import { api, type CloseResult, type Language, type ReadResult, type Story } from '../api'
 import { ReadingLog } from '../components/ReadingLog'
 import { LetterPractice } from '../components/LetterPractice'
@@ -304,6 +305,22 @@ export function StoryScreen({ learnerId, lang, onBack }: { learnerId: string; la
         <p aria-live="polite" className={`mx-auto mt-6 max-w-story text-center ${lang === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-title font-bold text-ink`}>
           {PRAISE[lang][praise]}
         </p>
+      )}
+
+      {closed && (
+        <div className="mx-auto mt-4 max-w-story">
+          <LevelUpCard
+            before={closed.stage_before}
+            after={closed.stage_after}
+            sizeUp={closed.level_after > closed.level_before}
+            learned={[]}
+            lang={lang}
+          />
+          {/* progress after every reading: how close the next stage is */}
+          <div className="rounded-2xl border-2 border-b-4 border-line bg-card px-5 py-4 text-center">
+            <StageBadge stage={closed.stage_after} lang={lang} variant="full" />
+          </div>
+        </div>
       )}
 
       {closed && closed.changes.length > 0 && (

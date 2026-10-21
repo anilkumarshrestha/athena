@@ -2,7 +2,8 @@ import { ArrowLeft, BookOpen, Calculator, Drum } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { api, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
-import { LevelStars, knownCount, neNum } from '../components/LevelStars'
+import { StageBadge } from '../components/StageBadge'
+import { LevelStars } from '../components/LevelStars'
 import { accentOf, buddyEn, buddyNe, gainedStar, goalOf, learns } from '../learner'
 import { sfx } from '../sound'
 import { bi, uiLang } from '../ui'
@@ -82,9 +83,8 @@ export function ChildHome({ learnerId, onBack }: { learnerId: string; onBack: ()
           <Tile key={x} href={`/read/${l.id}/${x}`} className={`${a.btn} min-h-36`}>
             <BookOpen size={36} />
             <span className={`${x === 'ne' ? 'font-story-ne' : 'font-story-en'} text-child-title font-bold`}>{x === 'ne' ? 'नेपाली' : 'English'}</span>
-            <span className="flex items-center gap-2 text-small font-semibold">
-              <LevelStars level={l.level[x] ?? 1} size={16} className="rounded-full bg-card px-1.5 py-0.5" />
-              {x === 'ne' ? `${neNum(knownCount(l, 'ne'))} अक्षर` : `${knownCount(l, 'en')} sounds`}
+            <span className="w-full max-w-64 rounded-lg bg-card px-3 py-2">
+              <StageBadge stage={l.stage[x]} lang={x} variant="full" />
             </span>
           </Tile>
         ))}

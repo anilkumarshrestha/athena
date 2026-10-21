@@ -51,6 +51,8 @@ class StoryPlan(BaseModel):
     child_gender: str = "unspecified"  # boy | girl | unspecified: verb agreement in Nepali
     word_bank: list[str]
     mastery: list[str]
+    revisit_words: list[str] = []  # readable words the child misread recently: spaced practice
+    recent_titles: list[str] = []  # the child's last stories in this language: write something new
 
 
 class GenerationResult(BaseModel):

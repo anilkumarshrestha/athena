@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { api, type Learner } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { JoinFamily } from '../components/FamilyCode'
-import { LevelStars } from '../components/LevelStars'
+import { StageBadge } from '../components/StageBadge'
 import { accentOf, goalOf, learns } from '../learner'
 import { setSoundOn, sfx, soundOn } from '../sound'
 import { UiLangSwitch } from '../components/UiLangSwitch'
@@ -82,7 +82,7 @@ export function LearnerPick() {
               <span className="flex flex-wrap justify-center gap-1">
                 {(['ne', 'en'] as const).filter((x) => learns(l, x)).map((x) => (
                   <span key={x} className="inline-flex items-center gap-1 rounded-full bg-card px-2 py-0.5 text-caption font-semibold text-ink-2">
-                    {x === 'ne' ? 'ने' : 'EN'} <LevelStars level={l.level[x] ?? 1} size={12} />
+                    {x === 'ne' ? 'ने' : 'EN'} <StageBadge stage={l.stage[x]} lang={x} className="border-0 px-0 py-0" />
                   </span>
                 ))}
               </span>

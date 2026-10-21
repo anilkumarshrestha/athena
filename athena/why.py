@@ -38,6 +38,13 @@ def explain(record: dict, name: dict[str, str], profile: dict) -> dict[str, list
         en.append(f"Practises {t}: letters {n_en} is learning now.")
         ne.append(f"{n_ne}ले अहिले सिक्दै गरेका अक्षर {t} अभ्यास गराउँछ।")
 
+    text = " ".join([record.get("title", ""), *record.get("sentences", [])])
+    used = [w for w in record.get("revisit_words", []) if w in text]  # claimed only if really in the story
+    if used:
+        w = ", ".join(used)
+        en.append(f"Brings back {w}: words {n_en} found hard in recent readings.")
+        ne.append(f"{n_ne}लाई हालै पढ्दा गाह्रो भएका शब्द {w} फेरि अभ्यास गराउँछ।")
+
     fav = _favourite(record.get("theme", ""), profile)
     if fav:
         en.append(f"About {n_en}'s favourite: {fav[0]}.")

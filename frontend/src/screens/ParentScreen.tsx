@@ -4,7 +4,8 @@ import type { components } from '../api-types'
 import { api, type Language } from '../api'
 import { DotLoader } from '../components/DotLoader'
 import { ContentControls } from '../components/ContentControls'
-import { LevelStars, knownCount } from '../components/LevelStars'
+import { StageBadge } from '../components/StageBadge'
+import { LevelStars } from '../components/LevelStars'
 import { MathsProgress } from '../components/MathsProgress'
 import { ProfileInsights } from '../components/ProfileInsights'
 import { UnitChip } from '../components/UnitChip'
@@ -70,8 +71,12 @@ export function ParentScreen({ learnerId, onBack }: { learnerId: string; onBack:
         {(['ne', 'en'] as const).map((l) => (
           <li key={l} className="flex items-center gap-2 rounded-lg border border-line bg-card px-3 py-2">
             <span className="font-semibold">{l === 'ne' ? 'Nepali' : 'English'}:</span>
-            <LevelStars level={d.learner.level[l] ?? 1} size={14} />
-            <span>story level {d.learner.level[l] ?? 1} of 3 · {knownCount(d.learner, l)} {l === 'ne' ? 'letters' : 'sounds'} read confidently</span>
+            <StageBadge stage={d.learner.stage[l]} lang={l} />
+            <span>
+              {d.learner.stage[l].mastered} of {d.learner.stage[l].total} {l === 'ne' ? 'letters' : 'sounds'} mastered
+              {d.learner.stage[l].next_name ? ` · ${(d.learner.stage[l].next_at ?? 0) - d.learner.stage[l].mastered} more to ${d.learner.stage[l].next_name}` : ''}
+              {' '}· story size {d.learner.level[l] ?? 1} of 3
+            </span>
           </li>
         ))}
         {(['ne', 'en'] as const).map((l) => (

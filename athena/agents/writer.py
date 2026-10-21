@@ -34,6 +34,28 @@ def _units_line(plan: StoryPlan) -> str:
     return "Use ONLY words from the word bank. No other words at all, not even small ones."
 
 
+# How a story is built at each story-size level (progression.LEVELS): growth in story craft,
+# not only in length. Examples per language so the model copies the right shape.
+STYLE = {
+    1: {
+        "en": "Story shape (level 1): one character, present tense, one or two sentence patterns repeated with one word changed (\"The cat sits. The cat naps. The cat is glad.\").",
+        "ne": "Story shape (level 1): one character, present tense, one or two sentence patterns repeated with one word changed (\"बिरालो सुत्छ। बिरालो खान्छ। बिरालो खुसी छ।\").",
+    },
+    2: {
+        "en": "Story shape (level 2): two characters doing things in order (first, then), and one feeling word at the end.",
+        "ne": "Story shape (level 2): two characters doing things in order (पहिले ... अनि ...), and one feeling word at the end (खुसी, रमायो).",
+    },
+    3: {
+        "en": "Story shape (level 3): a tiny plot: a beginning, a small problem, a happy ending. Include one short line of speech in quotes.",
+        "ne": "Story shape (level 3): a tiny plot: a beginning, a small problem, a happy ending. Include one short line of speech in quotes (\"आऊ!\" भनिन्).",
+    },
+}
+
+
+def style_for(level: int, language: str) -> str:
+    return STYLE.get(level, STYLE[2])[language if language in ("en", "ne") else "en"]
+
+
 def build_prompt(plan: StoryPlan, feedback: list[ViolationOut] | None = None) -> str:
     lang = _LANG[plan.language]
     bank_rule = (
@@ -66,6 +88,13 @@ Nepali grammar and idiom (a native speaker will read this):
         key_line += f"Key words for this theme (the child can read these; use them): {' '.join(plan.key_words)}\n"
     if plan.avoid_words:
         key_line += f"Do NOT write these even though they are natural (the child cannot read them yet): {' '.join(plan.avoid_words)}\n"
+    if plan.revisit_words:
+        key_line += (
+            f"Words {plan.learner_name} found hard recently (they can read them now; use each once or twice, "
+            f"naturally, for practice): {' '.join(plan.revisit_words)}\n"
+        )
+    if plan.recent_titles:
+        key_line += f"{plan.learner_name}'s recent stories (write something different, new events and title): {'; '.join(plan.recent_titles)}\n"
     prompt = f"""You write decodable reading stories for a {lang} beginner reader aged 4-10 in Nepal.
 
 Child's name: {plan.learner_name} (always allowed; spell it EXACTLY like this. In Nepali you may attach case endings: {plan.learner_name}ले, {plan.learner_name}को, {plan.learner_name}लाई, {plan.learner_name}मा, {plan.learner_name}सँग)
@@ -81,6 +110,7 @@ Word bank:
 Rules:
 - {f"exactly {lim.sentences[0]}" if lim.sentences[0] == lim.sentences[1] else f"{lim.sentences[0]} to {lim.sentences[1]}"} short sentences, at most {lim.max_words} words each. Simple, warm, coherent. Repetition is good.
 - Every word at most {lim.max_len_ne if plan.language == "ne" else lim.max_len_en} {"aksharas (letter clusters)" if plan.language == "ne" else "sounds"} long (the child's name is exempt). Prefer short words.
+- {style_for(plan.level, plan.language)}
 - A short title using the same constraints.
 - Everyday Nepali child life: family, village, animals, food, school.
 - No violence, fear, danger, sadness or adult themes.
